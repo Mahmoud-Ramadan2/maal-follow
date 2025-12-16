@@ -1,0 +1,3 @@
+
+ALTER TABLE vendor
+    add  active BOOLEAN NOT NULL DEFAULT TRUE;
