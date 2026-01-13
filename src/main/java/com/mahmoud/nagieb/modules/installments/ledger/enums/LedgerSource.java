@@ -1,0 +1,16 @@
+package com.mahmoud.nagieb.modules.installments.ledger.enums;
+
+/**
+ * Source of ledger entry.
+ *
+ * @author Mahmoud
+ */
+public enum LedgerSource {
+    COLLECTION,        // Customer payments
+    PURCHASE,          // Product purchases
+    INVESTMENT,        // Partner investments
+    WITHDRAWAL,        //  Partner withdrawals
+    PROFIT_DISTRIBUTION, // Monthly profit payments
+    OPERATING_EXPENSE, // usiness expenses
+    MANUAL            // Manual corrections
+}
