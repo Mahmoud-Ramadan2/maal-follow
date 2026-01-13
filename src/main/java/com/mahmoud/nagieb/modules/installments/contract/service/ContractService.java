@@ -12,7 +12,7 @@ import com.mahmoud.nagieb.modules.installments.customer.entity.Customer;
 import com.mahmoud.nagieb.modules.installments.customer.repo.CustomerRepository;
 import com.mahmoud.nagieb.modules.installments.partner.entity.Partner;
 import com.mahmoud.nagieb.modules.installments.partner.repo.PartnerRepository;
-import com.mahmoud.nagieb.modules.installments.purchase.entity.ProductPurchase;
+import com.mahmoud.nagieb.modules.installments.purchase.entity.Purchase;
 import com.mahmoud.nagieb.modules.installments.purchase.repo.PurchaseRepository;
 import com.mahmoud.nagieb.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
@@ -59,7 +59,7 @@ public class ContractService {
 
         Customer customer = customerRepository.findByIdAndActiveTrue(request.getCustomerId()).
                 orElseThrow(() -> new UserNotFoundException("messages.customer.notFound", request.getCustomerId()));
-        ProductPurchase purchase = purchaseRepository.findById(request.getPurchaseId()).
+        Purchase purchase = purchaseRepository.findById(request.getPurchaseId()).
                 orElseThrow(() -> new ObjectNotFoundException("messages.purchase.notFound", request.getPurchaseId()));
 
         Contract contract = contractMapper.toContract(request);
@@ -142,7 +142,7 @@ public class ContractService {
             existingContract.setCustomer(customer);
         }
         if (request.getPurchaseId() != null && !existingContract.getProductPurchase().getId().equals(request.getPurchaseId())) {
-            ProductPurchase purchase = purchaseRepository.findById(request.getPurchaseId()).
+           Purchase purchase = purchaseRepository.findById(request.getPurchaseId()).
                     orElseThrow(() -> new ObjectNotFoundException("messages.purchase.notFound", request.getPurchaseId()));
             existingContract.setProductPurchase(purchase);
         }

@@ -1,54 +1,84 @@
 package com.mahmoud.nagieb.modules.installments.customer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.mahmoud.nagieb.modules.installments.contract.entity.Contract;
+import com.mahmoud.nagieb.modules.installments.schedule.entity.CollectionRouteItem;
+import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
+ * Customer entity for installment contracts.
+ *
  * @author Mahmoud
  */
 @Entity
 @Table(name = "customer")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
-    @Column(nullable = false)
+
+    @NotBlank(message = "{validation.name.required}")
+    @Column(nullable = false, length = 200)
     private String name;
+
+    @Column(length = 20)
     private String phone;
+
+    @Column(length = 255)
     private String address;
-    @NotNull
-    @Column(name = "national_id", nullable = false)
-    private Long nationalId;
+
+    @Column(name = "national_id", length = 50)
+    private String nationalId;
+
+    @Column(columnDefinition = "TEXT")
     private String notes;
-    @Column(name = "created_at",nullable = false, updatable = false,
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
-    @Column(name = "updated_at",
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
     private boolean active = true;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
-    public Customer(String name, String phone, String address, Long nationalId, String notes) {
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<Contract> contracts;
+
+    @OneToMany(mappedBy = "linkedCustomer")
+    @JsonIgnore
+    private Set<CustomerAccountLink> accountLinks = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "customer")
+    @JsonIgnore
+    private Set<CustomerAccountLink> linkedBy = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "customer")
+    private Set<CollectionRouteItem> collectionRouteItems = new LinkedHashSet<>();
+
+    /**
+     * Constructor for creating customer with basic info.
+     */
+    public Customer(String name, String phone, String address, String nationalId, String notes) {
         this.name = name;
         this.phone = phone;
         this.address = address;
@@ -56,4 +86,37 @@ public class Customer {
         this.notes = notes;
     }
 
+    public void addAccountLink(CustomerAccountLink link) {
+        accountLinks.add(link);
+        link.setCustomer(this);
+    }
+
+    public void removeAccountLink(CustomerAccountLink link) {
+        accountLinks.remove(link);
+        link.setCustomer(null);
+    }
+    public void  addLinkedBy(CustomerAccountLink link) {
+        linkedBy.add(link);
+        link.setLinkedCustomer(this);
+    }
+    public void removeLinkedBy(CustomerAccountLink link) {
+        linkedBy.remove(link);
+        link.setLinkedCustomer(null);
+    }
+
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", phone='" + phone + '\'' +
+                ", address='" + address + '\'' +
+                ", nationalId='" + nationalId + '\'' +
+                ", notes='" + notes + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", active=" + active +
+                '}';
+    }
 }

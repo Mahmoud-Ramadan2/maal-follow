@@ -1,32 +1,41 @@
 package com.mahmoud.nagieb.modules.installments.customer.controller;
 
+import com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse;
+import com.mahmoud.nagieb.modules.installments.contract.service.ContractService;
 import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerRequest;
 import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerResponse;
 import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerSummary;
+import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerWithContarctsResponse;
+import com.mahmoud.nagieb.modules.installments.customer.entity.CustomerAccountLink;
+import com.mahmoud.nagieb.modules.installments.customer.enums.CustomerRelationshipType;
 import com.mahmoud.nagieb.modules.installments.customer.service.CustomerService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 /**
+ * REST controller for Customer management.
+ *
  * @author Mahmoud
  */
 @RestController
 @RequestMapping("/api/v1/customers")
+@AllArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
-
-    public CustomerController(CustomerService customerService) {
-        this.customerService = customerService;
-    }
+    private final ContractService contractService;
 
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request) {
 
-        return ResponseEntity.status(201).body(customerService.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerService.create(request));
     }
 
     @PutMapping("/{id}")
@@ -39,18 +48,68 @@ public class CustomerController {
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getById(id));
     }
+
     @GetMapping
     public ResponseEntity<Page<CustomerSummary>> list(@RequestParam(defaultValue = "0") int page,
                                       @RequestParam(defaultValue = "10") int size,
                                       @RequestParam(required = false) String search) {
 
         Page<CustomerSummary> customerPage  = customerService.list(page, size, search);
-        return new ResponseEntity<>(customerPage , HttpStatus.OK);
+        return ResponseEntity.ok(customerPage);
     }
 
     @DeleteMapping("/{id}")
-    public  ResponseEntity<String> delete(@PathVariable Long id) {
-        String message =customerService.softDelete(id);
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        String message = customerService.softDelete(id);
         return ResponseEntity.ok(message);
+    }
+
+    /**
+     * Retrieves customer with all their contracts.
+     */
+    @GetMapping("/{id}/with-contracts")
+    public ResponseEntity<CustomerWithContarctsResponse> getCustomerWithContracts(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getCustomerWithContracts(id));
+    }
+
+    /**
+     * Retrieves paginated contracts for a customer.
+     */
+    @GetMapping("/{id}/contracts")
+    public ResponseEntity<Page<ContractResponse>> getCustomerContracts(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(contractService.getCustomerWithContracts(id, page, size));
+    }
+
+    /**
+     * Links two customer accounts together.
+     */
+    @PostMapping("/{customerId}/link/{linkedCustomerId}")
+    public ResponseEntity<Void> linkCustomerAccounts(
+            @PathVariable Long customerId,
+            @PathVariable Long linkedCustomerId,
+            @RequestParam CustomerRelationshipType relationshipType,
+            @RequestParam(required = false) String description) {
+        customerService.linkCustomerAccounts(customerId, linkedCustomerId, relationshipType, description);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    /**
+     * Gets all linked accounts for a customer.
+     */
+    @GetMapping("/{customerId}/linked-accounts")
+    public ResponseEntity<List<CustomerAccountLink>> getLinkedAccounts(@PathVariable Long customerId) {
+        return ResponseEntity.ok(customerService.getLinkedAccounts(customerId));
+    }
+
+    /**
+     * Gets statistics about active customers.
+     */
+    @GetMapping("/stats/count")
+    public ResponseEntity<Map<String, Long>> getCustomerCount() {
+        long count = customerService.getActiveCustomerCount();
+        return ResponseEntity.ok(Map.of("activeCustomers", count));
     }
 }

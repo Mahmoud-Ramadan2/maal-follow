@@ -18,15 +18,17 @@ public class CustomerRequest {
     @NotBlank(message = "{validation.address.required}")
     @Size(max = 100, message = "{validation.address.size}")
     private String address;
-    @NotNull(message ="{validation.nationalId.required}")
-    @Min(value = 100000L, message = "{validation.nationalId.size}")
-    @Max(value = 99999999999999L, message = "{validation.nationalId.size}")
-    private Long nationalId;
+    @NotBlank(message ="{validation.nationalId.required}")
+        @Size(min = 6, max = 14, message = "{validation.nationalId.size}")
+    @Pattern(regexp = "^[0-9]+$", message = "{validation.nationalId.pattern}")
+    private String nationalId;
+    @Size(max = 500, message = "{validation.notes.size}")
     private String notes;
+
 
     public CustomerRequest() {
     }
-    public CustomerRequest( String name, String phone, String address, Long nationalId, String notes){
+    public CustomerRequest( String name, String phone, String address, String nationalId, String notes){
         this.name = name;
         this.phone = phone;
         this.address = address;

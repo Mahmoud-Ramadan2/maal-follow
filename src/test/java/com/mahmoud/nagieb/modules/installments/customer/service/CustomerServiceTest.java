@@ -50,7 +50,7 @@ class CustomerServiceTest {
         String name = "احمد محمد";
         String phone = "01145675347";
         String address = "123 Street";
-        Long nationalId = 12345678901234L;
+        String nationalId = "12345678901234";
         String notes = "اختبار ملاحظات";
 
         CustomerRequest request = new CustomerRequest(name, phone, address, nationalId, notes);
@@ -73,7 +73,7 @@ class CustomerServiceTest {
         String name = "احمد محمد";
         String phone = "01145675347";
         String address = "123 Street";
-        Long nationalId = 12345678901234L;
+        String nationalId = "12345678901234";
         String notes = "اختبار ملاحظات";
 
         CustomerRequest request = new CustomerRequest(name, phone, address, nationalId, notes);

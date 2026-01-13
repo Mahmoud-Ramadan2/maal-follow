@@ -12,6 +12,7 @@ public class CustomerSummary {
      String name;
      String phone;
      String address;
-     Long nationalId;
+     String nationalId;
      String notes;
+     String createdAt;
 }
