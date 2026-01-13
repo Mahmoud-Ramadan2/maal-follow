@@ -19,7 +19,6 @@ public class LocaleConfig implements WebMvcConfigurer {
     public LocaleResolver localeResolver() {
         SessionLocaleResolver resolver = new SessionLocaleResolver();
         resolver.setDefaultLocale(new Locale("ar")); // default Arabic
-//        resolver.setCookieName("language");
         return resolver;
     }
 

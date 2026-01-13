@@ -16,9 +16,18 @@ public class MessageConfig {
                 new ReloadableResourceBundleMessageSource();
 
         messageSource.setBasenames(
+                "classpath:messages/user/messages/messages",
                 "classpath:messages/customer/messages/messages",
                 "classpath:messages/vendor/messages/messages",
                 "classpath:messages/purchase/messages/messages",
+                "classpath:messages/contract/messages/messages",
+                "classpath:messages/document/messages/messages",
+                "classpath:messages/ledger/messages/messages",
+                "classpath:messages/payment/messages/messages",
+                "classpath:messages/profit/messages/messages",
+                "classpath:messages/reminder/messages/messages",
+                "classpath:messages/schedule/messages/messages",
+                "classpath:messages/partner/messages/messages",
                 "classpath:messages/customer/ui/customer-list/customer-list",
                 "classpath:messages/customer/ui/customer-details/customer-details",
                 "classpath:messages/shared/validation/validation"
