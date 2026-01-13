@@ -1,3 +1,0 @@
-
-ALTER TABLE customer
-    add  active BOOLEAN NOT NULL DEFAULT TRUE;
