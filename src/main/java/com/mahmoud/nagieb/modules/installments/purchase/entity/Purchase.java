@@ -1,6 +1,8 @@
 package com.mahmoud.nagieb.modules.installments.purchase.entity;
 
+import com.mahmoud.nagieb.modules.installments.contract.entity.Contract;
 import com.mahmoud.nagieb.modules.installments.vendor.entity.Vendor;
+import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -8,6 +10,7 @@ import org.hibernate.proxy.HibernateProxy;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -38,6 +41,13 @@ public class Purchase {
     @JoinColumn(name = "vendor_id")
     @ToString.Exclude
     private Vendor vendor;
+    @OneToMany(mappedBy = "purchase", fetch = FetchType.LAZY)
+    private List<Contract> contracts;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    @ToString.Exclude
+    private User createdBy;
 
     @PrePersist
     protected void onCreate() {

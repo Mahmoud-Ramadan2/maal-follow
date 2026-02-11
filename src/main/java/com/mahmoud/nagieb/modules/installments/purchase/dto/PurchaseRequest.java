@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public class PurchaseRequest {
 
     @NotNull(message = "{messages.vendorId.required}")
+    @Positive
     private Long vendorId;
     
     @NotBlank(message = "{messages.productName.required}")
@@ -24,6 +25,7 @@ public class PurchaseRequest {
 //    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "{messages.purchaseDate.invalid}")
     @PastOrPresent(message = "{messages.purchaseDate.invalid}")
     private LocalDate purchaseDate;
+    @Size(max = 500, message = "{validation.notes.size}")
     private String notes;
 
 

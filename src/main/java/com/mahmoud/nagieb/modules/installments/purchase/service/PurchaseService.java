@@ -26,23 +26,26 @@ import java.util.Optional;
 public class PurchaseService {
     private final PurchaseRepository purchaseRepository;
     private final VendorRepository vendorRepository;
+    // TODO: Replace with authenticated user service
+    private final com.mahmoud.nagieb.modules.shared.user.repo.UserRepository userRepository;
     private final MessageSource messageSource;
     private final PurchaseMapper purchaseMapper;
 
 
     @Transactional
     public PurchaseResponse create(PurchaseRequest request) {
-        if (request.getVendorId() != null) {
-            boolean vendorExists = vendorRepository.existsByIdAndActiveTrue(request.getVendorId());
-            if (!vendorExists) {
-                throw new UserNotFoundException("messages.vendor.notFound", request.getVendorId());
-            }
+
+            Vendor vendor = vendorRepository.findById(request.getVendorId())
+                    .orElseThrow(() -> new UserNotFoundException("messages.vendor.notFound", request.getVendorId()));
             Purchase purchase = purchaseMapper.toPurchase(request);
-            purchase.setVendor(vendorRepository.findById(request.getVendorId()).get());
+        purchase.setVendor(vendor);
+        // TODO: Replace with authenticated user
+         // Temporary hardcoded user with ID 1
+        purchase.setCreatedBy(userRepository.findById(1L).orElse(null));
+
             Purchase savedPurchase = purchaseRepository.save(purchase);
+
             return purchaseMapper.toPurchaseResponse(savedPurchase);
-        }
-        throw new UserNotFoundException("messages.vendor.notFound");
     }
 
     @Transactional
