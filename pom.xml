@@ -131,6 +131,19 @@
                     </excludes>
                 </configuration>
             </plugin>
+
+<!--            <plugin>-->
+<!--                <groupId>org.flywaydb</groupId>-->
+<!--                <artifactId>flyway-maven-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    &lt;!&ndash;suppress UnresolvedMavenProperty &ndash;&gt;-->
+<!--                    <url>${spring.datasource.url}</url>-->
+<!--                    <user>"${spring.datasource.username}"</user>-->
+<!--                    <password>${spring.datasource.password}</password>-->
+<!--                    <schemas>installments</schemas>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
         </plugins>
     </build>
 
