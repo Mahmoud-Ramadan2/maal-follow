@@ -52,8 +52,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     @Query("SELECT c FROM Customer c LEFT JOIN FETCH c.contracts WHERE c.id = :id AND c.active = true")
     Optional<Customer> findWithContractsById(@Param("id") Long id);
 
-    @Query("SELECT COUNT(c) FROM Customer c WHERE c.active = true")
-    long countActiveCustomers();
+
 
     @Query("SELECT c FROM Customer c WHERE c.active = true AND " +
            "(LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -62,4 +61,10 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Page<Customer> searchCustomers(@Param("search") String search, Pageable pageable);
 
     boolean existsByIdAndActiveTrue(Long id);
+
+    @Query("SELECT COUNT(c) FROM Customer c WHERE c.active = true")
+    long countActiveCustomers();
+
+    @Query("SELECT COUNT(c) fROM Customer c WHERE c.active = false")
+    long countCustomersWithActiveFalse();
 }

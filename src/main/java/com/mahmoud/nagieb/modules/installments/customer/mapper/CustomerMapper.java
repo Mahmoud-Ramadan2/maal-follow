@@ -12,12 +12,16 @@ import org.mapstruct.Mapping;
 
 public interface CustomerMapper {
 
+
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "contracts", ignore = true)
+    @Mapping(target = "linkedBy", ignore = true)
+    @Mapping(target = "collectionRouteItems", ignore = true)
+    @Mapping(target = "accountLinks", ignore = true)
     Customer toCustomer(CustomerRequest customerRequest);
 
     CustomerResponse toCustomerResponse(Customer customer);

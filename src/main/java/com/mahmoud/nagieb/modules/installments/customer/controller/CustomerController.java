@@ -2,15 +2,13 @@ package com.mahmoud.nagieb.modules.installments.customer.controller;
 
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse;
 import com.mahmoud.nagieb.modules.installments.contract.service.ContractService;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerRequest;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerResponse;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerSummary;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerWithContarctsResponse;
+import com.mahmoud.nagieb.modules.installments.customer.dto.*;
 import com.mahmoud.nagieb.modules.installments.customer.entity.CustomerAccountLink;
 import com.mahmoud.nagieb.modules.installments.customer.enums.CustomerRelationshipType;
 import com.mahmoud.nagieb.modules.installments.customer.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +29,7 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final ContractService contractService;
-
+    private final MessageSource  messageSource;
     @PostMapping
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CustomerRequest request) {
 
@@ -92,7 +90,9 @@ public class CustomerController {
             @PathVariable Long linkedCustomerId,
             @RequestParam CustomerRelationshipType relationshipType,
             @RequestParam(required = false) String description) {
+
         customerService.linkCustomerAccounts(customerId, linkedCustomerId, relationshipType, description);
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -100,8 +100,14 @@ public class CustomerController {
      * Gets all linked accounts for a customer.
      */
     @GetMapping("/{customerId}/linked-accounts")
-    public ResponseEntity<List<CustomerAccountLink>> getLinkedAccounts(@PathVariable Long customerId) {
+    public ResponseEntity<List<CustomerAccountLinkResponse>> getLinkedAccounts(@PathVariable Long customerId) {
         return ResponseEntity.ok(customerService.getLinkedAccounts(customerId));
+    }
+
+    @GetMapping("/linked-accounts/by-relation-type")
+    public ResponseEntity<List<CustomerAccountLinkResponse>> getLinkedAccountsByRelationType(
+            @RequestParam CustomerRelationshipType relationshipType) {
+        return ResponseEntity.ok(customerService.getLinkedAccountsByRelationType(relationshipType));
     }
 
     /**
@@ -109,7 +115,16 @@ public class CustomerController {
      */
     @GetMapping("/stats/count")
     public ResponseEntity<Map<String, Long>> getCustomerCount() {
-        long count = customerService.getActiveCustomerCount();
-        return ResponseEntity.ok(Map.of("activeCustomers", count));
+
+        long countActive = customerService.getActiveCustomerCount();
+        long countInactive = customerService.getInactiveCustomerCount();
+
+        String activeMessage = messageSource.getMessage("customer.count.active", null, null);
+        String inactiveMessage = messageSource.getMessage("customer.count.inactive", null, null);
+
+        return ResponseEntity.ok(Map.of(
+                activeMessage, countActive,
+                inactiveMessage, countInactive
+        ));
     }
 }

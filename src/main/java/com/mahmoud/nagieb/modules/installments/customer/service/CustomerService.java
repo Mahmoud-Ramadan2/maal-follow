@@ -6,20 +6,20 @@ import com.mahmoud.nagieb.exception.DuplicateNationalIdException;
 import com.mahmoud.nagieb.exception.UserNotFoundException;
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse;
 import com.mahmoud.nagieb.modules.installments.contract.mapper.ContractMapper;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerRequest;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerResponse;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerSummary;
-import com.mahmoud.nagieb.modules.installments.customer.dto.CustomerWithContarctsResponse;
+import com.mahmoud.nagieb.modules.installments.customer.dto.*;
 import com.mahmoud.nagieb.modules.installments.customer.entity.Customer;
 import com.mahmoud.nagieb.modules.installments.customer.entity.CustomerAccountLink;
 import com.mahmoud.nagieb.modules.installments.customer.enums.CustomerRelationshipType;
+import com.mahmoud.nagieb.modules.installments.customer.mapper.CustomerAccountLinkMapper;
 import com.mahmoud.nagieb.modules.installments.customer.mapper.CustomerMapper;
 import com.mahmoud.nagieb.modules.installments.customer.repo.CustomerAccountLinkRepository;
 import com.mahmoud.nagieb.modules.installments.customer.repo.CustomerRepository;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import com.mahmoud.nagieb.modules.shared.user.repo.UserRepository;
+import com.mahmoud.nagieb.modules.shared.utils.Utiles;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -48,6 +48,7 @@ public class CustomerService {
     private final CustomerMapper mapper;
     private final MessageSource messageSource;
     private final ContractMapper contractMapper;
+    private final CustomerAccountLinkMapper customerAccountLinkMapper;
 
     /**
      * Creates a new customer with business validation.
@@ -175,6 +176,7 @@ public class CustomerService {
             List<ContractResponse> contracts = customer.getContracts().stream()
                     .map(contractMapper::toContractResponse)
                     .collect(Collectors.toList());
+
             response.setContracts(contracts);
         }
 
@@ -275,6 +277,11 @@ public class CustomerService {
             throw new BusinessException("messages.customer.link.alreadyExists");
         }
 
+        // Validate relationship type
+        if (!Utiles.isValidEnumValue(CustomerRelationshipType.class, relationshipType.name())) {
+            relationshipType = CustomerRelationshipType.OTHER;
+        }
+
         CustomerAccountLink link = new CustomerAccountLink();
         link.setCustomer(customer);
         link.setLinkedCustomer(linkedCustomer);
@@ -293,8 +300,12 @@ public class CustomerService {
      * Gets all linked accounts for a customer.
      */
     @Transactional(readOnly = true)
-    public List<CustomerAccountLink> getLinkedAccounts(Long customerId) {
-        return customerAccountLinkRepository.findAllLinksForCustomer(customerId);
+    public List<CustomerAccountLinkResponse> getLinkedAccounts(Long customerId) {
+        List<CustomerAccountLinkResponse> links = customerAccountLinkRepository.findAllLinksForCustomer(customerId);
+        return links;
+//        return links.stream()
+//                .map(customerAccountLinkMapper::toCustomerAccountLinkResponse)
+//                .collect(Collectors.toList());
     }
 
     /**
@@ -303,5 +314,23 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public long getActiveCustomerCount() {
         return customerRepository.countActiveCustomers();
+    }
+
+    /**
+     * Gets count of inactive customers.
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public long getInactiveCustomerCount() {
+        return customerRepository.countCustomersWithActiveFalse();
+
+    }
+
+    /**
+     * Gets linked accounts by relationship type.
+     */
+    @Transactional(readOnly = true)
+    public List<CustomerAccountLinkResponse> getLinkedAccountsByRelationType(CustomerRelationshipType relationshipType) {
+        return customerAccountLinkRepository.findByRelationshipTypeAndIsActiveTrue(relationshipType);
     }
 }
