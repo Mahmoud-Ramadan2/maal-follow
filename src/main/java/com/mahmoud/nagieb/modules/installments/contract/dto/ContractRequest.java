@@ -23,10 +23,13 @@ public class ContractRequest {
     @Digits(integer = 10, fraction = 2, message = "{messages.contract.downPayment.format}")
     private BigDecimal downPayment;
 
-    @NotNull(message = "{messages.contract.months.required}")
     @Min(value = 1, message = "{messages.contract.months.min}")
     @Max(value = 60, message = "{messages.contract.months.max}")
     private Integer months;
+
+    @DecimalMin(value = "1.00", message = "{messages.contract.monthlyAmount.invalid}")
+    @Digits(integer = 10, fraction = 2, message = "{messages.contract.monthlyAmount.format}")
+    private BigDecimal monthlyAmount;
 
     @NotNull(message = "{messages.contract.startDate.required}")
 //    @PastOrPresent(message = "{messages.contract.startDate.invalid}")

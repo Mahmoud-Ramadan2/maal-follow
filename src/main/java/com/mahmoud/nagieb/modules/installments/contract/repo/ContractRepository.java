@@ -2,6 +2,7 @@ package com.mahmoud.nagieb.modules.installments.contract.repo;
 
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse;
 import com.mahmoud.nagieb.modules.installments.contract.entity.Contract;
+import com.mahmoud.nagieb.modules.installments.contract.entity.InstallmentSchedule;
 import com.mahmoud.nagieb.modules.installments.contract.enums.ContractStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,8 +29,8 @@ SELECT new com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse
         c.status,
         c.customer.name,
         c.responsibleUser.name,
-        c.productPurchase.productName,
-        c.productPurchase.vendor.name,
+        c.purchase.productName,
+        c.purchase.vendor.name,
         c.partner.name,
         c.originalPrice,
         c.additionalCosts,
@@ -68,11 +69,11 @@ SELECT new com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse
 
     // Find contracts by customer with multiple accounts (for requirement #18)
     @Query("""
-        SELECT c FROM Contract c 
-        WHERE c.customer.id IN (
-            SELECT DISTINCT cal.linkedCustomer.id 
+        SELECT c FROM Contract c
+        WHERE c.customer.id IN(
+            SELECT DISTINCT cal.linkedCustomer.id
             FROM CustomerAccountLink cal 
-            WHERE cal.customer.id = :customerId AND cal.isActive = true
+                WHERE cal.customer.id = :customerId AND cal.isActive = true
             UNION
             SELECT :customerId
         )
@@ -97,9 +98,9 @@ SELECT new com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse
     // Get total monthly expected installments
     @Query("""
         SELECT COALESCE(SUM(c.monthlyAmount), 0)
-        FROM Contract c\s
+        FROM Contract c
         WHERE c.status = 'ACTIVE'
-   \s""")
+   """)
     BigDecimal getTotalMonthlyExpectedAmount();
 
     // Count active contracts
@@ -133,4 +134,12 @@ SELECT new com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse
         ORDER BY c.customer.name
     """)
     List<Contract> findActiveContractsByAgreedPaymentDay(@Param("paymentDay") Integer paymentDay);
+
+    @Query("""
+        SELECT is
+        FROM InstallmentSchedule is
+        WHERE is.id = :scheduleId
+        AND is.contract.id = :contractId
+    """)
+    Optional<InstallmentSchedule> findInstallmentScheduleByIdAndContractId(Long scheduleId, Long contractId);
 }

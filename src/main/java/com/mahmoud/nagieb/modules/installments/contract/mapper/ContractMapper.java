@@ -6,12 +6,15 @@ import com.mahmoud.nagieb.modules.installments.contract.entity.Contract;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * @author Mahmoud
+ */
 @Mapper(componentModel = "spring")
 public interface ContractMapper {
 
 
-    @Mapping(target = "vendorName", source = "contract.productPurchase.vendor.name")
-    @Mapping(target = "productName", source = "contract.productPurchase.productName")
+    @Mapping(target = "vendorName", source = "contract.purchase.vendor.name")
+    @Mapping(target = "productName", source = "contract.purchase.productName")
     @Mapping(target = "customerName", source = "contract.customer.name")
     @Mapping(target = "partnerName", source = "contract.partner.name")
     @Mapping(target = "responsibleUserName", source = "contract.responsibleUser.name")
@@ -28,7 +31,7 @@ public interface ContractMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "customer", ignore = true)
-    @Mapping(target = "productPurchase", ignore = true)
+    @Mapping(target = "purchase", ignore = true)
     @Mapping(target = "partner", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)

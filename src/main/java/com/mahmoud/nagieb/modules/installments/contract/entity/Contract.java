@@ -3,7 +3,6 @@ package com.mahmoud.nagieb.modules.installments.contract.entity;
 import com.mahmoud.nagieb.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.nagieb.modules.installments.customer.entity.Customer;
 import com.mahmoud.nagieb.modules.installments.partner.entity.Partner;
-import com.mahmoud.nagieb.modules.installments.purchase.entity.ProductPurchase;
 import com.mahmoud.nagieb.modules.installments.purchase.entity.Purchase;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import jakarta.persistence.*;
@@ -99,6 +98,12 @@ public class Contract {
     @Column(name = "net_profit", precision = 12, scale = 2)
     private BigDecimal netProfit = BigDecimal.ZERO;
 
+    @Column(name = "capital_allocated", precision = 15, scale = 2)
+    private BigDecimal capitalAllocated = BigDecimal.ZERO;
+
+    @Column(name = "capital_returned", precision = 15, scale = 2)
+    private BigDecimal capitalReturned = BigDecimal.ZERO;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
@@ -144,14 +149,32 @@ public class Contract {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_purchase_id", nullable = false)
-    private Purchase productPurchase;
+    private Purchase purchase;
+
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.contractNumber == null) {
+            this.contractNumber = generateContractNumber();
+        }
+        if (this.status == null) {
+            this.status = ContractStatus.ACTIVE;
+        }
+    }
+
+    private String generateContractNumber() {
+
+        String prefix = "CTR-";
+        String uniquePart = java.util.UUID.randomUUID().toString()
+                .replace("-", "").substring(0, 12).toUpperCase();
+        return prefix + uniquePart;
+    }
 
     @Override
     public String toString() {
         return "Contract{" +
                 "id=" + id +
                 ", contractNumber='" + contractNumber +
-
                 ", finalPrice=" + finalPrice +
                 ", status=" + status +
                 ", createdAt=" + createdAt +

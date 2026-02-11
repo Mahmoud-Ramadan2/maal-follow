@@ -45,6 +45,21 @@ public interface ContractExpenseRepository extends JpaRepository<ContractExpense
    """)
     BigDecimal getTotalExpensesByPartnerId(@Param("partnerId") Long partnerId);
 
+    // Get total expenses for a contract in a specific month (for profit calculation)
+    @Query("""
+        SELECT COALESCE(SUM(e.amount), 0) FROM ContractExpense e
+        WHERE e.contract.id = :contractId
+            AND e.expenseDate BETWEEN :startDate AND :endDate
+           """)
+    BigDecimal getTotalExpensesByContractIdAndMonth(@Param("contractId") Long contractId, @Param("startDate") LocalDate startDate,
+                                                    @Param("endDate") LocalDate endDate);
+    @Query("""
+    SELECT COALESCE(SUM(e.amount), 0) FROM ContractExpense e
+        WHERE e.installmentSchedule.id = :installmentScheduleId
+            AND e.expenseDate = :today
+          \s""")
+    BigDecimal getTotalExpensesByScheduleIdAndDateToday(@Param("installmentScheduleId")Long installmentScheduleId, @Param("today") LocalDate today);
+
     // Find expenses by contract and type
     List<ContractExpense> findByContractIdAndExpenseType(Long contractId, ExpenseType expenseType);
 }

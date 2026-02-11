@@ -10,5 +10,6 @@ public enum ContractStatus {
     COMPLETED,
     LATE,
     CANCELLED
+    //TODO: Add BINDING ,other statuses
 }
 

@@ -4,7 +4,7 @@ package com.mahmoud.nagieb.modules.installments.contract.controller;
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractRequest;
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractResponse;
 import com.mahmoud.nagieb.modules.installments.contract.service.ContractService;
-import com.mahmoud.nagieb.modules.shared.enums.ContractStatus;
+import com.mahmoud.nagieb.modules.installments.contract.enums.ContractStatus;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * REST controller for managing contracts.
+ * * @author Mahmoud
+ */
 @RestController
 @RequestMapping("/api/v1/contracts")
 @AllArgsConstructor
 public class ContractController {
 
     private final ContractService contractService;
-
-//    public ContractController (ContractService contractService) {
-//        this.contractService = contractService;
-//    }
 
     @PostMapping
     public ResponseEntity<ContractResponse> createContract(

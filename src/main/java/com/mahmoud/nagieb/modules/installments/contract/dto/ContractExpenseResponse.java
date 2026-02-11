@@ -1,7 +1,7 @@
 package com.mahmoud.nagieb.modules.installments.contract.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.mahmoud.nagieb.modules.shared.enums.ExpenseType;
+import com.mahmoud.nagieb.modules.installments.contract.enums.ExpenseType;
 import com.mahmoud.nagieb.modules.shared.enums.PaidBy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 public class ContractExpenseResponse {
 
     private String contractNumber;
+    private Long scheduleId;
     private ExpenseType expenseType;
     private BigDecimal amount;
     private String description;

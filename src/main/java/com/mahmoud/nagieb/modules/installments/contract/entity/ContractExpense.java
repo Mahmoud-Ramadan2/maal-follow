@@ -6,6 +6,7 @@ import com.mahmoud.nagieb.modules.installments.partner.entity.Partner;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -64,7 +65,6 @@ public class ContractExpense {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "installment_contract_id", nullable = false)
     private Contract contract;
@@ -77,6 +77,11 @@ public class ContractExpense {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    // Only link to InstallmentSchedule if the expense is directly related to a specific installment
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "installment_schedule_id")
+    private InstallmentSchedule installmentSchedule;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

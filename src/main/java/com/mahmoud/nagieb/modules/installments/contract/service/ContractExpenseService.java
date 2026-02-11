@@ -7,15 +7,21 @@ import com.mahmoud.nagieb.modules.installments.contract.dto.ContractExpenseReque
 import com.mahmoud.nagieb.modules.installments.contract.dto.ContractExpenseResponse;
 import com.mahmoud.nagieb.modules.installments.contract.entity.Contract;
 import com.mahmoud.nagieb.modules.installments.contract.entity.ContractExpense;
+import com.mahmoud.nagieb.modules.installments.contract.entity.InstallmentSchedule;
 import com.mahmoud.nagieb.modules.installments.contract.mapper.ContractExpenseMapper;
 import com.mahmoud.nagieb.modules.installments.contract.repo.ContractExpenseRepository;
 import com.mahmoud.nagieb.modules.installments.contract.repo.ContractRepository;
 import com.mahmoud.nagieb.modules.installments.partner.entity.Partner;
 import com.mahmoud.nagieb.modules.installments.partner.repo.PartnerRepository;
 import com.mahmoud.nagieb.modules.shared.enums.ExpenseType;
-import com.mahmoud.nagieb.modules.shared.enums.PaidBy;
+import com.mahmoud.nagieb.modules.installments.contract.enums.PaidBy;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import com.mahmoud.nagieb.modules.shared.user.repo.UserRepository;
+import com.mahmoud.nagieb.modules.installments.ledger.entity.DailyLedger;
+import com.mahmoud.nagieb.modules.installments.ledger.enums.LedgerReferenceType;
+import com.mahmoud.nagieb.modules.installments.ledger.enums.LedgerSource;
+import com.mahmoud.nagieb.modules.installments.ledger.enums.LedgerType;
+import com.mahmoud.nagieb.modules.installments.ledger.repo.DailyLedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +43,7 @@ public class ContractExpenseService {
     private final PartnerRepository partnerRepository;
     private final UserRepository userRepository;
     private final ContractExpenseMapper expenseMapper;
+    private final DailyLedgerRepository dailyLedgerRepository;
 
     /**
      * Create a new contract expense
@@ -45,8 +52,10 @@ public class ContractExpenseService {
      */
     @Transactional
     public ContractExpenseResponse createExpense(ContractExpenseRequest request) {
+
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new ObjectNotFoundException("messages.contract.notFound", request.getContractId()));
+
 
         // TODO: Replace with actual authenticated user ID
         User user = userRepository.findById(1L)
@@ -55,7 +64,7 @@ public class ContractExpenseService {
         ContractExpense expense = expenseMapper.toEntity(request);
         expense.setContract(contract);
         expense.setCreatedBy(user);
-        if (expense.getPaidBy() == PaidBy.PARTNER && expense.getPartner() == null) {
+        if (expense.getPartner() == null && PaidBy.PARTNER.equals(expense.getPaidBy())) {
             throw new BusinessException("messages.expense.partner.required");
         }
         if (request.getPartnerId() != null) {
@@ -64,10 +73,20 @@ public class ContractExpenseService {
             expense.setPartner(partner);
         }
 
+        if(request.getScheduleId() != null){
+            // Validate installment schedule belongs to contract
+            InstallmentSchedule schedule = contractRepository.findInstallmentScheduleByIdAndContractId(request.getScheduleId(), contract.getId()).orElse(null);
+                expense.setInstallmentSchedule(schedule);
+        }
+
         ContractExpense saved = expenseRepository.save(expense);
         log.info("Created expense {} for contract {}", saved.getId(), contract.getContractNumber());
 
+        // Record expense in daily ledger
+        recordExpenseInDailyLedger(saved, user);
+
         // Note: Database triggers automatically update contract totals
+
         return expenseMapper.toResponse(saved);
     }
 
@@ -76,7 +95,7 @@ public class ContractExpenseService {
         ContractExpense expense = expenseRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("messages.expense.notFound", id));
 
-        if (expense.getPaidBy() == PaidBy.PARTNER && expense.getPartner() == null) {
+        if ( PaidBy.PARTNER.equals(expense.getPaidBy()) && expense.getPartner() == null) {
             throw new BusinessException("messages.expense.partner.required");
         }
 
@@ -167,5 +186,30 @@ public class ContractExpenseService {
 
 
         contractRepository.save(contract);
+    }
+
+    /**
+     * Record contract expense in daily ledger for proper financial tracking
+     */
+    private void recordExpenseInDailyLedger(ContractExpense expense, User user) {
+        String idempotencyKey = "LEDGER-EXP-" + expense.getId();
+        String description = expense.getInstallmentSchedule() != null ?
+                "مصاريف اضافية خاصة بالقسط " + expense.getInstallmentSchedule().getId() :
+                "مصاريف اضافية عامة للعقد " + expense.getContract().getId();
+        DailyLedger ledgerEntry = DailyLedger.builder()
+                .idempotencyKey(idempotencyKey)
+                .type(LedgerType.EXPENSE)
+                .amount(expense.getAmount())
+                .source(LedgerSource.OPERATING_EXPENSE)
+                .referenceType(expense.getInstallmentSchedule() != null ? LedgerReferenceType.INSTALLMENT_SCHEDULE : LedgerReferenceType.CONTRACT_EXPENSE)
+                .referenceId(expense.getId())
+                .description(description)
+                .date(expense.getExpenseDate())
+                .user(user)
+                .partner(expense.getPartner())
+                .build();
+
+        dailyLedgerRepository.save(ledgerEntry);
+        log.debug("Recorded expense {} in daily ledger", expense.getId());
     }
 }

@@ -1,9 +1,10 @@
 package com.mahmoud.nagieb.modules.installments.contract.dto;
 
-import com.mahmoud.nagieb.modules.shared.enums.ExpenseType;
-import com.mahmoud.nagieb.modules.shared.enums.PaidBy;
+import com.mahmoud.nagieb.modules.installments.contract.enums.ExpenseType;
+import com.mahmoud.nagieb.modules.installments.contract.enums.PaidBy;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,13 +12,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractExpenseRequest {
 
-    @NotNull(message = "{messages.contract.contractId.required}")
     @Positive
     private Long contractId;
+
+    @Positive
+    private Long scheduleId;
 
     @NotNull(message = "{messages.contract.expenseType.required}")
     private ExpenseType expenseType;
