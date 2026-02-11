@@ -21,6 +21,7 @@ public class VendorRequest {
     @NotBlank
     @Size(max = 100, message = "{validation.address.size}")
     private String address;
+    @Size(max = 500, message = "{validation.notes.size}")
     private String notes;
 
 }
