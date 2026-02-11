@@ -33,8 +33,8 @@ public class LedgerController {
      * If the same idempotency key is used, returns the existing entry.
      */
     @PostMapping
-    public ResponseEntity<LedgerResponse> createEntry(@Valid @RequestBody LedgerRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ledgerService.createEntry(request));
+    public ResponseEntity<LedgerResponse> createLedgerEntry(@Valid @RequestBody LedgerRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ledgerService.createLedgerEntry(request));
     }
 
     /**

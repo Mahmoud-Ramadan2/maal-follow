@@ -50,7 +50,7 @@ public class LedgerService {
      * If the same idempotency key is used, returns the existing entry.
      */
     @Transactional
-    public LedgerResponse createEntry(LedgerRequest request) {
+    public LedgerResponse createLedgerEntry(LedgerRequest request) {
         log.info("Creating ledger entry with idempotency key: {}", request.getIdempotencyKey());
 
         // Idempotency Check: Return existing entry if already processed
@@ -322,7 +322,7 @@ public class LedgerService {
                 .date(LocalDate.now())
                 .build();
 
-        return createEntry(request);
+        return createLedgerEntry(request);
     }
 
     /**
@@ -349,7 +349,73 @@ public class LedgerService {
                 .date(LocalDate.now())
                 .build();
 
-        return createEntry(request);
+        return createLedgerEntry(request);
+    }
+
+    /**
+     * Creates an expense entry for partner withdrawal (called internally when withdrawal is processed).
+     */
+    @Transactional
+    public LedgerResponse recordPartnerWithdrawalExpense(Long partnerId, BigDecimal amount,
+                                                        Long withdrawalId, String description) {
+        String idempotencyKey = "WITHDRAWAL_" + withdrawalId;
+
+        // Check idempotency
+        Optional<DailyLedger> existing = ledgerRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            log.info("Idempotent withdrawal expense request detected for withdrawal ID: {}", withdrawalId);
+            return ledgerMapper.toResponse(existing.get());
+        }
+
+        LedgerRequest request = LedgerRequest.builder()
+                .idempotencyKey(idempotencyKey)
+                .type(LedgerType.EXPENSE)
+                .amount(amount)
+                .source(LedgerSource.WITHDRAWAL)
+                .referenceType(LedgerReferenceType.WITHDRAWAL)
+                .referenceId(withdrawalId)
+                .partnerId(partnerId)
+                .description(description != null ? description : "Partner withdrawal")
+                .date(LocalDate.now())
+                .build();
+
+        log.info("Recording partner withdrawal expense - Partner ID: {}, Amount: {}, Withdrawal ID: {}",
+                 partnerId, amount, withdrawalId);
+
+        return createLedgerEntry(request);
+    }
+
+    /**
+     * Creates an income entry for partner investment (called internally when investment is confirmed).
+     */
+    @Transactional
+    public LedgerResponse recordPartnerInvestmentIncome(Long partnerId, BigDecimal amount,
+                                                       Long investmentId, String description) {
+        String idempotencyKey = "INVESTMENT_" + investmentId;
+
+        // Check idempotency
+        Optional<DailyLedger> existing = ledgerRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            log.info("Idempotent investment income request detected for investment ID: {}", investmentId);
+            return ledgerMapper.toResponse(existing.get());
+        }
+
+        LedgerRequest request = LedgerRequest.builder()
+                .idempotencyKey(idempotencyKey)
+                .type(LedgerType.INCOME)
+                .amount(amount)
+                .source(LedgerSource.INVESTMENT)
+                .referenceType(LedgerReferenceType.INVESTMENT)
+                .referenceId(investmentId)
+                .partnerId(partnerId)
+                .description(description != null ? description : "Partner investment")
+                .date(LocalDate.now())
+                .build();
+
+        log.info("Recording partner investment income - Partner ID: {}, Amount: {}, Investment ID: {}",
+                 partnerId, amount, investmentId);
+
+        return createLedgerEntry(request);
     }
 }
 
