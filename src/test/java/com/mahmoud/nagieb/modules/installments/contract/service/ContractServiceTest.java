@@ -12,7 +12,7 @@ import com.mahmoud.nagieb.modules.installments.customer.entity.Customer;
 import com.mahmoud.nagieb.modules.installments.customer.repo.CustomerRepository;
 import com.mahmoud.nagieb.modules.installments.purchase.entity.Purchase;
 import com.mahmoud.nagieb.modules.installments.purchase.repo.PurchaseRepository;
-import com.mahmoud.nagieb.modules.shared.enums.ContractStatus;
+import com.mahmoud.nagieb.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.nagieb.modules.shared.user.entity.User;
 import com.mahmoud.nagieb.modules.shared.user.repo.UserRepository;
 import org.hibernate.mapping.Any;
