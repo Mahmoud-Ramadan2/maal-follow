@@ -143,4 +143,8 @@ SELECT new com.mahmoud.maalflow.modules.installments.contract.dto.ContractRespon
         AND is.contract.id = :contractId
     """)
     Optional<InstallmentSchedule> findInstallmentScheduleByIdAndContractId(Long scheduleId, Long contractId);
+
+    @Query("SELECT COUNT(c) > 0 FROM Contract c WHERE c.purchase.id = :id")
+    boolean existsContractByPurchaseId(@Param("id") Long id);
+
 }

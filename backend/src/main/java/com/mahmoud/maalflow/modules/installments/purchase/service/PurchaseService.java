@@ -3,6 +3,7 @@ package com.mahmoud.maalflow.modules.installments.purchase.service;
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
+import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
 import com.mahmoud.maalflow.modules.installments.purchase.dto.PurchaseFilter;
 import com.mahmoud.maalflow.modules.installments.purchase.dto.PurchaseRequest;
 import com.mahmoud.maalflow.modules.installments.purchase.dto.PurchaseResponse;
@@ -40,6 +41,7 @@ public class PurchaseService {
     private final VendorRepository vendorRepository;
     // TODO: Replace with authenticated user service
     private final UserRepository userRepository;
+    private final ContractRepository contractRepository;
     private final MessageSource messageSource;
     private final PurchaseMapper purchaseMapper;
 
@@ -81,6 +83,10 @@ public class PurchaseService {
         }
 
         if (request.getBuyPrice() != null) {
+            boolean hasContracts = contractRepository.existsContractByPurchaseId(id);
+            if (hasContracts) {
+                throw new BusinessException("messages.purchase.updatePriceWithContracts");
+            }
             existingPurchase.setBuyPrice(request.getBuyPrice());
         }
 
@@ -162,6 +168,9 @@ public class PurchaseService {
         if (!result.isPresent()) {
             throw new ObjectNotFoundException("messages.purchase.notFound", id);
         } else {
+            if (contractRepository.existsContractByPurchaseId(id)) {
+                throw new BusinessException("messages.purchase.deleteWithContracts");
+            }
             Purchase purchase = result.get();
             String name = purchase.getProductName();
 //            purchase.setActive(false);
