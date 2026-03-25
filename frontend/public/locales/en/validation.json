@@ -40,7 +40,6 @@
     "customerId": { "required": "Customer is required" },
     "purchaseId": { "required": "Purchase is required" },
     "finalPrice": { "required": "Final price is required", "min": "Final price must be at least 100" },
-    "downPayment": { "required": "Down payment is required", "min": "Down payment must be at least 1" },
     "months": { "min": "Months must be at least 1", "max": "Months must not exceed 60" },
     "monthlyAmount": { "min": "Monthly amount must be at least 1" },
     "schedule": { "required": "Provide at least one of: number of months or monthly amount" },
