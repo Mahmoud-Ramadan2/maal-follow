@@ -1,0 +1,29 @@
+package com.mahmoud.maalflow.modules.installments.contract.mapper;
+
+import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseRequest;
+import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseResponse;
+import com.mahmoud.maalflow.modules.installments.contract.entity.ContractExpense;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+/**
+ * @author Mahmoud
+ */
+@Mapper(componentModel = "spring")
+public interface ContractExpenseMapper {
+
+    @Mapping(target = "scheduleId", source = "installmentSchedule.id")
+    @Mapping(target = "contractNumber", source = "contract.contractNumber")
+    @Mapping(target = "partnerName", source = "partner.name")
+    @Mapping(target = "createdByName", source = "createdBy.name")
+    ContractExpenseResponse toResponse(ContractExpense expense);
+
+    @Mapping(target = "installmentSchedule", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "contract", ignore = true)
+    @Mapping(target = "partner", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    ContractExpense toEntity(ContractExpenseRequest request);
+}
+

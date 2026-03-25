@@ -1,0 +1,12 @@
+services:
+  mysql-new:
+    image: mysql:9.0
+    container_name: mysql-latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: installments
+    ports:
+      - "3307:3306"  # Left side (3307) is what you connect to from IntelliJ
+    volumes:
+      - ./mysql_data:/var/lib/mysql
