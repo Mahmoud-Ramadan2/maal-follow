@@ -1,0 +1,217 @@
+/* ============================================================
+   PurchaseListPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ───────────────────────────── */
+
+.purchase-list__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-list__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.purchase-list__header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+/* ── Filters bar ───────────────────────────── */
+
+.purchase-list__filters {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-list__search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+
+/* ── Filters bar ───────────────────────────── */
+
+.purchase-list__filters {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-list__search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+
+/* ── Filter items (vendor, dates) ─────────── */
+
+.purchase-list__filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+    min-width: 150px;
+}
+
+.purchase-list__filter-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.purchase-list__select {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 40px;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.purchase-list__select:hover {
+    border-color: var(--border-color-hover);
+}
+
+.purchase-list__select:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.purchase-list__date-input {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 40px;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.purchase-list__date-input:hover {
+    border-color: var(--border-color-hover);
+}
+
+.purchase-list__date-input:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+
+/* ── Actions cell ──────────────────────────── */
+
+.purchase-list__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-wrap: nowrap;
+}
+
+/* ── Pagination bar ────────────────────────── */
+
+.purchase-list__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    padding-block-start: var(--spacing-4);
+}
+
+.purchase-list__page-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.purchase-list__page-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.purchase-list__page-size {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.purchase-list__page-size select {
+    padding: var(--spacing-1) var(--spacing-2);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* ── Error state ───────────────────────────── */
+
+.purchase-list__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+}
+
+.purchase-list__error-text {
+    color: var(--color-error);
+    font-size: var(--font-size-base);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .purchase-list__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .purchase-list__search {
+        max-width: 100%;
+    }
+
+    .purchase-list__pagination {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-3);
+    }
+
+    .purchase-list__page-controls {
+        justify-content: center;
+    }
+
+    .purchase-list__page-info {
+        text-align: center;
+    }
+
+    .purchase-list__page-size {
+        justify-content: center;
+    }
+
+}
+

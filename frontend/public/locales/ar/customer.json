@@ -1,0 +1,146 @@
+{
+  "title": "العملاء",
+  "createNew": "إضافة عميل",
+  "searchPlaceholder": "البحث بالاسم أو الهاتف أو رقم الهوية…",
+  "clearFilters": "مسح الفلاتر",
+  "filterActive": "نشط",
+  "filterInactive": "غير نشط",
+  "filterAll": "الكل",
+
+  "columns": {
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "nationalId": "رقم الهوية",
+    "notes": "ملاحظات",
+    "createdAt": "تاريخ الإنشاء",
+    "active": "الحالة",
+    "actions": "الإجراءات"
+  },
+
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+
+  "form": {
+    "createTitle": "إضافة عميل",
+    "editTitle": "تعديل العميل",
+    "name": "الاسم",
+    "namePlaceholder": "مثال: أحمد علي",
+    "phone": "الهاتف",
+    "phonePlaceholder": "مثال: +9647801234567",
+    "address": "العنوان",
+    "addressPlaceholder": "مثال: شارع بغداد 123",
+    "nationalId": "رقم الهوية",
+    "nationalIdPlaceholder": "مثال: 12345678901234",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية…",
+    "submit": "حفظ العميل",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "empty": "لا يوجد عملاء",
+  "errorRetry": "إعادة المحاولة",
+
+  "details": {
+    "title": "تفاصيل العميل رقم {{id}}",
+    "backToList": "العودة إلى العملاء",
+    "customerInfo": "معلومات العميل",
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "nationalId": "رقم الهوية",
+    "status": "الحالة",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "تاريخ التحديث",
+    "createdBy": "تم الإنشاء بواسطة",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات",
+    "notFound": "لم يتم العثور على العميل",
+
+    "contracts": "العقود",
+    "contractsPlaceholder": "لا توجد عقود مسجلة لهذا العميل",
+    "contractsFetchError": "فشل في تحميل عقود العميل",
+    "addContract": "إضافة عقد",
+    "createFirstContract": "إنشاء أول عقد",
+    "totalContracts": "إجمالي العقود",
+    "activeContracts": "نشطة",
+    "lateContracts": "متأخرة",
+    "completedContracts": "مكتملة",
+    "totalValue": "القيمة الإجمالية",
+    "totalRemaining": "إجمالي المتبقي",
+    "contractNumber": "رقم العقد",
+    "product": "المنتج",
+    "contractStatus": "الحالة",
+    "finalPrice": "السعر النهائي",
+    "monthlyAmount": "القسط الشهري",
+    "remaining": "المتبقي",
+    "startDate": "تاريخ البدء",
+    "months": "شهر",
+    "view": "عرض",
+    "contractStatuses": {
+      "ACTIVE": "نشط",
+      "COMPLETED": "مكتمل",
+      "LATE": "متأخر",
+      "CANCELLED": "ملغي"
+    },
+
+    "linkedAccounts": "الحسابات المرتبطة",
+    "linkedAccountsPlaceholder": "لا توجد حسابات مرتبطة لهذا العميل",
+    "linkedCustomer": "العميل المرتبط",
+    "relationshipType": "نوع العلاقة",
+    "relationshipDescription": "الوصف",
+    "linkActive": "نشط",
+    "linkInactive": "غير نشط"
+  },
+
+  "linkedAccounts": {
+    "addLink": "ربط حساب",
+    "addFirstLink": "ربط أول حساب",
+    "linkButton": "ربط الحسابات",
+    "linkSuccess": "تم ربط الحسابات بنجاح",
+    "linkError": "فشل في ربط الحسابات",
+    "fetchError": "فشل في تحميل الحسابات المرتبطة",
+    "nationalId": "البحث برقم الهوية",
+    "nationalIdPlaceholder": "اكتب رقم الهوية للبحث…",
+    "searchBy": "البحث بواسطة",
+    "searchPlaceholder": "الاسم، رقم الهاتف، أو الرقم القومي",
+    "searching": "جارٍ البحث…",
+    "noResults": "لم يتم العثور على عميل بهذا الرقم",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري للعلاقة"
+  },
+
+  "stats": {
+    "title": "إحصائيات العملاء",
+    "fetchError": "فشل في تحميل إحصائيات العملاء"
+  },
+
+  "relationshipType": {
+    "SAME_PERSON": "نفس الشخص",
+    "FAMILY_MEMBER": "فرد من العائلة",
+    "BUSINESS_PARTNER": "شريك تجاري",
+    "GUARANTOR": "كفيل",
+    "OTHER": "أخرى"
+  },
+
+  "created": "تم إنشاء العميل بنجاح",
+  "updated": "تم تحديث العميل بنجاح",
+  "deleted": "تم حذف العميل بنجاح",
+  "fetchError": "فشل في تحميل العملاء",
+  "fetchOneError": "فشل في تحميل تفاصيل العميل",
+  "createError": "فشل في إنشاء العميل",
+  "updateError": "فشل في تحديث العميل",
+  "deleteError": "فشل في حذف العميل",
+  "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا العميل؟",
+  "deleteConfirmMessage": "لا يمكن التراجع عن هذا الإجراء."
+}
+

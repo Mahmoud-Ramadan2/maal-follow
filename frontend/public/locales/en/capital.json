@@ -1,0 +1,129 @@
+{
+  "title": "Capital Management",
+  "poolTitle": "Capital Pool",
+  "transactionsTitle": "Capital Transactions",
+  "createTransaction": "New Transaction",
+  "editPool": "Edit Pool",
+
+  "transactionType": {
+    "ALL": "All Types",
+    "INVESTMENT": "Investment",
+    "WITHDRAWAL": "Withdrawal",
+    "ALLOCATION": "Allocation",
+    "RETURN": "Return",
+    "MANUAL": "Manual"
+  },
+
+  "pool": {
+    "currentStatus": "Current Capital Pool Status",
+    "totalAmount": "Total Amount",
+    "availableAmount": "Available",
+    "lockedAmount": "Locked",
+    "returnedAmount": "Returned",
+    "ownerContribution": "Owner Contribution",
+    "partnerContributions": "Partner Contributions",
+    "ownerSharePercentage": "Owner Share %",
+    "partnerSharePercentage": "Partner Share %",
+    "utilizationPercentage": "Utilization %",
+    "description": "Description",
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated",
+    "noPool": "No capital pool configured yet",
+    "recalculate": "Recalculate",
+    "created": "Capital pool created successfully",
+    "updated": "Capital pool updated successfully",
+    "recalculated": "Capital pool recalculated successfully",
+    "fetchError": "Failed to load capital pool",
+    "createError": "Failed to create capital pool",
+    "updateError": "Failed to update capital pool",
+    "recalculateError": "Failed to recalculate capital pool"
+  },
+
+  "poolForm": {
+    "createTitle": "Create Capital Pool",
+    "editTitle": "Edit Capital Pool",
+    "totalAmount": "Total Amount",
+    "totalAmountPlaceholder": "e.g. 100000.00",
+    "ownerContribution": "Owner Contribution",
+    "ownerContributionPlaceholder": "e.g. 60000.00",
+    "partnerContributions": "Partner Contributions",
+    "partnerContributionsPlaceholder": "e.g. 40000.00",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional description…",
+    "submit": "Save Pool",
+    "submitting": "Saving…"
+  },
+
+  "transaction": {
+    "columns": {
+      "id": "#",
+      "transactionType": "Type",
+      "amount": "Amount",
+      "availableBefore": "Avail. Before",
+      "availableAfter": "Avail. After",
+      "partnerName": "Partner",
+      "transactionDate": "Date",
+      "description": "Description",
+      "createdByUsername": "Created By",
+      "actions": "Actions"
+    },
+    "created": "Transaction recorded successfully",
+    "fetchError": "Failed to load transactions",
+    "createError": "Failed to create transaction",
+    "empty": "No transactions found"
+  },
+
+  "transactionForm": {
+    "createTitle": "Record Capital Transaction",
+    "transactionType": "Transaction Type",
+    "transactionTypePlaceholder": "Select type…",
+    "amount": "Amount",
+    "amountPlaceholder": "e.g. 5000.00",
+    "partnerId": "Partner (optional)",
+    "partnerPlaceholder": "Select partner…",
+    "contractId": "Contract ID (optional)",
+    "contractPlaceholder": "e.g. 42",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional description…",
+    "submit": "Record Transaction",
+    "submitting": "Saving…"
+  },
+
+  "details": {
+    "title": "Transaction #{{id}}",
+    "backToList": "Back to Capital",
+    "transactionInfo": "Transaction Information",
+    "id": "Transaction ID",
+    "transactionType": "Type",
+    "amount": "Amount",
+    "availableBefore": "Available Before",
+    "availableAfter": "Available After",
+    "lockedBefore": "Locked Before",
+    "lockedAfter": "Locked After",
+    "referenceType": "Reference Type",
+    "referenceId": "Reference ID",
+    "contractId": "Contract",
+    "paymentId": "Payment",
+    "partnerName": "Partner",
+    "transactionDate": "Transaction Date",
+    "createdAt": "Created At",
+    "createdByUsername": "Created By",
+    "description": "Description",
+    "noDescription": "No description",
+    "notFound": "Transaction not found"
+  },
+
+  "filters": {
+    "filterByType": "Filter by Type",
+    "clearFilters": "Clear Filters"
+  },
+
+  "pagination": {
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "errorRetry": "Retry"
+}

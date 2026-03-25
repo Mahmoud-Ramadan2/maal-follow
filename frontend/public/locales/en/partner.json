@@ -1,0 +1,152 @@
+{
+  "title": "Partners",
+  "createNew": "Add Partner",
+  "searchPlaceholder": "Search by name or phone…",
+  "clearFilters": "Clear Filters",
+
+  "statusFilter": {
+    "ALL": "All",
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
+  },
+  "partnershipType": {
+    "INVESTOR": "Investor",
+    "AFFILIATE": "Affiliate",
+    "DISTRIBUTOR": "Distributor",
+    "OTHER": "Other"
+  },
+  "investmentStatus": {
+    "CONFIRMED": "Confirmed",
+    "PENDING": "Pending",
+    "RETURNED": "Returned"
+  },
+  "withdrawalStatus": {
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "withdrawalType": {
+    "FROM_PRINCIPAL": "From Principal",
+    "FROM_PROFIT": "From Profit",
+    "FROM_BOTH": "From Both"
+  },
+
+  "columns": {
+    "name": "Name",
+    "phone": "Phone",
+    "partnershipType": "Type",
+    "sharePercentage": "Share %",
+    "status": "Status",
+    "currentBalance": "Balance",
+    "totalInvestment": "Total Investment",
+    "investmentStartDate": "Start Date",
+    "profitSharing": "Profit Sharing",
+    "actions": "Actions"
+  },
+
+  "form": {
+    "createTitle": "Add Partner",
+    "editTitle": "Edit Partner",
+    "name": "Name",
+    "namePlaceholder": "e.g. Ahmed Ibrahim",
+    "phone": "Phone",
+    "phonePlaceholder": "e.g. +9647701234567",
+    "address": "Address",
+    "addressPlaceholder": "e.g. Baghdad, Iraq",
+    "partnershipType": "Partnership Type",
+    "partnershipTypePlaceholder": "Select type…",
+    "sharePercentage": "Share Percentage %",
+    "sharePercentagePlaceholder": "e.g. 25.00",
+    "investmentStartDate": "Investment Start Date",
+    "profitCalculationStartMonth": "Profit Start Month (MM/YYYY)",
+    "profitCalculationStartMonthPlaceholder": "e.g. 01/2026",
+    "profitSharingActive": "Profit Sharing Active",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes…",
+    "submit": "Save Partner",
+    "submitting": "Saving…"
+  },
+
+  "pagination": {
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "empty": "No partners found",
+  "errorRetry": "Retry",
+
+  "details": {
+    "title": "Partner: {{name}}",
+    "backToList": "Back to Partners",
+    "partnerInfo": "Partner Information",
+    "financialSummary": "Financial Summary",
+    "name": "Name",
+    "phone": "Phone",
+    "address": "Address",
+    "partnershipType": "Partnership Type",
+    "sharePercentage": "Share Percentage",
+    "status": "Status",
+    "investmentStartDate": "Investment Start Date",
+    "profitCalculationStartMonth": "Profit Calculation Start",
+    "profitSharingActive": "Profit Sharing",
+    "totalInvestment": "Total Investment",
+    "totalWithdrawals": "Total Withdrawals",
+    "currentBalance": "Current Balance",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "createdByName": "Created By",
+    "notes": "Notes",
+    "noNotes": "No notes",
+    "notFound": "Partner not found",
+    "yes": "Yes",
+    "no": "No"
+  },
+
+  "investment": {
+    "title": "Investments",
+    "amount": "Amount",
+    "type": "Type",
+    "status": "Status",
+    "investedAt": "Invested At",
+    "returnedAt": "Returned At",
+    "notes": "Notes",
+    "empty": "No investments recorded",
+    "fetchError": "Failed to load investments"
+  },
+
+  "withdrawal": {
+    "title": "Withdrawals",
+    "amount": "Amount",
+    "principalAmount": "Principal",
+    "profitAmount": "Profit",
+    "type": "Type",
+    "status": "Status",
+    "reason": "Reason",
+    "requestedAt": "Requested",
+    "approvedAt": "Approved",
+    "processedAt": "Processed",
+    "processedBy": "Processed By",
+    "approvedBy": "Approved By",
+    "notes": "Notes",
+    "empty": "No withdrawals recorded",
+    "fetchError": "Failed to load withdrawals"
+  },
+
+  "created": "Partner created successfully",
+  "updated": "Partner updated successfully",
+  "deleted": "Partner deleted successfully",
+  "fetchError": "Failed to load partners",
+  "fetchOneError": "Failed to load partner details",
+  "createError": "Failed to create partner",
+  "updateError": "Failed to update partner",
+  "deleteError": "Failed to delete partner",
+  "deleteConfirm": "Delete this partner? This action cannot be undone."
+}
+

@@ -1,0 +1,152 @@
+{
+  "title": "الشركاء",
+  "createNew": "إضافة شريك",
+  "searchPlaceholder": "البحث بالاسم أو الهاتف…",
+  "clearFilters": "مسح الفلاتر",
+
+  "statusFilter": {
+    "ALL": "الكل",
+    "ACTIVE": "نشط",
+    "INACTIVE": "غير نشط"
+  },
+  "status": {
+    "ACTIVE": "نشط",
+    "INACTIVE": "غير نشط"
+  },
+  "partnershipType": {
+    "INVESTOR": "مستثمر",
+    "AFFILIATE": "شريك تابع",
+    "DISTRIBUTOR": "موزع",
+    "OTHER": "أخرى"
+  },
+  "investmentStatus": {
+    "CONFIRMED": "مؤكد",
+    "PENDING": "معلق",
+    "RETURNED": "مسترد"
+  },
+  "withdrawalStatus": {
+    "PENDING": "معلق",
+    "APPROVED": "موافق عليه",
+    "COMPLETED": "مكتمل",
+    "CANCELLED": "ملغي"
+  },
+  "withdrawalType": {
+    "FROM_PRINCIPAL": "من رأس المال",
+    "FROM_PROFIT": "من الأرباح",
+    "FROM_BOTH": "من الاثنين"
+  },
+
+  "columns": {
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "partnershipType": "النوع",
+    "sharePercentage": "نسبة الحصة",
+    "status": "الحالة",
+    "currentBalance": "الرصيد",
+    "totalInvestment": "إجمالي الاستثمار",
+    "investmentStartDate": "تاريخ البدء",
+    "profitSharing": "مشاركة الأرباح",
+    "actions": "الإجراءات"
+  },
+
+  "form": {
+    "createTitle": "إضافة شريك",
+    "editTitle": "تعديل الشريك",
+    "name": "الاسم",
+    "namePlaceholder": "مثال: أحمد إبراهيم",
+    "phone": "الهاتف",
+    "phonePlaceholder": "مثال: +9647701234567",
+    "address": "العنوان",
+    "addressPlaceholder": "مثال: بغداد، العراق",
+    "partnershipType": "نوع الشراكة",
+    "partnershipTypePlaceholder": "اختر النوع…",
+    "sharePercentage": "نسبة الحصة %",
+    "sharePercentagePlaceholder": "مثال: 25.00",
+    "investmentStartDate": "تاريخ بدء الاستثمار",
+    "profitCalculationStartMonth": "شهر بدء حساب الأرباح (MM/YYYY)",
+    "profitCalculationStartMonthPlaceholder": "مثال: 01/2026",
+    "profitSharingActive": "مشاركة الأرباح فعّالة",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية…",
+    "submit": "حفظ الشريك",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "empty": "لا يوجد شركاء",
+  "errorRetry": "إعادة المحاولة",
+
+  "details": {
+    "title": "الشريك: {{name}}",
+    "backToList": "العودة إلى الشركاء",
+    "partnerInfo": "معلومات الشريك",
+    "financialSummary": "الملخص المالي",
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "partnershipType": "نوع الشراكة",
+    "sharePercentage": "نسبة الحصة",
+    "status": "الحالة",
+    "investmentStartDate": "تاريخ بدء الاستثمار",
+    "profitCalculationStartMonth": "بداية حساب الأرباح",
+    "profitSharingActive": "مشاركة الأرباح",
+    "totalInvestment": "إجمالي الاستثمار",
+    "totalWithdrawals": "إجمالي السحوبات",
+    "currentBalance": "الرصيد الحالي",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "تاريخ التحديث",
+    "createdByName": "أنشأه",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات",
+    "notFound": "لم يتم العثور على الشريك",
+    "yes": "نعم",
+    "no": "لا"
+  },
+
+  "investment": {
+    "title": "الاستثمارات",
+    "amount": "المبلغ",
+    "type": "النوع",
+    "status": "الحالة",
+    "investedAt": "تاريخ الاستثمار",
+    "returnedAt": "تاريخ الاسترداد",
+    "notes": "ملاحظات",
+    "empty": "لا توجد استثمارات مسجلة",
+    "fetchError": "فشل في تحميل الاستثمارات"
+  },
+
+  "withdrawal": {
+    "title": "السحوبات",
+    "amount": "المبلغ",
+    "principalAmount": "رأس المال",
+    "profitAmount": "الأرباح",
+    "type": "النوع",
+    "status": "الحالة",
+    "reason": "السبب",
+    "requestedAt": "تاريخ الطلب",
+    "approvedAt": "تاريخ الموافقة",
+    "processedAt": "تاريخ المعالجة",
+    "processedBy": "معالج بواسطة",
+    "approvedBy": "موافق عليه بواسطة",
+    "notes": "ملاحظات",
+    "empty": "لا توجد سحوبات مسجلة",
+    "fetchError": "فشل في تحميل السحوبات"
+  },
+
+  "created": "تم إنشاء الشريك بنجاح",
+  "updated": "تم تحديث الشريك بنجاح",
+  "deleted": "تم حذف الشريك بنجاح",
+  "fetchError": "فشل في تحميل الشركاء",
+  "fetchOneError": "فشل في تحميل تفاصيل الشريك",
+  "createError": "فشل في إنشاء الشريك",
+  "updateError": "فشل في تحديث الشريك",
+  "deleteError": "فشل في حذف الشريك",
+  "deleteConfirm": "حذف هذا الشريك؟ لا يمكن التراجع عن هذا الإجراء."
+}
+

@@ -1,0 +1,92 @@
+{
+  "title": "Purchases",
+  "createNew": "Create Purchase",
+  "searchPlaceholder": "Search by product or note…",
+  "clearFilters": "Clear Filters",
+
+  "columns": {
+    "productName": "Product Name",
+    "buyPrice": "Price",
+    "vendorName": "Vendor",
+    "purchaseDate": "Purchase Date",
+    "notes": "Notes",
+    "actions": "Actions"
+  },
+
+  "form": {
+    "createTitle": "Create Purchase",
+    "editTitle": "Edit Purchase",
+    "vendorId": "Vendor",
+    "vendorPlaceholder": "Select a vendor…",
+    "productName": "Product Name",
+    "productNamePlaceholder": "e.g. Laptop, Phone…",
+    "buyPrice": "Buy Price",
+    "buyPricePlaceholder": "0.00",
+    "purchaseDate": "Purchase Date",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes…",
+    "submit": "Save Purchase",
+    "submitting": "Saving…"
+  },
+
+  "pagination": {
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "empty": "No purchases found",
+  "errorRetry": "Retry",
+
+  "details": {
+    "title": "Purchase Details #{{id}}",
+    "backToList": "Back to Purchases",
+    "purchaseInfo": "Purchase Information",
+    "vendor": "Vendor",
+    "productName": "Product Name",
+    "buyPrice": "Buy Price",
+    "purchaseDate": "Purchase Date",
+    "createdAt": "Created At",
+    "notes": "Notes",
+    "noNotes": "No notes",
+    "paymentHistory": "Payment History",
+    "paymentPlaceholder": "Payment tracking will be available soon",
+    "notFound": "Purchase not found"
+  },
+
+  "created": "Purchase created successfully",
+  "updated": "Purchase updated successfully",
+  "deleted": "Purchase deleted successfully",
+  "fetchError": "Failed to load purchases",
+  "fetchOneError": "Failed to load purchase details",
+  "createError": "Failed to create purchase",
+  "updateError": "Failed to update purchase",
+  "deleteError": "Failed to delete purchase",
+  "deleteConfirm": "Are you sure you want to delete this purchase?",
+  "deleteConfirmMessage": "This action cannot be undone.",
+
+  "filter": {
+    "allVendors": "All Vendors",
+    "startDate": "From",
+    "endDate": "To"
+  },
+
+  "viewStatistics": "Statistics",
+
+  "statistics": {
+    "title": "Purchase Statistics",
+    "backToList": "Back to Purchases",
+    "totalCount": "Total Purchases",
+    "totalAmount": "Total Spend",
+    "avgAmount": "Average Price",
+    "topVendorsByCount": "Top Vendors by Purchase Count",
+    "topVendorsByAmount": "Top Vendors by Total Spend",
+    "vendor": "Vendor",
+    "count": "Count",
+    "totalSpend": "Total Spend",
+    "share": "Share",
+    "noData": "No data available yet",
+    "fetchError": "Failed to load statistics"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "vendorId": {
+    "required": "Vendor is required",
+    "positive": "Vendor ID must be a positive number"
+  },
+  "productName": {
+    "required": "Product name is required"
+  },
+  "buyPrice": {
+    "required": "Buy price is required",
+    "invalid": "Buy price must be at least 100",
+    "format": "Buy price must have at most 10 digits and 2 decimal places"
+  },
+  "purchaseDate": {
+    "required": "Purchase date is required",
+    "invalid": "Purchase date cannot be in the future"
+  },
+  "notes": {
+    "size": "Notes must not exceed 500 characters"
+  },
+  "name": {
+    "required": "Name is required",
+    "minSize": "Name must be at least 4 characters",
+    "maxSize": "Name must not exceed 50 characters"
+  },
+  "phone": {
+    "required": "Phone number is required",
+    "pattern": "Phone must be 10–15 digits (optional leading +)"
+  },
+  "address": {
+    "required": "Address is required",
+    "size": "Address must not exceed 100 characters"
+  },
+  "nationalId": {
+    "required": "National ID is required",
+    "size": "National ID must be between 6 and 14 characters",
+    "pattern": "National ID must contain only digits"
+  },
+  "contract": {
+    "customerId": { "required": "Customer is required" },
+    "purchaseId": { "required": "Purchase is required" },
+    "finalPrice": { "required": "Final price is required", "min": "Final price must be at least 100" },
+    "downPayment": { "required": "Down payment is required", "min": "Down payment must be at least 1" },
+    "months": { "min": "Months must be at least 1", "max": "Months must not exceed 60" },
+    "monthlyAmount": { "min": "Monthly amount must be at least 1" },
+    "schedule": { "required": "Provide at least one of: number of months or monthly amount" },
+    "startDate": { "required": "Start date is required" },
+    "additionalCosts": { "min": "Additional costs cannot be negative" },
+    "earlyPaymentDiscountRate": { "min": "Discount rate cannot be negative", "max": "Discount rate cannot exceed 100%" },
+    "agreedPaymentDay": { "invalid": "Payment day must be between 1 and 31" },
+    "contractNumber": { "size": "Contract number must not exceed 50 characters" },
+    "expenseType": { "required": "Expense type is required" },
+    "amount": { "required": "Amount is required", "min": "Amount must be greater than 0" },
+    "description": { "size": "Description must not exceed 255 characters" },
+    "expenseDate": { "required": "Expense date is required" },
+    "receiptNumber": { "size": "Receipt number must not exceed 100 characters" }
+  },
+  "partner": {
+    "name": { "maxSize": "Name must not exceed 200 characters" },
+    "address": { "size": "Address must not exceed 200 characters" },
+    "partnershipType": { "required": "Partnership type is required" },
+    "sharePercentage": { "min": "Share percentage must be at least 0.01%", "max": "Share percentage cannot exceed 100%" },
+    "investmentStartDate": { "required": "Investment start date is required" },
+    "profitCalculationStartMonth": { "size": "Profit calculation month must not exceed 7 characters", "pattern": "Format must be MM/YYYY" },
+    "createdBy": { "required": "Created by is required" }
+  },
+  "payment": {
+    "idempotencyKey": { "required": "Transaction key is required", "size": "Transaction key must not exceed 100 characters" },
+    "amount": { "required": "Amount is required", "min": "Amount must be at least 0.01", "format": "Invalid amount format" },
+    "paymentMethod": { "required": "Payment method is required" },
+    "actualPaymentDate": { "required": "Payment date is required" },
+    "agreedPaymentMonth": { "format": "Month format must be YYYY-MM" },
+    "discountAmount": { "min": "Discount cannot be negative", "format": "Invalid discount format" }
+  },
+  "capital": {
+    "totalAmount": { "required": "Total amount is required", "positive": "Total amount must be zero or positive" },
+    "ownerContribution": { "required": "Owner contribution is required", "positive": "Owner contribution must be zero or positive" },
+    "partnerContributions": { "required": "Partner contributions is required", "positive": "Partner contributions must be zero or positive" },
+    "transactionType": { "required": "Transaction type is required" },
+    "amount": { "required": "Amount is required", "positive": "Amount must be positive" },
+    "description": { "size": "Description must not exceed 500 characters" }
+  }
+}

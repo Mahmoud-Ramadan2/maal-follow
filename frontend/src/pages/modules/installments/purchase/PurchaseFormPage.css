@@ -1,0 +1,140 @@
+/* ============================================================
+   PurchaseFormPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ───────────────────────────── */
+
+.purchase-form__header {
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-form__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ── Form grid ─────────────────────────────── */
+
+.purchase-form__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-5);
+}
+
+.purchase-form__full {
+    grid-column: 1 / -1;
+}
+
+/* ── Select (vendor dropdown) ──────────────── */
+
+.purchase-form__select {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    min-height: 40px;
+    cursor: pointer;
+    text-align: start;
+}
+
+.purchase-form__select:hover {
+    border-color: var(--border-color-hover);
+}
+
+.purchase-form__select:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.purchase-form__select--error {
+    border-color: var(--color-error);
+}
+
+.purchase-form__select--error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+/* ── Textarea ──────────────────────────────── */
+
+.purchase-form__textarea {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 100px;
+    resize: vertical;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    text-align: start;
+}
+
+.purchase-form__textarea:hover {
+    border-color: var(--border-color-hover);
+}
+
+.purchase-form__textarea:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.purchase-form__textarea--error {
+    border-color: var(--color-error);
+}
+
+/* ── Character count ───────────────────────── */
+
+.purchase-form__char-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-align: end;
+    margin-block-start: var(--spacing-1);
+}
+
+/* ── Actions bar ───────────────────────────── */
+
+.purchase-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+    padding-block-start: var(--spacing-6);
+    border-block-start: var(--border-width-thin) solid var(--border-color);
+    margin-block-start: var(--spacing-6);
+}
+
+/* ── Loading overlay for edit mode ─────────── */
+
+.purchase-form__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .purchase-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .purchase-form__actions {
+        flex-direction: column-reverse;
+    }
+
+    .purchase-form__actions .btn {
+        width: 100%;
+    }
+}
+

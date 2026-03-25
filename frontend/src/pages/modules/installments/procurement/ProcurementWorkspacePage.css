@@ -1,0 +1,34 @@
+.procurement-workspace {
+    display: grid;
+    gap: 1rem;
+}
+
+.procurement-workspace__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.procurement-workspace__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.procurement-workspace__section {
+    display: block;
+}
+
+.procurement-workspace__section .purchase-list__title,
+.procurement-workspace__section .vendor-list__title {
+    font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .procurement-workspace {
+        gap: 0.75rem;
+    }
+}
+
+

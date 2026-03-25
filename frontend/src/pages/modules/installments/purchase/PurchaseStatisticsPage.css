@@ -1,0 +1,218 @@
+/* ============================================================
+   PurchaseStatisticsPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ─────────────────────────────────────────── */
+.purchase-stats__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-stats__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ── KPI cards row ───────────────────────────────────────── */
+.purchase-stats__kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-8);
+}
+
+.purchase-stats__kpi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    padding: var(--spacing-5);
+    background: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.purchase-stats__kpi-icon {
+    font-size: var(--font-size-2xl);
+    line-height: 1;
+}
+
+.purchase-stats__kpi-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+}
+
+.purchase-stats__kpi-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.purchase-stats__kpi-value--primary   { color: var(--color-primary); }
+.purchase-stats__kpi-value--success   { color: var(--color-success); }
+.purchase-stats__kpi-value--info      { color: #3b82f6; }
+
+/* ── Two-column section grid ─────────────────────────────── */
+.purchase-stats__sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-6);
+    margin-block-end: var(--spacing-6);
+}
+
+/* ── Vendor table inside card ────────────────────────────── */
+.purchase-stats__section-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-4);
+}
+
+.purchase-stats__vendor-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.purchase-stats__vendor-table th {
+    text-align: start;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-block-end: var(--spacing-2);
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+}
+
+.purchase-stats__vendor-table td {
+    padding-block: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+    vertical-align: middle;
+}
+
+.purchase-stats__vendor-table tr:last-child td {
+    border-block-end: none;
+}
+
+.purchase-stats__vendor-name {
+    font-weight: var(--font-weight-medium);
+}
+
+.purchase-stats__vendor-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--border-radius-full);
+    background: var(--bg-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.purchase-stats__vendor-rank--1 { background: #fef9c3; color: #854d0e; }
+.purchase-stats__vendor-rank--2 { background: #f1f5f9; color: #475569; }
+.purchase-stats__vendor-rank--3 { background: #fef3f2; color: #9a3412; }
+
+/* ── Progress bar ────────────────────────────────────────── */
+.purchase-stats__bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.purchase-stats__bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-full);
+    overflow: hidden;
+}
+
+.purchase-stats__bar-fill {
+    height: 100%;
+    border-radius: var(--border-radius-full);
+    background: var(--color-primary);
+    transition: width 0.4s ease;
+}
+
+.purchase-stats__bar-pct {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    min-width: 36px;
+    text-align: end;
+}
+
+/* ── Empty & error states ────────────────────────────────── */
+.purchase-stats__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-10);
+    color: var(--text-tertiary);
+    font-size: var(--font-size-sm);
+}
+
+.purchase-stats__empty-icon {
+    font-size: var(--font-size-3xl);
+    opacity: 0.4;
+}
+
+.purchase-stats__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+}
+
+.purchase-stats__error-text {
+    color: var(--color-error);
+    font-size: var(--font-size-base);
+}
+
+/* ── Loading skeleton ────────────────────────────────────── */
+.purchase-stats__skeleton {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-8);
+}
+
+.purchase-stats__skeleton-kpi {
+    height: 110px;
+    border-radius: var(--border-radius-lg);
+    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-primary) 50%, var(--bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: purchase-stats-shimmer 1.4s infinite;
+}
+
+@keyframes purchase-stats-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .purchase-stats__kpis    { grid-template-columns: 1fr 1fr; }
+    .purchase-stats__sections { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .purchase-stats__kpis { grid-template-columns: 1fr; }
+}
+

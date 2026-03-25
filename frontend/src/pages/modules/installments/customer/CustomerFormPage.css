@@ -1,0 +1,92 @@
+/* ============================================================
+   CustomerFormPage Styles — RTL-safe
+   ============================================================ */
+
+.customer-form__header {
+    margin-block-end: var(--spacing-6);
+}
+
+.customer-form__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.customer-form__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-5);
+}
+
+.customer-form__full {
+    grid-column: 1 / -1;
+}
+
+.customer-form__textarea {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 100px;
+    resize: vertical;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    text-align: start;
+}
+
+.customer-form__textarea:hover {
+    border-color: var(--border-color-hover);
+}
+
+.customer-form__textarea:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.customer-form__textarea--error {
+    border-color: var(--color-error);
+}
+
+.customer-form__char-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-align: end;
+    margin-block-start: var(--spacing-1);
+}
+
+.customer-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+    padding-block-start: var(--spacing-6);
+    border-block-start: var(--border-width-thin) solid var(--border-color);
+    margin-block-start: var(--spacing-6);
+}
+
+.customer-form__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16);
+}
+
+@media (max-width: 768px) {
+    .customer-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .customer-form__actions {
+        flex-direction: column-reverse;
+    }
+
+    .customer-form__actions .btn {
+        width: 100%;
+    }
+}
+

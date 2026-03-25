@@ -1,0 +1,666 @@
+/* ============================================================
+   CustomerDetailsPage Styles — RTL-safe
+   ============================================================ */
+
+.customer-details__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-6);
+}
+
+.customer-details__header-start {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.customer-details__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.customer-details__header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+/* ── Info grid ─────────────────────────────── */
+
+.customer-details__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-5);
+}
+
+.customer-details__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.customer-details__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.customer-details__value {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+/* ── Status badge ──────────────────────────── */
+
+.customer-details__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.customer-details__badge--active {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--color-success);
+}
+
+.customer-details__badge--inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+}
+
+.customer-details__badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ── Notes section ─────────────────────────── */
+
+.customer-details__notes {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+    white-space: pre-wrap;
+}
+
+.customer-details__notes--empty {
+    font-style: italic;
+    color: var(--text-tertiary);
+}
+
+/* ── Sections spacing ──────────────────────── */
+
+.customer-details__section {
+    margin-block-start: var(--spacing-6);
+}
+
+/* ── Linked accounts / contracts table ─────── */
+
+.customer-details__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customer-details__table th,
+.customer-details__table td {
+    padding: var(--spacing-2) var(--spacing-3);
+    text-align: start;
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+}
+
+.customer-details__table th {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.customer-details__table td {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+}
+
+/* ── Placeholder ───────────────────────────── */
+
+.customer-details__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-10) var(--spacing-4);
+    color: var(--text-tertiary);
+    text-align: center;
+    gap: var(--spacing-2);
+}
+
+.customer-details__placeholder-icon {
+    font-size: var(--font-size-3xl);
+    opacity: 0.4;
+}
+
+.customer-details__placeholder-text {
+    font-size: var(--font-size-sm);
+}
+
+/* ── Error / loading states ────────────────── */
+
+.customer-details__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16) var(--spacing-4);
+    gap: var(--spacing-4);
+    text-align: center;
+}
+
+.customer-details__error-text {
+    color: var(--color-error);
+    font-size: var(--font-size-base);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .customer-details__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .customer-details__header-actions {
+        justify-content: flex-end;
+    }
+
+    .customer-details__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   Contracts Section Styles
+   ============================================================ */
+
+/* ── Card footer ───────────────────────────── */
+
+.customer-details__card-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-block-start: var(--spacing-2);
+}
+
+/* ── Contracts wrapper ─────────────────────── */
+
+.customer-details__contracts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-6);
+}
+
+/* ── Stats row ─────────────────────────────── */
+
+.customer-details__contracts-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--spacing-4);
+    padding: var(--spacing-4);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+}
+
+.customer-details__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-1);
+    text-align: center;
+}
+
+.customer-details__stat-value {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+.customer-details__stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── Contracts table ───────────────────────── */
+
+.customer-details__contracts-table {
+    overflow-x: auto;
+}
+
+.customer-details__contract-row {
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.customer-details__contract-row:hover {
+    background: var(--bg-hover);
+}
+
+.customer-details__contract-number {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+}
+
+/* ── Product info cell ─────────────────────── */
+
+.customer-details__product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.customer-details__product-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.customer-details__vendor-name {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+
+/* ── Contract status badges ────────────────── */
+
+.customer-details__contract-status {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.customer-details__contract-status--active {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--color-success);
+}
+
+.customer-details__contract-status--completed {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--color-info, #3b82f6);
+}
+
+.customer-details__contract-status--late {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--color-warning);
+}
+
+.customer-details__contract-status--cancelled {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--color-error);
+}
+
+/* ── Amount cells ──────────────────────────── */
+
+.customer-details__amount {
+    font-weight: var(--font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.customer-details__months {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    font-weight: var(--font-weight-normal);
+}
+
+.customer-details__remaining {
+    color: var(--color-warning);
+}
+
+/* ── Contract actions ──────────────────────── */
+
+.customer-details__contract-actions {
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+}
+
+/* ── Empty state with CTA ──────────────────── */
+
+.customer-details__placeholder button {
+    margin-block-start: var(--spacing-4);
+}
+
+/* ── Mobile responsive contracts ───────────── */
+
+@media (max-width: 1024px) {
+    .customer-details__contracts-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .customer-details__contracts-table th,
+    .customer-details__contracts-table td {
+        min-width: 100px;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 640px) {
+    .customer-details__contracts-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .customer-details__contract-actions {
+        flex-direction: column;
+        gap: var(--spacing-1);
+    }
+
+    .customer-details__contract-actions button {
+        width: 100%;
+    }
+}
+
+/* ============================================================
+   Section Title with Count Badge
+   ============================================================ */
+
+.customer-details__section-title-with-count {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.customer-details__count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--spacing-1);
+    border-radius: var(--border-radius-full);
+    background: var(--color-primary);
+    color: #fff;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+}
+
+/* ============================================================
+   Stat Color Variants
+   ============================================================ */
+
+.customer-details__stat--success .customer-details__stat-value {
+    color: var(--color-success);
+}
+
+.customer-details__stat--warning .customer-details__stat-value {
+    color: var(--color-warning);
+}
+
+.customer-details__stat--info .customer-details__stat-value {
+    color: var(--color-info, #3b82f6);
+}
+
+/* ============================================================
+   Contracts Table Wrapper & Pagination
+   ============================================================ */
+
+.customer-details__contracts-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.customer-details__contracts-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+    padding-block-start: var(--spacing-4);
+    border-block-start: var(--border-width-thin) solid var(--border-color);
+    margin-block-start: var(--spacing-2);
+}
+
+.customer-details__page-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.customer-details__page-size {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.customer-details__page-size select {
+    padding: var(--spacing-1) var(--spacing-2);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+.customer-details__page-controls {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+/* ============================================================
+   Phone Link
+   ============================================================ */
+
+.customer-details__phone a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.customer-details__phone a:hover {
+    color: var(--color-primary-dark, var(--color-primary));
+    text-decoration: underline;
+}
+
+/* ============================================================
+   Linked Accounts Enhancements
+   ============================================================ */
+
+.customer-details__linked-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.customer-details__relationship-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--border-radius-full);
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ============================================================
+   Link Account Form / Select
+   ============================================================ */
+
+.customer-details__link-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+.customer-details__select {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+}
+
+.customer-details__select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+/* ── National ID Search Field ──────────────── */
+
+.customer-details__search-field {
+    position: relative;
+}
+
+.customer-details__search-dropdown {
+    position: absolute;
+    top: 100%;
+    inset-inline: 0;
+    z-index: 50;
+    margin-block-start: var(--spacing-1);
+    background: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg, 0 4px 16px rgba(0, 0, 0, 0.12));
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.customer-details__search-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    color: var(--text-tertiary);
+    font-size: var(--font-size-sm);
+}
+
+.customer-details__search-result {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: var(--spacing-3);
+    text-align: start;
+    background: none;
+    border: none;
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.customer-details__search-result:last-child {
+    border-block-end: none;
+}
+
+.customer-details__search-result:hover {
+    background: var(--bg-hover);
+}
+
+.customer-details__search-result-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.customer-details__search-result-details {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+.customer-details__search-empty {
+    padding: var(--spacing-3);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-sm);
+}
+
+/* ── Selected Customer Preview ─────────────── */
+
+.customer-details__selected-customer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3);
+    background: rgba(34, 197, 94, 0.08);
+    border: var(--border-width-thin) solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--border-radius-md);
+}
+
+.customer-details__selected-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.customer-details__selected-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.customer-details__selected-meta {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+
+
+/* ============================================================
+   Mobile Responsive — Additional
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .customer-details__contracts-pagination {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-2);
+    }
+
+    .customer-details__page-controls {
+        justify-content: space-between;
+    }
+
+    .customer-details__stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .customer-details__link-form {
+        gap: var(--spacing-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .customer-details__section-title-with-count {
+        flex-wrap: wrap;
+    }
+}
+

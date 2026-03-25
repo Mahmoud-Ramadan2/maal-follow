@@ -1,0 +1,93 @@
+{
+  "title": "المنتجات",
+  "createNew": "إضافة منتج",
+  "searchPlaceholder": "البحث باسم المنتج او ملاحظات…",
+  "clearFilters": "مسح الفلاتر",
+
+  "columns": {
+    "productName": "اسم المنتج",
+    "buyPrice": "السعر",
+    "vendorName": "التاجر",
+    "purchaseDate": "تاريخ الشراء",
+    "notes": "ملاحظات",
+    "actions": "الإجراءات"
+  },
+
+  "form": {
+    "createTitle": "إضافة  منتج",
+    "editTitle": "تعديل  المنتج",
+    "vendorId": "التاجر",
+    "vendorPlaceholder": "اختر التاجر…",
+    "productName": "اسم المنتج",
+    "productNamePlaceholder": "مثال: لابتوب، هاتف…",
+    "buyPrice": "سعر المنتج",
+    "buyPricePlaceholder": "0.00",
+    "purchaseDate": "تاريخ الشراء",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية…",
+    "submit": "حفظ  المنتج",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "empty": "لا توجد مشتريات",
+  "errorRetry": "إعادة المحاولة",
+
+  "details": {
+    "title": "تفاصيل المنتج #{{id}}",
+    "backToList": "العودة إلى المشتريات",
+    "purchaseInfo": "معلومات المنتج",
+    "vendor": "التاجر",
+    "productName": "اسم المنتج",
+    "buyPrice": "سعر المنتج",
+    "purchaseDate": "تاريخ الذ",
+    "createdAt": "تاريخ الإنشاء",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات",
+    "paymentHistory": "سجل المدفوعات",
+    "paymentPlaceholder": "تتبع المدفوعات سيكون متاحاً قريباً",
+    "notFound": "لم يتم العثور على المنتج"
+  },
+
+  "created": "تم إنشاء المنتج بنجاح",
+  "updated": "تم تحديث المنتج بنجاح",
+  "deleted": "تم حذف المنتج بنجاح",
+  "fetchError": "فشل في تحميل المنتجات",
+  "fetchOneError": "فشل في تحميل تفاصيل المنتج",
+  "createError": "فشل في إنشاء منتج جديد",
+  "updateError": "فشل في تحديث المنتج",
+  "deleteError": "فشل في حذف المنتج ",
+  "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا المنتج؟",
+  "deleteConfirmMessage": "لا يمكن التراجع عن هذا الإجراء.",
+
+  "filter": {
+    "allVendors": "كل الموردين",
+    "startDate": "من",
+    "endDate": "إلى"
+  },
+
+  "viewStatistics": "الإحصائيات",
+
+  "statistics": {
+    "title": "إحصائيات المشتريات",
+    "backToList": "العودة إلى المشتريات",
+    "totalCount": "إجمالي المشتريات",
+    "totalAmount": "إجمالي الإنفاق",
+    "avgAmount": "متوسط السعر",
+    "topVendorsByCount": "أكثر الموردين شراءً",
+    "topVendorsByAmount": "أعلى الموردين إنفاقاً",
+    "vendor": "المورد",
+    "count": "العدد",
+    "totalSpend": "إجمالي الإنفاق",
+    "share": "النسبة",
+    "noData": "لا توجد بيانات متاحة بعد",
+    "fetchError": "فشل في تحميل الإحصائيات"
+  }
+
+}

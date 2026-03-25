@@ -1,0 +1,55 @@
+{
+  "appName": "El-Hamd",
+  "welcome": "Welcome",
+  "login": "Login",
+  "logout": "Logout",
+  "username": "Username",
+  "password": "Password",
+  "email": "Email",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "view": "View",
+  "add": "Add",
+  "search": "Search",
+  "loading": "Loading...",
+  "success": "Success",
+  "error": "Error occurred",
+  "confirm": "Confirm",
+  "close": "Close",
+
+  "nav": {
+    "dashboard": "Dashboard",
+    "purchases": "Purchases",
+    "procurement": "Purchases & Vendors",
+    "payments": "Payments",
+    "partners": "Partners",
+    "capital": "Capital",
+    "customers": "Customers",
+    "contracts": "Contracts",
+    "vendors": "Vendors"
+  },
+
+  "header": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "language": "Language"
+  },
+
+  "errors": {
+    "network": "Network error, please try again later.",
+    "validation": "Validation error, please check your input.",
+    "server": "Server error.",
+    "notFound": "Resource not found.",
+    "unauthorized": "Unauthorized access.",
+    "forbidden": "Forbidden action.",
+    "timeout": "Request timed out.",
+    "unknown": "An unknown error occurred.",
+    "retry": "Please try again.",
+    "other": "request failed, please try again."
+
+
+  }
+}

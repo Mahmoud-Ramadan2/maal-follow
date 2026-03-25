@@ -1,0 +1,144 @@
+/* ============================================================
+   PurchaseDetailsPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ───────────────────────────── */
+
+.purchase-details__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    margin-block-end: var(--spacing-6);
+}
+
+.purchase-details__header-start {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+}
+
+.purchase-details__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.purchase-details__header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+/* ── Info grid ─────────────────────────────── */
+
+.purchase-details__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-5);
+}
+
+.purchase-details__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.purchase-details__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.purchase-details__value {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.purchase-details__value--lg {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+/* ── Notes section ─────────────────────────── */
+
+.purchase-details__notes {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: var(--line-height-relaxed);
+    white-space: pre-wrap;
+}
+
+.purchase-details__notes--empty {
+    font-style: italic;
+    color: var(--text-tertiary);
+}
+
+/* ── Sections spacing ──────────────────────── */
+
+.purchase-details__section {
+    margin-block-start: var(--spacing-6);
+}
+
+/* ── Payment placeholder ───────────────────── */
+
+.purchase-details__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-10) var(--spacing-4);
+    color: var(--text-tertiary);
+    text-align: center;
+    gap: var(--spacing-2);
+}
+
+.purchase-details__placeholder-icon {
+    font-size: var(--font-size-3xl);
+    opacity: 0.4;
+}
+
+.purchase-details__placeholder-text {
+    font-size: var(--font-size-sm);
+}
+
+/* ── Error / loading states ────────────────── */
+
+.purchase-details__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16) var(--spacing-4);
+    gap: var(--spacing-4);
+    text-align: center;
+}
+
+.purchase-details__error-text {
+    color: var(--color-error);
+    font-size: var(--font-size-base);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .purchase-details__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .purchase-details__header-actions {
+        justify-content: flex-end;
+    }
+
+    .purchase-details__grid {
+        grid-template-columns: 1fr;
+    }
+}
+

@@ -1,0 +1,83 @@
+/* ============================================================
+   Table Styles — RTL-safe
+   ============================================================ */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--bg-primary);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+/* ── Header ────────────────────────────────── */
+
+.table th {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: start;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+    white-space: nowrap;
+}
+
+/* ── Cells ─────────────────────────────────── */
+
+.table td {
+    padding: var(--spacing-3) var(--spacing-4);
+    text-align: start;
+    color: var(--text-primary);
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+}
+
+.table tbody tr:last-child td {
+    border-block-end: none;
+}
+
+.table tbody tr:hover {
+    background-color: var(--color-primary-50);
+}
+
+/* ── Empty / loading states ────────────────── */
+
+.table__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-12) var(--spacing-4);
+    color: var(--text-tertiary);
+    gap: var(--spacing-2);
+}
+
+.table__state-text {
+    font-size: var(--font-size-sm);
+}
+
+/* ── Skeleton row ──────────────────────────── */
+
+.table__skeleton {
+    height: 14px;
+    border-radius: var(--border-radius-sm);
+    background: linear-gradient(
+        90deg,
+        var(--bg-tertiary) 25%,
+        var(--color-secondary-200) 50%,
+        var(--bg-tertiary) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+

@@ -1,0 +1,111 @@
+/* ============================================================
+   Sidebar Styles
+   RTL-safe — uses CSS logical properties throughout
+   ============================================================ */
+
+.sidebar {
+    position: fixed;
+    top: var(--header-height);
+    inset-inline-start: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background-color: var(--bg-primary);
+    border-inline-end: var(--border-width-thin) solid var(--border-color);
+    overflow-y: auto;
+    z-index: var(--z-sidebar);
+    transition: transform var(--transition-normal);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Navigation ────────────────────────────── */
+
+.sidebar__nav {
+    flex: 1;
+    padding: var(--spacing-4) 0;
+}
+
+.sidebar__section-label {
+    padding: var(--spacing-2) var(--spacing-6);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Nav link ──────────────────────────────── */
+
+.sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-3) var(--spacing-6);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    border-inline-start: 3px solid transparent;
+}
+
+.sidebar__link:hover {
+    color: var(--color-primary);
+    background-color: var(--color-primary-50);
+}
+
+.sidebar__link--active {
+    color: var(--color-primary);
+    background-color: var(--color-primary-50);
+    border-inline-start-color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ── Icon placeholder ──────────────────────── */
+
+.sidebar__icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: var(--font-size-lg);
+}
+
+/* ── Overlay (mobile) ──────────────────────── */
+
+.sidebar__overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    z-index: calc(var(--z-sidebar) - 1);
+}
+
+/* ── Mobile behaviour ──────────────────────── */
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    [dir="rtl"] .sidebar {
+        transform: translateX(100%);
+    }
+
+    .sidebar--open {
+        transform: translateX(0);
+    }
+
+    .sidebar__overlay--visible {
+        display: block;
+    }
+}
+

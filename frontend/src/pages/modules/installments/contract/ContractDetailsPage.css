@@ -1,0 +1,73 @@
+/* ContractDetailsPage Styles */
+.contract-details__header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-4); margin-block-end: var(--spacing-6); }
+.contract-details__header-start { display: flex; align-items: center; gap: var(--spacing-3); }
+.contract-details__title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--text-primary); margin: 0; }
+.contract-details__header-actions { display: flex; align-items: center; gap: var(--spacing-2); }
+
+/* Info grid */
+.contract-details__grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-5); }
+.contract-details__field { display: flex; flex-direction: column; gap: var(--spacing-1); }
+.contract-details__label { font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+.contract-details__value { font-size: var(--font-size-base); font-weight: var(--font-weight-medium); color: var(--text-primary); }
+.contract-details__value--highlight { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
+.contract-details__value--success { color: var(--color-success); }
+.contract-details__value--error { color: var(--color-error); }
+.contract-details__value--warning { color: var(--color-warning); }
+
+/* Status badge */
+.contract-details__badge { display: inline-flex; align-items: center; gap: var(--spacing-1); padding: var(--spacing-1) var(--spacing-2); border-radius: var(--border-radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.contract-details__badge--ACTIVE { background: rgba(34, 197, 94, 0.1); color: var(--color-success); }
+.contract-details__badge--COMPLETED { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.contract-details__badge--LATE { background: rgba(239, 68, 68, 0.1); color: var(--color-error); }
+.contract-details__badge--CANCELLED { background: rgba(156, 163, 175, 0.15); color: var(--text-tertiary); }
+.contract-details__badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* Financial grid */
+.contract-details__financial { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-4); }
+.contract-details__financial-card { display: flex; flex-direction: column; gap: var(--spacing-1); padding: var(--spacing-4); background: var(--bg-secondary); border-radius: var(--border-radius); text-align: center; }
+.contract-details__financial-label { font-size: var(--font-size-xs); color: var(--text-tertiary); text-transform: uppercase; }
+.contract-details__financial-value { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--text-primary); }
+.contract-details__financial-value--positive { color: var(--color-success); }
+.contract-details__financial-value--negative { color: var(--color-error); }
+
+/* Sections */
+.contract-details__section { margin-block-start: var(--spacing-6); }
+.contract-details__section-header { display: flex; align-items: center; justify-content: space-between; margin-block-end: var(--spacing-3); flex-wrap: wrap; gap: var(--spacing-2); }
+.contract-details__section-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--text-primary); margin: 0; }
+.contract-details__section-actions { display: flex; gap: var(--spacing-2); flex-wrap: wrap; }
+
+/* Table */
+.contract-details__table { width: 100%; border-collapse: collapse; }
+.contract-details__table th, .contract-details__table td { padding: var(--spacing-2) var(--spacing-3); text-align: start; border-block-end: var(--border-width-thin) solid var(--border-color); }
+.contract-details__table th { font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+.contract-details__table td { font-size: var(--font-size-sm); color: var(--text-primary); }
+
+/* Payment status badges (smaller, for schedule table) */
+.contract-details__payment-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--border-radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.contract-details__payment-badge--PENDING { background: rgba(234, 179, 8, 0.1); color: var(--color-warning); }
+.contract-details__payment-badge--PAID { background: rgba(34, 197, 94, 0.1); color: var(--color-success); }
+.contract-details__payment-badge--LATE { background: rgba(239, 68, 68, 0.1); color: var(--color-error); }
+.contract-details__payment-badge--PARTIALLY_PAID { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.contract-details__payment-badge--CANCELLED { background: rgba(156, 163, 175, 0.15); color: var(--text-tertiary); }
+
+/* Notes */
+.contract-details__notes { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: var(--line-height-relaxed); white-space: pre-wrap; }
+.contract-details__notes--empty { font-style: italic; color: var(--text-tertiary); }
+
+/* Placeholder */
+.contract-details__placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--spacing-10) var(--spacing-4); color: var(--text-tertiary); text-align: center; gap: var(--spacing-2); }
+.contract-details__placeholder-icon { font-size: var(--font-size-3xl); opacity: 0.4; }
+.contract-details__placeholder-text { font-size: var(--font-size-sm); }
+
+/* Center (loading/error) */
+.contract-details__center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--spacing-16) var(--spacing-4); gap: var(--spacing-4); text-align: center; }
+.contract-details__error-text { color: var(--color-error); font-size: var(--font-size-base); }
+
+@media (max-width: 768px) {
+    .contract-details__header { flex-direction: column; align-items: stretch; }
+    .contract-details__header-actions { justify-content: flex-end; }
+    .contract-details__grid { grid-template-columns: 1fr; }
+    .contract-details__financial { grid-template-columns: 1fr 1fr; }
+    .contract-details__section-header { flex-direction: column; align-items: stretch; }
+}
+

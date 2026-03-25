@@ -1,0 +1,125 @@
+{
+  "title": "Payments",
+  "createNew": "Record Payment",
+  "searchPlaceholder": "Search payments…",
+  "clearFilters": "Clear Filters",
+  "filterByMonth": "Filter by Month",
+  "allMonths": "All Months",
+  "earlyPaymentsOnly": "Early Payments Only",
+
+  "status": {
+    "PENDING": "Pending",
+    "COMPLETED": "Completed",
+    "FAILED": "Failed",
+    "REFUNDED": "Refunded",
+    "CANCELLED": "Cancelled"
+  },
+  "paymentMethod": {
+    "CASH": "Cash",
+    "VODAFONE_CASH": "Vodafone Cash",
+    "BANK_TRANSFER": "Bank Transfer",
+    "OTHER": "Other"
+  },
+
+  "columns": {
+    "id": "#",
+    "amount": "Amount",
+    "netAmount": "Net Amount",
+    "paymentMethod": "Method",
+    "status": "Status",
+    "actualPaymentDate": "Payment Date",
+    "agreedPaymentMonth": "Agreed Month",
+    "isEarlyPayment": "Early",
+    "createdAt": "Created",
+    "actions": "Actions"
+  },
+
+  "form": {
+    "createTitle": "Record Payment",
+    "editTitle": "Edit Payment",
+    "idempotencyKey": "Transaction Key",
+    "idempotencyKeyPlaceholder": "Unique key (e.g. PAY-2026-001)",
+    "installmentScheduleId": "Installment Schedule",
+    "installmentSchedulePlaceholder": "Select installment (optional)",
+    "amount": "Amount",
+    "amountPlaceholder": "e.g. 250.00",
+    "paymentMethod": "Payment Method",
+    "paymentMethodPlaceholder": "Select method…",
+    "actualPaymentDate": "Payment Date",
+    "agreedPaymentMonth": "Agreed Month (YYYY-MM)",
+    "agreedPaymentMonthPlaceholder": "e.g. 2026-03",
+    "extraExpenses": "Extra Expenses",
+    "extraExpensesPlaceholder": "e.g. 5.00",
+    "isEarlyPayment": "Early Payment",
+    "discountAmount": "Discount Amount",
+    "discountAmountPlaceholder": "e.g. 10.00",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes…",
+    "collectorId": "Collector",
+    "submit": "Save Payment",
+    "submitting": "Saving…"
+  },
+
+  "details": {
+    "title": "Payment #{{id}}",
+    "backToList": "Back to Payments",
+    "paymentInfo": "Payment Information",
+    "id": "Payment ID",
+    "idempotencyKey": "Transaction Key",
+    "amount": "Amount",
+    "netAmount": "Net Amount",
+    "discountAmount": "Discount",
+    "paymentMethod": "Method",
+    "status": "Status",
+    "paymentDate": "System Date",
+    "actualPaymentDate": "Actual Date",
+    "agreedPaymentMonth": "Agreed Month",
+    "isEarlyPayment": "Early Payment",
+    "receivedByName": "Received By",
+    "collectorName": "Collector",
+    "createdAt": "Created At",
+    "notes": "Notes",
+    "noNotes": "No notes",
+    "notFound": "Payment not found",
+    "yes": "Yes",
+    "no": "No"
+  },
+
+  "statistics": {
+    "title": "Payment Statistics",
+    "monthlyStats": "Monthly Statistics",
+    "expectedPayments": "Expected",
+    "actualPayments": "Actual",
+    "collectionRate": "Collection Rate",
+    "shortfall": "Shortfall",
+    "overduePaid": "Overdue Paid",
+    "earlyPayments": "Early Payments",
+    "totalDiscounts": "Total Discounts",
+    "totalPaymentCount": "Total Count",
+    "earlyPaymentCount": "Early Count",
+    "overdueCount": "Overdue Count",
+    "fetchError": "Failed to load statistics"
+  },
+
+  "pagination": {
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "empty": "No payments found",
+  "errorRetry": "Retry",
+
+  "created": "Payment recorded successfully",
+  "cancelled": "Payment cancelled",
+  "refunded": "Payment refunded",
+  "fetchError": "Failed to load payments",
+  "fetchOneError": "Failed to load payment details",
+  "createError": "Failed to record payment",
+  "cancelError": "Failed to cancel payment",
+  "refundError": "Failed to refund payment",
+  "cancelConfirm": "Cancel this payment? This action cannot be undone.",
+  "refundConfirm": "Refund this payment? This action cannot be undone."
+}
+

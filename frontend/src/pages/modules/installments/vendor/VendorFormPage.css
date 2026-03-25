@@ -1,0 +1,106 @@
+/* ============================================================
+   VendorFormPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ───────────────────────────── */
+
+.vendor-form__header {
+    margin-block-end: var(--spacing-6);
+}
+
+.vendor-form__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ── Form grid ─────────────────────────────── */
+
+.vendor-form__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-5);
+}
+
+.vendor-form__full {
+    grid-column: 1 / -1;
+}
+
+/* ── Textarea ──────────────────────────────── */
+
+.vendor-form__textarea {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 100px;
+    resize: vertical;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    text-align: start;
+}
+
+.vendor-form__textarea:hover {
+    border-color: var(--border-color-hover);
+}
+
+.vendor-form__textarea:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.vendor-form__textarea--error {
+    border-color: var(--color-error);
+}
+
+/* ── Character count ───────────────────────── */
+
+.vendor-form__char-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-align: end;
+    margin-block-start: var(--spacing-1);
+}
+
+/* ── Actions bar ───────────────────────────── */
+
+.vendor-form__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+    padding-block-start: var(--spacing-6);
+    border-block-start: var(--border-width-thin) solid var(--border-color);
+    margin-block-start: var(--spacing-6);
+}
+
+/* ── Loading overlay for edit mode ─────────── */
+
+.vendor-form__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-16);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .vendor-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vendor-form__actions {
+        flex-direction: column-reverse;
+    }
+
+    .vendor-form__actions .btn {
+        width: 100%;
+    }
+}
+

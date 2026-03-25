@@ -1,0 +1,21 @@
+/* CapitalFormPage Styles */
+.capital-form__header { margin-block-end: var(--spacing-6); }
+.capital-form__title { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--text-primary); margin: 0; }
+.capital-form__grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-5); }
+.capital-form__full { grid-column: 1 / -1; }
+.capital-form__textarea { width: 100%; padding: var(--spacing-2) var(--spacing-3); font-size: var(--font-size-sm); font-family: inherit; color: var(--text-primary); background-color: var(--bg-primary); border: var(--border-width-thin) solid var(--border-color); border-radius: var(--border-radius); min-height: 80px; resize: vertical; transition: border-color var(--transition-fast); text-align: start; }
+.capital-form__textarea:focus { outline: none; border-color: var(--border-color-focus); box-shadow: var(--shadow-focus); }
+.capital-form__textarea--error { border-color: var(--color-error); }
+.capital-form__char-count { font-size: var(--font-size-xs); color: var(--text-tertiary); text-align: end; margin-block-start: var(--spacing-1); }
+.capital-form__actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--spacing-3); padding-block-start: var(--spacing-6); border-block-start: var(--border-width-thin) solid var(--border-color); margin-block-start: var(--spacing-6); }
+.capital-form__select { width: 100%; padding: var(--spacing-2) var(--spacing-3); font-size: var(--font-size-sm); font-family: inherit; color: var(--text-primary); background-color: var(--bg-primary); border: var(--border-width-thin) solid var(--border-color); border-radius: var(--border-radius); cursor: pointer; text-align: start; }
+.capital-form__select:focus { outline: none; border-color: var(--border-color-focus); box-shadow: var(--shadow-focus); }
+.capital-form__select--error { border-color: var(--color-error); }
+.capital-form__loading { display: flex; align-items: center; justify-content: center; padding: var(--spacing-16); }
+
+@media (max-width: 768px) {
+    .capital-form__grid { grid-template-columns: 1fr; }
+    .capital-form__actions { flex-direction: column-reverse; }
+    .capital-form__actions .btn { width: 100%; }
+}
+

@@ -1,0 +1,77 @@
+/* ============================================================
+   Input Styles — RTL-safe
+   ============================================================ */
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+/* ── Label ──────────────────────────────────── */
+
+.form-field__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    text-align: start;
+}
+
+.form-field__required {
+    color: var(--color-error);
+    margin-inline-start: var(--spacing-1);
+}
+
+/* ── Input ──────────────────────────────────── */
+
+.form-field__input {
+    width: 100%;
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    min-height: 40px;
+    text-align: start;   /* flips automatically in RTL */
+}
+
+.form-field__input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.form-field__input:hover {
+    border-color: var(--border-color-hover);
+}
+
+.form-field__input:focus {
+    outline: none;
+    border-color: var(--border-color-focus);
+    box-shadow: var(--shadow-focus);
+}
+
+.form-field__input:disabled {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ── Error state ───────────────────────────── */
+
+.form-field__input--error {
+    border-color: var(--color-error);
+}
+
+.form-field__input--error:focus {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.form-field__error {
+    font-size: var(--font-size-xs);
+    color: var(--color-error);
+    text-align: start;
+    min-height: 1.2em;       /* prevents layout shift */
+}
+

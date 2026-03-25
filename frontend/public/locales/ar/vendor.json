@@ -1,0 +1,76 @@
+{
+  "title": "التجار",
+  "createNew": "إضافة تاجر",
+  "searchPlaceholder": "البحث بالاسم أو الهاتف أو العنوان…",
+  "clearFilters": "مسح الفلاتر",
+  "filterActive": "نشط",
+  "filterInactive": "غير نشط",
+  "filterAll": "الكل",
+
+  "columns": {
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "notes": "ملاحظات",
+    "actions": "الإجراءات"
+  },
+
+  "form": {
+    "createTitle": "إضافة تاجر",
+    "editTitle": "تعديل التاجر",
+    "name": "الاسم",
+    "namePlaceholder": "مثال: شركة التقنية",
+    "phone": "الهاتف",
+    "phonePlaceholder": "مثال: +1234567890",
+    "address": "العنوان",
+    "addressPlaceholder": "مثال: شارع الرئيسي 123",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية…",
+    "submit": "حفظ التاجر",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "empty": "لا يوجد تجار",
+  "errorRetry": "إعادة المحاولة",
+
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+
+  "details": {
+    "title": "تفاصيل التاجر #{{id}}",
+    "backToList": "العودة إلى التجار",
+    "vendorInfo": "معلومات التاجر",
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات",
+    "purchases": "المنتجات",
+    "purchasesPlaceholder": "لا توجد مشتريات مسجلة لهذا التاجر",
+    "productName": "اسم المنتج",
+    "buyPrice": "سعر الشراء",
+    "notFound": "لم يتم العثور على التاجر",
+    "totalPurchases": "إجمالي المشتريات: {{count}}"
+  },
+
+  "created": "تم إنشاء التاجر بنجاح",
+  "updated": "تم تحديث التاجر بنجاح",
+  "deleted": "تم حذف التاجر بنجاح",
+  "fetchError": "فشل في تحميل التاجرين",
+  "fetchOneError": "فشل في تحميل تفاصيل التاجر",
+  "createError": "فشل في إنشاء التاجر",
+  "updateError": "فشل في تحديث التاجر",
+  "deleteError": "فشل في حذف التاجر",
+  "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذا التاجر؟",
+  "deleteConfirmMessage": "سيتم وضع علامة على التاجر كغير نشط."
+}
+

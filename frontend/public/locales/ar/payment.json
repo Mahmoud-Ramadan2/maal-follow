@@ -1,0 +1,125 @@
+{
+  "title": "المدفوعات",
+  "createNew": "تسجيل دفعة",
+  "searchPlaceholder": "البحث في المدفوعات…",
+  "clearFilters": "مسح الفلاتر",
+  "filterByMonth": "تصفية حسب الشهر",
+  "allMonths": "كل الأشهر",
+  "earlyPaymentsOnly": "الدفعات المبكرة فقط",
+
+  "status": {
+    "PENDING": "معلق",
+    "COMPLETED": "مكتمل",
+    "FAILED": "فشل",
+    "REFUNDED": "مسترد",
+    "CANCELLED": "ملغي"
+  },
+  "paymentMethod": {
+    "CASH": "نقدي",
+    "VODAFONE_CASH": "فودافون كاش",
+    "BANK_TRANSFER": "تحويل بنكي",
+    "OTHER": "أخرى"
+  },
+
+  "columns": {
+    "id": "#",
+    "amount": "المبلغ",
+    "netAmount": "الصافي",
+    "paymentMethod": "الطريقة",
+    "status": "الحالة",
+    "actualPaymentDate": "تاريخ الدفع",
+    "agreedPaymentMonth": "الشهر المتفق",
+    "isEarlyPayment": "مبكر",
+    "createdAt": "الإنشاء",
+    "actions": "الإجراءات"
+  },
+
+  "form": {
+    "createTitle": "تسجيل دفعة",
+    "editTitle": "تعديل الدفعة",
+    "idempotencyKey": "مفتاح المعاملة",
+    "idempotencyKeyPlaceholder": "مفتاح فريد (مثال: PAY-2026-001)",
+    "installmentScheduleId": "جدول القسط",
+    "installmentSchedulePlaceholder": "اختر القسط (اختياري)",
+    "amount": "المبلغ",
+    "amountPlaceholder": "مثال: 250.00",
+    "paymentMethod": "طريقة الدفع",
+    "paymentMethodPlaceholder": "اختر الطريقة…",
+    "actualPaymentDate": "تاريخ الدفع",
+    "agreedPaymentMonth": "الشهر المتفق (YYYY-MM)",
+    "agreedPaymentMonthPlaceholder": "مثال: 2026-03",
+    "extraExpenses": "مصاريف إضافية",
+    "extraExpensesPlaceholder": "مثال: 5.00",
+    "isEarlyPayment": "دفع مبكر",
+    "discountAmount": "مبلغ الخصم",
+    "discountAmountPlaceholder": "مثال: 10.00",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية…",
+    "collectorId": "المحصّل",
+    "submit": "حفظ الدفعة",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "details": {
+    "title": "الدفعة #{{id}}",
+    "backToList": "العودة إلى المدفوعات",
+    "paymentInfo": "معلومات الدفعة",
+    "id": "رقم الدفعة",
+    "idempotencyKey": "مفتاح المعاملة",
+    "amount": "المبلغ",
+    "netAmount": "الصافي",
+    "discountAmount": "الخصم",
+    "paymentMethod": "الطريقة",
+    "status": "الحالة",
+    "paymentDate": "تاريخ النظام",
+    "actualPaymentDate": "التاريخ الفعلي",
+    "agreedPaymentMonth": "الشهر المتفق",
+    "isEarlyPayment": "دفع مبكر",
+    "receivedByName": "استلم بواسطة",
+    "collectorName": "المحصّل",
+    "createdAt": "تاريخ الإنشاء",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات",
+    "notFound": "لم يتم العثور على الدفعة",
+    "yes": "نعم",
+    "no": "لا"
+  },
+
+  "statistics": {
+    "title": "إحصائيات المدفوعات",
+    "monthlyStats": "الإحصائيات الشهرية",
+    "expectedPayments": "المتوقع",
+    "actualPayments": "الفعلي",
+    "collectionRate": "نسبة التحصيل",
+    "shortfall": "العجز",
+    "overduePaid": "المتأخر المدفوع",
+    "earlyPayments": "الدفعات المبكرة",
+    "totalDiscounts": "إجمالي الخصومات",
+    "totalPaymentCount": "إجمالي العدد",
+    "earlyPaymentCount": "عدد المبكرة",
+    "overdueCount": "عدد المتأخرة",
+    "fetchError": "فشل في تحميل الإحصائيات"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "empty": "لا توجد مدفوعات",
+  "errorRetry": "إعادة المحاولة",
+
+  "created": "تم تسجيل الدفعة بنجاح",
+  "cancelled": "تم إلغاء الدفعة",
+  "refunded": "تم استرداد الدفعة",
+  "fetchError": "فشل في تحميل المدفوعات",
+  "fetchOneError": "فشل في تحميل تفاصيل الدفعة",
+  "createError": "فشل في تسجيل الدفعة",
+  "cancelError": "فشل في إلغاء الدفعة",
+  "refundError": "فشل في استرداد الدفعة",
+  "cancelConfirm": "إلغاء هذه الدفعة؟ لا يمكن التراجع عن هذا الإجراء.",
+  "refundConfirm": "استرداد هذه الدفعة؟ لا يمكن التراجع عن هذا الإجراء."
+}
+

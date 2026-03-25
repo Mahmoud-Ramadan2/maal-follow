@@ -1,0 +1,107 @@
+/* ============================================================
+   Button Styles
+   ============================================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    border: var(--border-width-thin) solid transparent;
+    border-radius: var(--border-radius);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.btn:focus-visible {
+    box-shadow: var(--shadow-focus);
+    outline: none;
+}
+
+.btn:disabled,
+.btn--loading {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* ── Sizes ──────────────────────────────────── */
+
+.btn--sm {
+    padding: var(--spacing-1) var(--spacing-3);
+    font-size: var(--font-size-xs);
+    min-height: 32px;
+}
+
+.btn--md {
+    padding: var(--spacing-2) var(--spacing-4);
+    font-size: var(--font-size-sm);
+    min-height: 40px;
+}
+
+.btn--lg {
+    padding: var(--spacing-3) var(--spacing-6);
+    font-size: var(--font-size-base);
+    min-height: 48px;
+}
+
+/* ── Variant: primary ──────────────────────── */
+
+.btn--primary {
+    background-color: var(--color-primary);
+    color: var(--text-inverse);
+    border-color: var(--color-primary);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background-color: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+}
+
+.btn--primary:active:not(:disabled) {
+    background-color: var(--color-primary-700);
+}
+
+/* ── Variant: secondary ────────────────────── */
+
+.btn--secondary {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color-hover);
+}
+
+.btn--secondary:active:not(:disabled) {
+    background-color: var(--color-secondary-200);
+}
+
+/* ── Variant: danger ───────────────────────── */
+
+.btn--danger {
+    background-color: var(--color-error);
+    color: var(--text-inverse);
+    border-color: var(--color-error);
+}
+
+.btn--danger:hover:not(:disabled) {
+    background-color: var(--color-error-dark);
+    border-color: var(--color-error-dark);
+}
+
+.btn--danger:active:not(:disabled) {
+    background-color: #b91c1c;
+}
+
+/* ── Full width modifier ───────────────────── */
+
+.btn--full {
+    width: 100%;
+}
+
+

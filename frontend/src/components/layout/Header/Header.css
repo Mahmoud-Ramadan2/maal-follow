@@ -1,0 +1,155 @@
+/* ============================================================
+   Header Styles
+   RTL-safe — uses CSS logical properties
+   ============================================================ */
+
+.header {
+    position: sticky;
+    top: 0;
+    height: var(--header-height);
+    background-color: var(--bg-primary);
+    border-block-end: var(--border-width-thin) solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--spacing-6);
+    z-index: var(--z-header);
+    box-shadow: var(--shadow-xs);
+}
+
+/* ── Logo area ─────────────────────────────── */
+
+.header__logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.header__logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--border-radius-sm);
+}
+
+.header__logo-text {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+}
+
+/* ── Right / End actions ───────────────────── */
+
+.header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+/* ── Language switcher ─────────────────────── */
+
+.header__lang-btn {
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    border: var(--border-width-thin) solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.header__lang-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.header__lang-btn--active {
+    background-color: var(--color-primary);
+    color: var(--text-inverse);
+    border-color: var(--color-primary);
+}
+
+.header__lang-btn--active:hover {
+    background-color: var(--color-primary-600);
+    border-color: var(--color-primary-600);
+    color: var(--text-inverse);
+}
+
+/* ── User menu placeholder ─────────────────── */
+
+.header__user-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-1) var(--spacing-3);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    border: var(--border-width-thin) solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+}
+
+.header__user-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color-hover);
+}
+
+.header__user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-full);
+    background-color: var(--color-primary-100);
+    color: var(--color-primary-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+}
+
+/* ── Mobile hamburger ──────────────────────── */
+
+.header__mobile-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius);
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.header__hamburger {
+    width: 20px;
+    height: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.header__hamburger span {
+    display: block;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 1px;
+    transition: all var(--transition-fast);
+}
+
+@media (max-width: 768px) {
+    .header__mobile-toggle {
+        display: flex;
+    }
+
+    .header__logo-text {
+        font-size: var(--font-size-lg);
+    }
+}
+

@@ -1,0 +1,130 @@
+{
+  "title": "إدارة رأس المال",
+  "poolTitle": "صندوق رأس المال",
+  "transactionsTitle": "حركات رأس المال",
+  "createTransaction": "حركة جديدة",
+  "editPool": "تعديل الصندوق",
+
+  "transactionType": {
+    "ALL": "جميع الأنواع",
+    "INVESTMENT": "استثمار",
+    "WITHDRAWAL": "سحب",
+    "ALLOCATION": "تخصيص",
+    "RETURN": "إرجاع",
+    "MANUAL": "يدوي"
+  },
+
+  "pool": {
+    "currentStatus": "حالة صندوق رأس المال الحالية",
+    "totalAmount": "المبلغ الإجمالي",
+    "availableAmount": "المتاح",
+    "lockedAmount": "المحجوز",
+    "returnedAmount": "المسترد",
+    "ownerContribution": "مساهمة المالك",
+    "partnerContributions": "مساهمات الشركاء",
+    "ownerSharePercentage": "نسبة المالك %",
+    "partnerSharePercentage": "نسبة الشركاء %",
+    "utilizationPercentage": "نسبة الاستخدام %",
+    "description": "الوصف",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "آخر تحديث",
+    "noPool": "لم يتم إعداد صندوق رأس المال بعد",
+    "recalculate": "إعادة الحساب",
+    "created": "تم إنشاء صندوق رأس المال بنجاح",
+    "updated": "تم تحديث صندوق رأس المال بنجاح",
+    "recalculated": "تم إعادة حساب صندوق رأس المال بنجاح",
+    "fetchError": "فشل في تحميل صندوق رأس المال",
+    "createError": "فشل في إنشاء صندوق رأس المال",
+    "updateError": "فشل في تحديث صندوق رأس المال",
+    "recalculateError": "فشل في إعادة حساب صندوق رأس المال"
+  },
+
+  "poolForm": {
+    "createTitle": "إنشاء صندوق رأس المال",
+    "editTitle": "تعديل صندوق رأس المال",
+    "totalAmount": "المبلغ الإجمالي",
+    "totalAmountPlaceholder": "مثال: 100000.00",
+    "ownerContribution": "مساهمة المالك",
+    "ownerContributionPlaceholder": "مثال: 60000.00",
+    "partnerContributions": "مساهمات الشركاء",
+    "partnerContributionsPlaceholder": "مثال: 40000.00",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري…",
+    "submit": "حفظ الصندوق",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "transaction": {
+    "columns": {
+      "id": "#",
+      "transactionType": "النوع",
+      "amount": "المبلغ",
+      "availableBefore": "المتاح قبل",
+      "availableAfter": "المتاح بعد",
+      "partnerName": "الشريك",
+      "transactionDate": "التاريخ",
+      "description": "الوصف",
+      "createdByUsername": "أنشأه",
+      "actions": "الإجراءات"
+    },
+    "created": "تم تسجيل الحركة بنجاح",
+    "fetchError": "فشل في تحميل الحركات",
+    "createError": "فشل في إنشاء الحركة",
+    "empty": "لا توجد حركات"
+  },
+
+  "transactionForm": {
+    "createTitle": "تسجيل حركة رأس مال",
+    "transactionType": "نوع الحركة",
+    "transactionTypePlaceholder": "اختر النوع…",
+    "amount": "المبلغ",
+    "amountPlaceholder": "مثال: 5000.00",
+    "partnerId": "الشريك (اختياري)",
+    "partnerPlaceholder": "اختر الشريك…",
+    "contractId": "رقم العقد (اختياري)",
+    "contractPlaceholder": "مثال: 42",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري…",
+    "submit": "تسجيل الحركة",
+    "submitting": "جارٍ الحفظ…"
+  },
+
+  "details": {
+    "title": "الحركة #{{id}}",
+    "backToList": "العودة إلى رأس المال",
+    "transactionInfo": "معلومات الحركة",
+    "id": "رقم الحركة",
+    "transactionType": "النوع",
+    "amount": "المبلغ",
+    "availableBefore": "المتاح قبل",
+    "availableAfter": "المتاح بعد",
+    "lockedBefore": "المحجوز قبل",
+    "lockedAfter": "المحجوز بعد",
+    "referenceType": "نوع المرجع",
+    "referenceId": "رقم المرجع",
+    "contractId": "العقد",
+    "paymentId": "الدفعة",
+    "partnerName": "الشريك",
+    "transactionDate": "تاريخ الحركة",
+    "createdAt": "تاريخ الإنشاء",
+    "createdByUsername": "أنشأه",
+    "description": "الوصف",
+    "noDescription": "لا يوجد وصف",
+    "notFound": "لم يتم العثور على الحركة"
+  },
+
+  "filters": {
+    "filterByType": "تصفية حسب النوع",
+    "clearFilters": "مسح الفلاتر"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}–{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "errorRetry": "إعادة المحاولة"
+}
+

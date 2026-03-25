@@ -1,0 +1,182 @@
+/* ============================================================
+   VendorListPage Styles — RTL-safe
+   ============================================================ */
+
+/* ── Page header ───────────────────────────── */
+
+.vendor-list__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-4);
+    flex-wrap: wrap;
+    margin-block-end: var(--spacing-6);
+}
+
+.vendor-list__title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ── Filters bar ───────────────────────────── */
+
+.vendor-list__filters {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spacing-3);
+    flex-wrap: wrap;
+    margin-block-end: var(--spacing-6);
+}
+
+.vendor-list__search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+
+/* ── Status toggle ─────────────────────────── */
+
+.vendor-list__status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.vendor-list__status-btn {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    border: none;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+}
+
+.vendor-list__status-btn:not(:last-child) {
+    border-inline-end: var(--border-width-thin) solid var(--border-color);
+}
+
+.vendor-list__status-btn:hover {
+    background: var(--bg-secondary);
+}
+
+.vendor-list__status-btn--active {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.vendor-list__status-btn--active:hover {
+    background: var(--color-primary-hover);
+}
+
+/* ── Actions cell ──────────────────────────── */
+
+.vendor-list__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-wrap: nowrap;
+}
+
+/* ── Pagination bar ────────────────────────── */
+
+.vendor-list__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    padding-block-start: var(--spacing-4);
+}
+
+.vendor-list__page-info {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.vendor-list__page-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.vendor-list__page-size {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.vendor-list__page-size select {
+    padding: var(--spacing-1) var(--spacing-2);
+    border: var(--border-width-thin) solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* ── Error state ───────────────────────────── */
+
+.vendor-list__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-12) var(--spacing-4);
+    text-align: center;
+}
+
+.vendor-list__error-text {
+    color: var(--color-error);
+    font-size: var(--font-size-base);
+}
+
+/* ── Mobile ────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .vendor-list__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vendor-list__search {
+        max-width: 100%;
+    }
+
+    .vendor-list__pagination {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-3);
+    }
+
+    .vendor-list__page-controls {
+        justify-content: center;
+    }
+
+    .vendor-list__page-info {
+        text-align: center;
+    }
+
+    .vendor-list__page-size {
+        justify-content: center;
+    }
+
+    .vendor-list__status-toggle {
+        inline-size: 100%;
+    }
+
+    .vendor-list__status-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+
