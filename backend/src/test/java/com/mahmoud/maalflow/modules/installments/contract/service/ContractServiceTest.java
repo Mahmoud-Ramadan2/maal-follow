@@ -110,7 +110,7 @@ class ContractServiceTest {
         resp.setStatus(ContractStatus.ACTIVE);
         when(contractMapper.toContractResponse(saved)).thenReturn(resp);
 
-        ContractResponse result = contractService.create(validRequest);
+        ContractResponse result = contractService.create(validRequest, null);
 
         assertNotNull(result);
         assertEquals(ContractStatus.ACTIVE, result.getStatus());
@@ -132,7 +132,7 @@ class ContractServiceTest {
         when(contractRepository.existsByPurchaseIdAndStatusAndCustomerId(validRequest.getPurchaseId(), ContractStatus.ACTIVE, validRequest.getCustomerId()))
                 .thenReturn(true);
 
-        BusinessException ex = assertThrows(BusinessException.class, () -> contractService.create(validRequest));
+        BusinessException ex = assertThrows(BusinessException.class, () -> contractService.create(validRequest, null));
 
         assertNotNull(ex);
         verifyNoInteractions(contractMapper);
@@ -146,7 +146,7 @@ class ContractServiceTest {
         when(customerRepository.findByIdAndActiveTrue(validRequest.getCustomerId()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> contractService.create(validRequest));
+        assertThrows(UserNotFoundException.class, () -> contractService.create(validRequest, null));
         verifyNoInteractions(purchaseRepository);
     }
 
@@ -159,7 +159,7 @@ class ContractServiceTest {
         when(purchaseRepository.findById(validRequest.getPurchaseId()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ObjectNotFoundException.class, () -> contractService.create(validRequest));
+        assertThrows(ObjectNotFoundException.class, () -> contractService.create(validRequest, null));
     }
 
 

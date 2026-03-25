@@ -23,14 +23,18 @@ public class ContractResponse {
     private ContractStatus status;
 
     // Customer Information
+    private Long customerId;
     private String customerName;
+    private Long responsibleUserId;
     private String responsibleUserName;
 
     // Product/Supplier Information
+    private Long purchaseId;
     private String productName;
     private String vendorName;
 
     // Partner Information
+    private Long partnerId;
     private String partnerName;
 
     // Financial Details - Base Pricing

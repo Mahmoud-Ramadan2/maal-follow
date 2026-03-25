@@ -18,9 +18,9 @@ public class ContractRequest {
     @DecimalMin(value = "100", message = "{messages.contract.finalPrice.invalid}")
     @Digits(integer = 10, fraction = 2, message = "{messages.contract.finalPrice.format}")
     private BigDecimal finalPrice;
-    @NotNull(message = "{messages.contract.downPayment.required}")
-    @DecimalMin(value = "1", message = "{messages.contract.downPayment.invalid}")
-    @Digits(integer = 10, fraction = 2, message = "{messages.contract.downPayment.format}")
+//    @NotNull(message = "{messages.contract.downPayment.required}")
+//    @DecimalMin(value = "1", message = "{messages.contract.downPayment.invalid}")
+//    @Digits(integer = 10, fraction = 2, message = "{messages.contract.downPayment.format}")
     private BigDecimal downPayment;
 
     @Min(value = 1, message = "{messages.contract.months.min}")

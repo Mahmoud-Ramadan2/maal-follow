@@ -13,6 +13,10 @@ import org.mapstruct.Mapping;
 public interface ContractMapper {
 
 
+    @Mapping(target = "responsibleUserId", source = "contract.responsibleUser.id")
+    @Mapping(target = "customerId", source = "contract.customer.id")
+    @Mapping(target = "purchaseId", source = "contract.purchase.id")
+    @Mapping(target = "partnerId", source = "contract.partner.id")
     @Mapping(target = "vendorName", source = "contract.purchase.vendor.name")
     @Mapping(target = "productName", source = "contract.purchase.productName")
     @Mapping(target = "customerName", source = "contract.customer.name")
