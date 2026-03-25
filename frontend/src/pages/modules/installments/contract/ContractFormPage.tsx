@@ -1,35 +1,37 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import {useEffect, useMemo, useState} from 'react'
+import type {ReactNode} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {useTranslation} from 'react-i18next'
+import {useForm} from 'react-hook-form'
+import {zodResolver} from '@hookform/resolvers/zod'
 
-import { useContract, useContractCreate, useContractUpdate } from '@hooks/modules'
-import { useCustomers } from '@hooks/modules'
-import { usePurchases } from '@hooks/modules'
-import { useDebounce } from '@hooks/common'
-import { contractCreateSchema } from '@utils/validators/contract.validator'
-import type { ContractFormData } from '@utils/validators/contract.validator'
-import { ContractStatus } from '@/types/modules/contract.types'
-import type { CustomerFilters } from '@/types/modules/customer.types'
-import type { PurchaseFilters } from '@/types/modules/purchase.types'
+import {useContract, useContractCreate, useContractUpdate} from '@hooks/modules'
+import {useCustomers} from '@hooks/modules'
+import {usePurchases} from '@hooks/modules'
+import {useDebounce} from '@hooks/common'
+import {contractCreateSchema} from '@utils/validators/contract.validator'
+import type {ContractFormData} from '@utils/validators/contract.validator'
+import {ContractStatus} from '@/types/modules/contract.types'
+import type {CustomerFilters} from '@/types/modules/customer.types'
+import type {PurchaseFilters} from '@/types/modules/purchase.types'
 import Button from '@components/common/Button'
 import Input from '@components/common/Input'
 import Card from '@components/ui/Card'
 import LoadingSpinner from '@components/ui/LoadingSpinner'
-import { APP_ROUTES } from '@/router/routes.config'
+import {APP_ROUTES} from '@/router/routes.config'
 import './ContractFormPage.css'
 
 interface ContractFormPageProps {
     contractId?: number
 }
 
-export default function ContractFormPage({ contractId }: ContractFormPageProps): ReactNode {
-    const { t } = useTranslation('contract')
-    const { t: tc } = useTranslation('common')
+export default function ContractFormPage({contractId}: ContractFormPageProps): ReactNode {
+    const {t} = useTranslation('contract')
+    const {t: tc} = useTranslation('common')
     const navigate = useNavigate()
     const isEditMode = contractId !== undefined
+    // Set to true if this form is being used in a context where the customer is predetermined (e.g. from a customer details page)
+    const [isForSpecificCustomer, setIsForSpecificCustomer] = useState(false)
 
     const [customerSearch, setCustomerSearch] = useState('')
     const [purchaseSearch, setPurchaseSearch] = useState('')
@@ -37,8 +39,10 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
     const debouncedPurchaseSearch = useDebounce(purchaseSearch, 350)
 
     // Fetch existing contract in edit mode
-    const { contract: existing,
-        loading: fetchLoading } =
+    const {
+        contract: existing,
+        loading: fetchLoading
+    } =
         useContract(isEditMode ? contractId : 0)
 
     // Fetch customers and purchases for typeahead selectors
@@ -46,27 +50,27 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
         page: 0,
         size: 10,
         status: 'active',
-        ...(debouncedCustomerSearch.trim() && { search: debouncedCustomerSearch.trim() }),
+        ...(debouncedCustomerSearch.trim() && {search: debouncedCustomerSearch.trim()}),
     }), [debouncedCustomerSearch])
 
     const purchaseFilters = useMemo<PurchaseFilters>(() => ({
         page: 0,
         size: 10,
         sort: 'purchaseDate,desc',
-        ...(debouncedPurchaseSearch.trim() && { searchTerm: debouncedPurchaseSearch.trim() }),
+        ...(debouncedPurchaseSearch.trim() && {searchTerm: debouncedPurchaseSearch.trim()}),
     }), [debouncedPurchaseSearch])
 
-    const { customers, loading: customersLoading } = useCustomers(customerFilters)
-    const { purchases, loading: purchasesLoading } = usePurchases(purchaseFilters)
+    const {customers, loading: customersLoading} = useCustomers(customerFilters)
+    const {purchases, loading: purchasesLoading} = usePurchases(purchaseFilters)
 
     // Mutation hooks
-    const { createContract, loading: createLoading } = useContractCreate()
-    const { updateContract, loading: updateLoading } = useContractUpdate()
+    const {createContract, loading: createLoading} = useContractCreate()
+    const {updateContract, loading: updateLoading} = useContractUpdate()
     const submitting = createLoading || updateLoading
 
     const {
         register, handleSubmit, reset, watch, setValue,
-        formState: { errors },
+        formState: {errors},
     } = useForm<ContractFormData>({
         resolver: zodResolver(contractCreateSchema),
         defaultValues: {
@@ -90,7 +94,16 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
 
     // Pre-fill form in edit mode
     useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerIdFromUrl = urlParams.get('customerId');
+        if (customerIdFromUrl) {
+            setIsForSpecificCustomer(true)
+            reset({
+                customerId: parseInt(customerIdFromUrl),
+            })
+        }
         if (isEditMode && existing) {
+            // console.log("Pre-filling form with existing contract data:", existing)
             const existingCustomerId = existing.customerId ?? 0
             const existingPurchaseId = existing.purchaseId ?? 0
             const safeStatus = existing.status === ContractStatus.ALL ? 'ACTIVE' : existing.status
@@ -115,7 +128,8 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
 
             // Keep user-facing labels visible while relation fields are locked in edit mode
             setCustomerSearch(existing.customerName ?? '')
-            setPurchaseSearch([existing.productName, existing.vendorName].filter(Boolean).join(' - '))
+            setPurchaseSearch([existing.productName].filter(Boolean).join(' - '))
+            // setPurchaseSearch([existing.productName, existing.vendorName].filter(Boolean).join(' - '))
         }
     }, [isEditMode, existing, reset])
 
@@ -139,7 +153,7 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
 
     useEffect(() => {
         if (!isEditMode && selectedPurchase) {
-            setPurchaseSearch(`${selectedPurchase.productName} - ${selectedPurchase.vendorName}`)
+            setPurchaseSearch(`${selectedPurchase.productName} - ${selectedPurchase.buyPrice}`)
         }
     }, [isEditMode, selectedPurchase])
 
@@ -172,7 +186,7 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
     }
 
     if (isEditMode && fetchLoading) {
-        return <div className="contract-form__loading"><LoadingSpinner size="lg" /></div>
+        return <div className="contract-form__loading"><LoadingSpinner size="lg"/></div>
     }
 
     return (
@@ -195,20 +209,20 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                                 name="customerSearch"
                                 placeholder={t('form.customerSearchPlaceholder')}
                                 value={customerSearch}
-                                disabled={isEditMode}
+                                disabled={isEditMode || isForSpecificCustomer}
                                 onChange={(e) => {
                                     setCustomerSearch(e.target.value)
-                                    if (!isEditMode) {
-                                        setValue('customerId', 0, { shouldValidate: true })
+                                    if (!isEditMode && !isForSpecificCustomer) {
+                                        setValue('customerId', 0, {shouldValidate: true})
                                     }
                                 }}
                             />
                             <select
                                 className={`contract-form__select ${errors.customerId ? 'contract-form__select--error' : ''}`}
                                 value={selectedCustomerId ?? 0}
-                                disabled={isEditMode || customersLoading}
+                                disabled={isEditMode || customersLoading || isForSpecificCustomer}
                                 onChange={(e) => {
-                                    setValue('customerId', Number(e.target.value), { shouldValidate: true })
+                                    setValue('customerId', Number(e.target.value), {shouldValidate: true})
                                 }}
                             >
                                 <option value={0}>{t('form.customerPlaceholder')}</option>
@@ -216,9 +230,10 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                                     <option key={c.id} value={c.id}>{`${c.name} - ${c.phone}`}</option>
                                 ))}
                             </select>
-                            <input type="hidden" {...register('customerId', { valueAsNumber: true })} />
-                            {isEditMode && <span className="contract-form__hint">{t('form.editLockedHint')}</span>}
-                            {errors.customerId && <span className="form-field__error" role="alert">{errors.customerId.message}</span>}
+                            <input type="hidden" {...register('customerId', {valueAsNumber: true})} />
+                            {(isEditMode || isForSpecificCustomer) && <span className="contract-form__hint">{t('form.editLockedHint')}</span>}
+                            {errors.customerId &&
+                                <span className="form-field__error" role="alert">{errors.customerId.message}</span>}
                         </div>
 
                         {/* Purchase searchable selector */}
@@ -232,7 +247,7 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                                 onChange={(e) => {
                                     setPurchaseSearch(e.target.value)
                                     if (!isEditMode) {
-                                        setValue('purchaseId', 0, { shouldValidate: true })
+                                        setValue('purchaseId', 0, {shouldValidate: true})
                                     }
                                 }}
                             />
@@ -241,41 +256,43 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                                 value={selectedPurchaseId ?? 0}
                                 disabled={isEditMode || purchasesLoading}
                                 onChange={(e) => {
-                                    setValue('purchaseId', Number(e.target.value), { shouldValidate: true })
+                                    setValue('purchaseId', Number(e.target.value), {shouldValidate: true})
                                 }}
                             >
                                 <option value={0}>{t('form.purchasePlaceholder')}</option>
                                 {!purchasesLoading && purchases.map((p) => (
-                                    <option key={p.id} value={p.id}>{`${p.productName} - ${p.vendorName}`}</option>
+                                    <option key={p.id} value={p.id}>{`${p.productName} - ${p.buyPrice}`}</option>
                                 ))}
                             </select>
-                            <input type="hidden" {...register('purchaseId', { valueAsNumber: true })} />
+                            <input type="hidden" {...register('purchaseId', {valueAsNumber: true})} />
                             {isEditMode && <span className="contract-form__hint">{t('form.editLockedHint')}</span>}
-                            {errors.purchaseId && <span className="form-field__error" role="alert">{errors.purchaseId.message}</span>}
+                            {errors.purchaseId &&
+                                <span className="form-field__error" role="alert">{errors.purchaseId.message}</span>}
                         </div>
 
                         {/* Status */}
-                        <div className="form-field">
-                            <label className="form-field__label">{t('details.status')}</label>
-                            <select
-                                className={`contract-form__select ${errors.status ? 'contract-form__select--error' : ''}`}
-                                {...register('status')}
-                            >
-                                <option value={ContractStatus.ACTIVE}>{t('status.ACTIVE')}</option>
-                                <option value={ContractStatus.LATE}>{t('status.LATE')}</option>
-                                <option value={ContractStatus.COMPLETED}>{t('status.COMPLETED')}</option>
-                                <option value={ContractStatus.CANCELLED}>{t('status.CANCELLED')}</option>
-                            </select>
-                            {errors.status && <span className="form-field__error" role="alert">{errors.status.message}</span>}
-                        </div>
+                        {/*<div className="form-field">*/}
+                        {/*    <label className="form-field__label">{t('details.status')}</label>*/}
+                        {/*    <select*/}
+                        {/*        className={`contract-form__select ${errors.status ? 'contract-form__select--error' : ''}`}*/}
+                        {/*        {...register('status')}*/}
+                        {/*    >*/}
+                        {/*        <option value={ContractStatus.ACTIVE}>{t('status.ACTIVE')}</option>*/}
+                        {/*        <option value={ContractStatus.LATE}>{t('status.LATE')}</option>*/}
+                        {/*        <option value={ContractStatus.COMPLETED}>{t('status.COMPLETED')}</option>*/}
+                        {/*        <option value={ContractStatus.CANCELLED}>{t('status.CANCELLED')}</option>*/}
+                        {/*    </select>*/}
+                        {/*    {errors.status &&*/}
+                        {/*        <span className="form-field__error" role="alert">{errors.status.message}</span>}*/}
+                        {/*</div>*/}
 
                         {/* Contract Number */}
-                        <Input
-                            label={t('form.contractNumber')}
-                            placeholder={t('form.contractNumberPlaceholder')}
-                            error={errors.contractNumber?.message}
-                            {...register('contractNumber')}
-                        />
+                        {/*<Input*/}
+                        {/*    label={t('form.contractNumber')}*/}
+                        {/*    placeholder={t('form.contractNumberPlaceholder')}*/}
+                        {/*    error={errors.contractNumber?.message}*/}
+                        {/*    {...register('contractNumber')}*/}
+                        {/*/>*/}
 
                         {/* Start Date */}
                         <Input
@@ -294,14 +311,17 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                             type="number"
                             placeholder={t('form.finalPricePlaceholder')}
                             error={errors.finalPrice?.message}
-                            {...register('finalPrice', { valueAsNumber: true })}
+                            {...register('finalPrice', {valueAsNumber: true})}
                         />
                         <Input
                             label={t('form.downPayment') + ' *'}
                             type="number"
                             placeholder={t('form.downPaymentPlaceholder')}
                             error={errors.downPayment?.message}
-                            {...register('downPayment', { valueAsNumber: true })}
+                            {...register('downPayment', {
+                                setValueAs: (value) => value === '' ? undefined : Number(value),
+
+                            })}
                         />
                         <Input
                             label={t('form.additionalCosts')}
@@ -371,7 +391,7 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                     </div>
 
                     {/* ── Section 3: Notes ────────────────────── */}
-                    <div className="contract-form__full" style={{ marginTop: 'var(--spacing-5)' }}>
+                    <div className="contract-form__full" style={{marginTop: 'var(--spacing-5)'}}>
                         <div className="form-field">
                             <label htmlFor="notes" className="form-field__label">{t('form.notes')}</label>
                             <textarea
@@ -382,13 +402,15 @@ export default function ContractFormPage({ contractId }: ContractFormPageProps):
                                 {...register('notes')}
                             />
                             <div className="contract-form__char-count">{notesValue.length} / 500</div>
-                            {errors.notes && <span className="form-field__error" role="alert">{errors.notes.message}</span>}
+                            {errors.notes &&
+                                <span className="form-field__error" role="alert">{errors.notes.message}</span>}
                         </div>
                     </div>
 
                     {/* ── Actions ─────────────────────────────── */}
                     <div className="contract-form__actions">
-                        <Button variant="secondary" onClick={() => navigate(APP_ROUTES.CONTRACTS.LIST)} disabled={submitting}>
+                        <Button variant="secondary" onClick={() => navigate(APP_ROUTES.CONTRACTS.LIST)}
+                                disabled={submitting}>
                             {tc('cancel')}
                         </Button>
                         <Button type="submit" loading={submitting}>

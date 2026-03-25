@@ -91,7 +91,7 @@ export interface PurchaseFilters extends PaginationParams {
     startDate?: string
     /** Filter purchases up to this date (ISO `YYYY-MM-DD`) */
     endDate?: string
-    /** Free-text search (matched against product name, vendor name, notes) */
+    /** Free-text search (matched against product name, vendor name, notes, price) */
     searchTerm?: string
 }
 

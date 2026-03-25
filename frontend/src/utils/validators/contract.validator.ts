@@ -22,7 +22,7 @@ export const contractCreateSchema = z.object({
 
     downPayment: z
         .number({ error: () => t('contract.downPayment.required') })
-        .min(1, { error: t('contract.downPayment.min') }),
+        .min(0, { error: t('contract.downPayment.min') }),
 
     months: z
         .number()
