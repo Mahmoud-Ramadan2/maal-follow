@@ -27,8 +27,9 @@ public class ContractController {
 
     @PostMapping
     public ResponseEntity<ContractResponse> createContract(
-            @Valid @RequestBody ContractRequest request) {
-        return ResponseEntity.status(201).body(contractService.create(request));
+            @Valid @RequestBody ContractRequest request,
+            @RequestParam (required = false) Long customerId) {
+        return ResponseEntity.status(201).body(contractService.create(request, customerId));
     }
 
     @PutMapping("/{id}")
