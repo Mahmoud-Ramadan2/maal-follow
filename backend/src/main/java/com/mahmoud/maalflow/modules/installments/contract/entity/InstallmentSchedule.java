@@ -1,5 +1,6 @@
 package com.mahmoud.maalflow.modules.installments.contract.entity;
 
+import com.mahmoud.maalflow.modules.installments.contract.listener.InstallmentListener;
 import com.mahmoud.maalflow.modules.installments.payment.entity.Payment;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
@@ -9,6 +10,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -104,9 +106,17 @@ public class InstallmentSchedule {
     @OneToMany(mappedBy = "installmentSchedule")
     private Set<ContractExpense> contractExpenses = new LinkedHashSet<>();
 
-
+    @Column(name = "created_at",
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+    @Column(name = "updated_at",
+            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    private LocalDateTime updatedAt;
     @PrePersist
     protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+
         if (this.status == null) {
             this.status = PaymentStatus.PENDING;
         }
@@ -131,6 +141,11 @@ public class InstallmentSchedule {
         if (this.profitAmount == null) {
             this.profitAmount = BigDecimal.ZERO;
         }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
 
