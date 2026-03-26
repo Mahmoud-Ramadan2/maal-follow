@@ -21,6 +21,7 @@ import java.util.Set;
  * @author Mahmoud
  */
 @Entity
+@EntityListeners(InstallmentListener.class)
 @Table(name = "installment_schedule")
 @Getter
 @Setter

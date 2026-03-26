@@ -151,6 +151,12 @@ public class Contract {
     @JoinColumn(name = "product_purchase_id", nullable = false)
     private Purchase purchase;
 
+    @Column(name = "total_paid", precision = 12, scale = 2)
+    private BigDecimal totalPaid = BigDecimal.ZERO;
+
+    @Column(name = "total_discount", precision = 12, scale = 2)
+    private BigDecimal totalDiscount = BigDecimal.ZERO;
+
 
     @PrePersist
     protected void onCreate() {
