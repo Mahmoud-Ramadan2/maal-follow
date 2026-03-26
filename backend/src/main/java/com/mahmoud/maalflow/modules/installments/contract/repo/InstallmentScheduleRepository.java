@@ -112,6 +112,10 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
 
     List<InstallmentSchedule> findByContractId(Long contractId);
 
+    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM InstallmentSchedule s WHERE s.contract.id = :contractId AND s.status = 'PAID'")
+    boolean existsPaidByContractId(Long id);
+
+
     // Find schedules by profit month for profit distribution
     @Query("""
         SELECT s FROM InstallmentSchedule s 
@@ -152,4 +156,5 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
      */
     @Query("SELECT s FROM InstallmentSchedule s WHERE s.dueDate = :dueDate AND s.status IN ('PENDING', 'LATE')")
     List<InstallmentSchedule> findUnpaidInstallmentsDueOnDate(@Param("dueDate") LocalDate dueDate);
+
 }

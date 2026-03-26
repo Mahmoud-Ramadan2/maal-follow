@@ -82,7 +82,7 @@ public class PurchaseService {
             existingPurchase.setProductName(request.getProductName());
         }
 
-        if (request.getBuyPrice() != null) {
+        if (request.getBuyPrice() != null && existingPurchase.getBuyPrice().compareTo(request.getBuyPrice()) != 0) {
             boolean hasContracts = contractRepository.existsContractByPurchaseId(id);
             if (hasContracts) {
                 throw new BusinessException("messages.purchase.updatePriceWithContracts");

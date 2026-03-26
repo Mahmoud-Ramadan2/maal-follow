@@ -57,7 +57,6 @@ public class InstallmentScheduleService {
     private final UserRepository userRepository;
     private final InstallmentScheduleMapper scheduleMapper;
     private final PaymentRepository paymentRepository;
-    private final PaymentProcessingService paymentProcessingService;
     private final ProfitProcessingService profitProcessingService;
     private final ContractExpenseService contractExpenseService;
     private  final LedgerService ledgerService;
@@ -714,6 +713,7 @@ public class InstallmentScheduleService {
         updateContractRemainingAmount(contract);
 
         // 6. Check if contract is completed
+
         checkAndCompleteContract(contract);
 
         // 7. Handle overpayment - apply to next schedule
@@ -787,18 +787,29 @@ public class InstallmentScheduleService {
 
     /**
      * Check if all schedules are paid and mark contract as completed
+     * its added here not in contratservice to prevent circulate dependency
      */
-    private void checkAndCompleteContract(Contract contract) {
+    public void checkAndCompleteContract(Contract contract) {
         Long pendingCount = scheduleRepository.countPendingByContractId(contract.getId());
+        BigDecimal remainingAmount = contract.getRemainingAmount();
+        BigDecimal totalPaid = contract.getTotalPaid().add(contract.getTotalDiscount()).add(contract.getDownPayment());
 
         if (pendingCount == 0) {
-            contract.setStatus(ContractStatus.COMPLETED);
-            contract.setCompletionDate(LocalDate.now());
-            contractRepository.save(contract);
-            log.info("Contract {} marked as completed", contract.getId());
+            if (totalPaid.compareTo(contract.getFinalPrice()) == 0 && remainingAmount.compareTo(BigDecimal.ZERO) == 0) {
+                contract.setStatus(ContractStatus.COMPLETED);
+                contract.setCompletionDate(LocalDate.now());
+                contractRepository.save(contract);
+                log.info("Contract {} marked as completed", contract.getId());
+            } else {
+                log.warn("Contract {} has no pending schedules but remaining amount is {} and total paid is {}. Not marking as completed.",
+                        contract.getId(), remainingAmount, totalPaid);
+                throw new BusinessException("messages.contract.notFullyPaid");
+            }
+        } else {
+            log.warn("Contract {} has {} pending schedules, not marking as completed", contract.getId(), pendingCount);
+            throw new BusinessException("messages.contract.hasUnpaid");
         }
     }
-
     // ============== QUERY METHODS ==============
 
     /**
@@ -945,6 +956,15 @@ public class InstallmentScheduleService {
                         .notes(notes)
                         .build();
         contractExpenseService.createExpense(request);
+    }
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    public boolean existsPaidByContractId(Long id) {
+         return scheduleRepository.existsPaidByContractId(id);
     }
 
     // ============== HELPER CLASSES ==============

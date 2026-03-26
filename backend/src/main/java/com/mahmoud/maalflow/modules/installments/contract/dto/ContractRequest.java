@@ -23,7 +23,7 @@ public class ContractRequest {
 //    @Digits(integer = 10, fraction = 2, message = "{messages.contract.downPayment.format}")
     private BigDecimal downPayment;
 
-    @Min(value = 1, message = "{messages.contract.months.min}")
+    @Min(value = 0, message = "{messages.contract.months.min}")
     @Max(value = 60, message = "{messages.contract.months.max}")
     private Integer months;
 
@@ -53,10 +53,10 @@ public class ContractRequest {
     @DecimalMin(value = "0.00", message = "{messages.contract.additionalCosts.min}")
     @Digits(integer = 10, fraction = 2)
     private BigDecimal additionalCosts;
-//    @DecimalMin(value = "0.00", message = "{messages.contract.cashDiscountRate.min}")
-//    @DecimalMax(value = "100.00", message = "{messages.contract.cashDiscountRate.max}")
-//    @Digits(integer = 3, fraction = 2)
-//    private BigDecimal cashDiscountRate;
+    @DecimalMin(value = "0.00", message = "{messages.contract.cashDiscountRate.min}")
+    @DecimalMax(value = "100.00", message = "{messages.contract.cashDiscountRate.max}")
+    @Digits(integer = 3, fraction = 2)
+    private BigDecimal cashDiscountRate;
 
     @DecimalMin(value = "0.00", message = "{messages.contract.earlyPaymentDiscountRate.min}")
     @DecimalMax(value = "100.00", message = "{messages.contract.earlyPaymentDiscountRate.max}")
