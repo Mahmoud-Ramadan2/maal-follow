@@ -1,6 +1,6 @@
-package com.mahmoud.maalflow.modules.installments.schedule.repo;
+package com.mahmoud.maalflow.modules.installments.collection.repo;
 
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRouteItem;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRouteItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

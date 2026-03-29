@@ -4,6 +4,7 @@ import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.purchase.entity.Purchase;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

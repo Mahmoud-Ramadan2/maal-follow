@@ -2,7 +2,7 @@ package com.mahmoud.maalflow.modules.installments.customer.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRouteItem;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRouteItem;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

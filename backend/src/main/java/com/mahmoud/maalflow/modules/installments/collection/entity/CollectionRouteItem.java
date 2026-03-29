@@ -1,4 +1,4 @@
-package com.mahmoud.maalflow.modules.installments.schedule.entity;
+package com.mahmoud.maalflow.modules.installments.collection.entity;
 
 import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import jakarta.persistence.*;

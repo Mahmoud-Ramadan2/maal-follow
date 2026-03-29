@@ -7,7 +7,7 @@ import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseReq
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseResponse;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.contract.entity.ContractExpense;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.mapper.ContractExpenseMapper;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractExpenseRepository;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;

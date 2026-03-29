@@ -1,6 +1,6 @@
-package com.mahmoud.maalflow.modules.installments.schedule.entity;
+package com.mahmoud.maalflow.modules.installments.collection.entity;
 
-import com.mahmoud.maalflow.modules.installments.schedule.enums.RouteType;
+import com.mahmoud.maalflow.modules.installments.collection.enums.RouteType;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

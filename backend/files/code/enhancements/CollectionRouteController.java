@@ -1,9 +1,9 @@
-package com.mahmoud.maalflow.modules.installments.schedule.controller;
+package com.mahmoud.maalflow.modules.installments.collection.controller;
 
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRoute;
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRouteItem;
-import com.mahmoud.maalflow.modules.installments.schedule.enums.RouteType;
-import com.mahmoud.maalflow.modules.installments.schedule.service.CollectionRouteService;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRoute;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRouteItem;
+import com.mahmoud.maalflow.modules.installments.collection.enums.RouteType;
+import com.mahmoud.maalflow.modules.installments.collection.service.CollectionRouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Collection Route REST Controller (Requirement #6).
- * Copy to: src/main/java/com/mahmoud/maalflow/modules/installments/schedule/controller/
+ * Copy to: src/main/java/com/mahmoud/maalflow/modules/installments/collection/controller/
  */
 @RestController
 @RequestMapping("/api/v1/collection-routes")

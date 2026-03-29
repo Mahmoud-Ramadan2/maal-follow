@@ -1,6 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.contract.entity;
 
 import com.mahmoud.maalflow.modules.installments.contract.enums.DeductionType;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

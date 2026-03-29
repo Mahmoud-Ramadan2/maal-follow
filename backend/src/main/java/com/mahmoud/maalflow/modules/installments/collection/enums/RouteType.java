@@ -1,4 +1,4 @@
-package com.mahmoud.maalflow.modules.installments.schedule.enums;
+package com.mahmoud.maalflow.modules.installments.collection.enums;
 
 /**
  * Enum representing types of collection routes.

@@ -1,11 +1,11 @@
-package com.mahmoud.maalflow.modules.installments.schedule.service;
+package com.mahmoud.maalflow.modules.installments.collection.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRoute;
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRouteItem;
-import com.mahmoud.maalflow.modules.installments.schedule.repo.CollectionRouteRepository;
-import com.mahmoud.maalflow.modules.installments.schedule.repo.CollectionRouteItemRepository;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRoute;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRouteItem;
+import com.mahmoud.maalflow.modules.installments.collection.repo.CollectionRouteRepository;
+import com.mahmoud.maalflow.modules.installments.collection.repo.CollectionRouteItemRepository;
 import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import com.mahmoud.maalflow.modules.installments.customer.repo.CustomerRepository;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
@@ -21,9 +21,9 @@ import java.util.List;
  * Groups customers by address or date for optimized payment collection.
  *
  * NOTE: Requires CollectionRouteRepository and CollectionRouteItemRepository
- * to exist in schedule/repo/ (they should already be there based on entities).
+ * to exist in collection/repo/ (they should already be there based on entities).
  *
- * Copy to: src/main/java/com/mahmoud/maalflow/modules/installments/schedule/service/
+ * Copy to: src/main/java/com/mahmoud/maalflow/modules/installments/collection/service/
  */
 @Service
 @RequiredArgsConstructor
@@ -38,7 +38,7 @@ public class CollectionRouteService {
 
     @Transactional
     public CollectionRoute createRoute(String name, String description,
-                                       com.mahmoud.maalflow.modules.installments.schedule.enums.RouteType routeType) {
+                                       com.mahmoud.maalflow.modules.installments.collection.enums.RouteType routeType) {
         CollectionRoute route = new CollectionRoute();
         route.setName(name);
         route.setDescription(description);

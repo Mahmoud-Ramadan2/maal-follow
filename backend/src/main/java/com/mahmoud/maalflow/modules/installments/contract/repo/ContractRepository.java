@@ -2,7 +2,7 @@ package com.mahmoud.maalflow.modules.installments.contract.repo;
 
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractResponse;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

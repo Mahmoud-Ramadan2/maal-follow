@@ -15,6 +15,7 @@ import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
 import com.mahmoud.maalflow.modules.installments.purchase.entity.Purchase;
 import com.mahmoud.maalflow.modules.installments.purchase.repo.PurchaseRepository;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
+import com.mahmoud.maalflow.modules.installments.schedule.service.InstallmentScheduleService;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
 import lombok.AllArgsConstructor;
@@ -28,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 

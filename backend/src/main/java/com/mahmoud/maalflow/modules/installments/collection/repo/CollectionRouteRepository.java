@@ -1,7 +1,7 @@
-package com.mahmoud.maalflow.modules.installments.schedule.repo;
+package com.mahmoud.maalflow.modules.installments.collection.repo;
 
-import com.mahmoud.maalflow.modules.installments.schedule.entity.CollectionRoute;
-import com.mahmoud.maalflow.modules.installments.schedule.enums.RouteType;
+import com.mahmoud.maalflow.modules.installments.collection.entity.CollectionRoute;
+import com.mahmoud.maalflow.modules.installments.collection.enums.RouteType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
