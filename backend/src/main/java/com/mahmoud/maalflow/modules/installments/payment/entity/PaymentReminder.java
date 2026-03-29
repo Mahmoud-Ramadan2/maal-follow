@@ -1,6 +1,6 @@
 package com.mahmoud.maalflow.modules.installments.payment.entity;
 
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.payment.enums.ReminderMethod;
 import com.mahmoud.maalflow.modules.installments.payment.enums.ReminderStatus;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;

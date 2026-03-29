@@ -2,7 +2,7 @@ package com.mahmoud.maalflow.modules.installments.profit.service;
 
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Deduction;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.DeductionType;
 import com.mahmoud.maalflow.modules.installments.contract.repo.DeductionRepository;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractExpenseRepository;

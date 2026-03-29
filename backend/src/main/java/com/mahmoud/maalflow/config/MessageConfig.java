@@ -26,7 +26,7 @@ public class MessageConfig {
                 "classpath:messages/payment/messages/messages",
                 "classpath:messages/profit/messages/messages",
                 "classpath:messages/reminder/messages/messages",
-                "classpath:messages/schedule/messages/messages",
+                "classpath:messages/collection/messages/messages",
                 "classpath:messages/partner/messages/messages",
                 "classpath:messages/customer/ui/customer-list/customer-list",
                 "classpath:messages/customer/ui/customer-details/customer-details",

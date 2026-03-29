@@ -1,7 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.payment.service;
 
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
-import com.mahmoud.maalflow.modules.installments.contract.repo.InstallmentScheduleRepository;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
 import com.mahmoud.maalflow.modules.installments.payment.entity.PaymentReminder;
 import com.mahmoud.maalflow.modules.installments.payment.enums.ReminderStatus;
 import com.mahmoud.maalflow.modules.installments.payment.repo.PaymentReminderRepository;

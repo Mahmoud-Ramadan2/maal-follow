@@ -1,6 +1,8 @@
-package com.mahmoud.maalflow.modules.installments.contract.entity;
+package com.mahmoud.maalflow.modules.installments.schedule.entity;
 
-import com.mahmoud.maalflow.modules.installments.contract.listener.InstallmentListener;
+import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
+import com.mahmoud.maalflow.modules.installments.contract.entity.ContractExpense;
+import com.mahmoud.maalflow.modules.installments.schedule.listener.InstallmentListener;
 import com.mahmoud.maalflow.modules.installments.payment.entity.Payment;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
@@ -16,7 +18,7 @@ import java.util.Set;
 
 /**
  * Entity representing individual payment schedules for installment contracts.
- * Each schedule represents one monthly payment with profit tracking.
+ * Each collection represents one monthly payment with profit tracking.
  *
  * @author Mahmoud
  */

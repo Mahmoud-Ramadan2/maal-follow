@@ -1,6 +1,6 @@
 package com.mahmoud.maalflow.modules.installments.payment.repo;
 
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.payment.entity.PaymentReminder;
 import com.mahmoud.maalflow.modules.installments.payment.enums.ReminderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.mahmoud.maalflow.modules.installments.contract.dto;
+package com.mahmoud.maalflow.modules.installments.schedule.dto;
 
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import jakarta.validation.constraints.*;

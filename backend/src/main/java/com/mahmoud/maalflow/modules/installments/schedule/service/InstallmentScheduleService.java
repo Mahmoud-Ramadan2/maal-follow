@@ -1,18 +1,21 @@
-package com.mahmoud.maalflow.modules.installments.contract.service;
+package com.mahmoud.maalflow.modules.installments.schedule.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseRequest;
-import com.mahmoud.maalflow.modules.installments.contract.dto.InstallmentScheduleRequest;
-import com.mahmoud.maalflow.modules.installments.contract.dto.InstallmentScheduleResponse;
+import com.mahmoud.maalflow.modules.installments.contract.service.ContractCompletionPolicy;
+import com.mahmoud.maalflow.modules.installments.contract.service.ContractExpenseService;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleRequest;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleResponse;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
-import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.MonthlyCollectionSummary;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.ScheduleParameters;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ExpenseType;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
-import com.mahmoud.maalflow.modules.installments.contract.mapper.InstallmentScheduleMapper;
+import com.mahmoud.maalflow.modules.installments.schedule.mapper.InstallmentScheduleMapper;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
-import com.mahmoud.maalflow.modules.installments.contract.repo.InstallmentScheduleRepository;
+import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
 import com.mahmoud.maalflow.modules.installments.ledger.dto.LedgerRequest;
 import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerReferenceType;
 import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerSource;
@@ -21,7 +24,6 @@ import com.mahmoud.maalflow.modules.installments.ledger.service.LedgerService;
 import com.mahmoud.maalflow.modules.installments.payment.entity.Payment;
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
 import com.mahmoud.maalflow.modules.installments.payment.repo.PaymentRepository;
-import com.mahmoud.maalflow.modules.installments.payment.service.PaymentProcessingService;
 import com.mahmoud.maalflow.modules.installments.profit.service.ProfitProcessingService;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
@@ -60,9 +62,12 @@ public class InstallmentScheduleService {
     private final ProfitProcessingService profitProcessingService;
     private final ContractExpenseService contractExpenseService;
     private  final LedgerService ledgerService;
+    private final ContractCompletionPolicy contractCompletionPolicy;
+    private final ScheduleFactory scheduleFactory;
+    private final ScheduleGenerationPolicy scheduleGenerationPolicy;
+
 
     private static final BigDecimal MINIMUM_INSTALLMENT = BigDecimal.valueOf(50);
-    private static final BigDecimal ROUNDING_UNIT = BigDecimal.valueOf(50);
     private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
 
 
@@ -114,253 +119,38 @@ public class InstallmentScheduleService {
         }
 
         // Determine number of months and monthly amount
-        ScheduleParameters params = calculateScheduleParameters(
+        ScheduleParameters params = scheduleGenerationPolicy.calculateScheduleParameters(
                 totalAmount, numberOfMonths, monthlyAmount, contract.getMonths());
 
         // Update contract with the calculated/provided months and monthlyAmount
         if (numberOfMonths != null || monthlyAmount != null) {
-            contract.setMonths(params.months);
-            contract.setMonthlyAmount(params.monthlyAmount);
+            contract.setMonths(params.getMonths());
+            contract.setMonthlyAmount(params.getMonthlyAmount());
             contractRepository.save(contract);
             log.info("Updated contract {} with months={} and monthlyAmount={}",
-                    contractId, params.months, params.monthlyAmount);
+                    contractId, params.getMonths(), params.getMonthlyAmount());
         }
 
-        // Generate schedule list
-        List<InstallmentSchedule> schedules = createScheduleList(
+        // Generate collection list
+        List<InstallmentSchedule> schedules = scheduleFactory.createScheduleList(
                 contract, totalAmount, totalPrincipal, totalProfit,
-                params.months, params.monthlyAmount, putRemainderFirst);
+                params.getMonths(), params.getMonthlyAmount(), putRemainderFirst);
 
         // Save all schedules
         scheduleRepository.saveAll(schedules);
 
         log.info("Generated {} installment schedules for contract {} (monthly: {}, remainder in {})",
-                schedules.size(), contractId, params.monthlyAmount, putRemainderFirst ? "first" : "last");
+                schedules.size(), contractId, params.getMonthlyAmount(), putRemainderFirst ? "first" : "last");
 
         return schedules.stream()
                 .map(scheduleMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calculate schedule parameters (number of months and monthly amount)
-     */
-    private ScheduleParameters calculateScheduleParameters(
-            BigDecimal totalAmount,
-            Integer numberOfMonths,
-            BigDecimal monthlyAmount,
-            Integer contractMonths) {
 
-        // Case 1: User provides both months and amount - validate they match
-        if (numberOfMonths != null && monthlyAmount != null) {
-            validateMonthsAndAmount(totalAmount, numberOfMonths, monthlyAmount);
-            return new ScheduleParameters(numberOfMonths, roundToMultipleOf50(monthlyAmount));
-        }
 
-        // Case 2: User provides monthly amount - calculate number of months
-        if (monthlyAmount != null && monthlyAmount.compareTo(BigDecimal.ZERO) > 0) {
-           // BigDecimal roundedAmount = roundToMultipleOf50(monthlyAmount);
-            int calculatedMonths = calculateMonthsFromAmount(totalAmount, monthlyAmount);
-            return new ScheduleParameters(calculatedMonths, monthlyAmount);
-        }
 
-        // Case 3: User provides number of months - calculate monthly amount
-        if (numberOfMonths != null) {
-            BigDecimal calculatedAmount = calculateAmountFromMonths(totalAmount, numberOfMonths);
-            return new ScheduleParameters(numberOfMonths, calculatedAmount);
-        }
 
-        // Case 4: Use contract's default months
-        if (contractMonths != null && contractMonths > 0) {
-            BigDecimal calculatedAmount = calculateAmountFromMonths(totalAmount, contractMonths);
-            return new ScheduleParameters(contractMonths, calculatedAmount);
-        }
-
-        throw new BusinessException("messages.contract.invalidMonths");
-    }
-
-    /**
-     * Calculate rounded monthly amount from total amount and number of months
-     */
-    private BigDecimal calculateAmountFromMonths(BigDecimal totalAmount, int months) {
-        if (months <= 0) {
-            throw new BusinessException("messages.contract.invalidMonths");
-        }
-
-        // If total is less than 50, return total as single payment
-        if (totalAmount.compareTo(MINIMUM_INSTALLMENT) < 0) {
-            return totalAmount;
-        }
-
-        // Calculate average and round down to multiple of 50
-        BigDecimal average = totalAmount.divide(BigDecimal.valueOf(months), 2, RoundingMode.DOWN);
-        BigDecimal rounded = roundToMultipleOf50(average);
-
-        // Ensure minimum installment of 50
-        if (rounded.compareTo(MINIMUM_INSTALLMENT) < 0) {
-            rounded = MINIMUM_INSTALLMENT;
-        }
-
-        return rounded;
-    }
-
-    /**
-     * Calculate number of months from total amount and monthly installment
-     */
-    private int calculateMonthsFromAmount(BigDecimal totalAmount, BigDecimal monthlyAmount) {
-        if (monthlyAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("messages.contract.invalidMonthlyAmount");
-        }
-
-        if (monthlyAmount.compareTo(totalAmount) > 0) {
-            throw new BusinessException("messages.contract.monthlyAmountExceedsTotal");
-        }
-
-        // Calculate how many full installments are needed
-        BigDecimal months = totalAmount.divide(monthlyAmount, 0, RoundingMode.UP);
-        int monthsInt = months.intValue();
-
-        // Ensure at least 1 month
-        return Math.max(1, monthsInt);
-    }
-
-    /**
-     * Validate that provided months and amount are compatible
-     */
-    private void validateMonthsAndAmount(BigDecimal totalAmount, int months, BigDecimal monthlyAmount) {
-        if (months <= 0) {
-            throw new BusinessException("messages.contract.invalidMonths");
-        }
-
-        BigDecimal maxTotal = monthlyAmount.multiply(BigDecimal.valueOf(months));
-        if (maxTotal.compareTo(totalAmount) < 0) {
-            throw new BusinessException("messages.contract.monthsAmountMismatch");
-        }
-    }
-
-    /**
-     * Create list of installment schedules
-     */
-    private List<InstallmentSchedule> createScheduleList(
-            Contract contract,
-            BigDecimal totalAmount,
-            BigDecimal totalPrincipal,
-            BigDecimal totalProfit,
-            int months,
-            BigDecimal roundedMonthlyAmount,
-            boolean putRemainderFirst) {
-
-        List<InstallmentSchedule> schedules = new ArrayList<>();
-        LocalDate currentDueDate = contract.getStartDate();
-
-        // Calculate regular installments and remainder
-        BigDecimal regularTotal = roundedMonthlyAmount.multiply(BigDecimal.valueOf(months - 1));
-        BigDecimal remainderAmount = totalAmount.subtract(regularTotal);
-
-        // Ensure remainder amount is positive and reasonable
-        if (remainderAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            // Recalculate with lower monthly amount
-            roundedMonthlyAmount = roundToMultipleOf50(
-                    totalAmount.divide(BigDecimal.valueOf(months), 2, RoundingMode.DOWN));
-            if (roundedMonthlyAmount.compareTo(MINIMUM_INSTALLMENT) < 0) {
-                roundedMonthlyAmount = MINIMUM_INSTALLMENT;
-            }
-            regularTotal = roundedMonthlyAmount.multiply(BigDecimal.valueOf(months - 1));
-            remainderAmount = totalAmount.subtract(regularTotal);
-        }
-
-        // Track accumulated principal and profit for proportional distribution
-        BigDecimal accumulatedPrincipal = BigDecimal.ZERO;
-        BigDecimal accumulatedProfit = BigDecimal.ZERO;
-
-        for (int i = 1; i <= months; i++) {
-            // Set due date to agreed payment day
-            currentDueDate = currentDueDate.withDayOfMonth(
-                    Math.min(contract.getAgreedPaymentDay(), currentDueDate.lengthOfMonth())
-            );
-
-            BigDecimal installmentAmount;
-            BigDecimal principalAmount;
-            BigDecimal profitAmount;
-            boolean isFinal = (i == months);
-            boolean isFirst = (i == 1);
-
-            // Determine which installment gets the remainder
-            boolean isRemainderInstallment = putRemainderFirst ? isFirst : isFinal;
-
-            if (isFinal) {
-                // Final installment ALWAYS uses subtraction to ensure exact totals
-                installmentAmount = totalAmount.subtract(
-                        roundedMonthlyAmount.multiply(BigDecimal.valueOf(months - 1)));
-                if (putRemainderFirst) {
-                    // If remainder was first, recalculate final as regular
-                    installmentAmount = totalAmount.subtract(remainderAmount)
-                            .subtract(roundedMonthlyAmount.multiply(BigDecimal.valueOf(months - 2)));
-                }
-                principalAmount = totalPrincipal.subtract(accumulatedPrincipal);
-                profitAmount = totalProfit.subtract(accumulatedProfit);
-            } else if (isRemainderInstallment) {
-                // First installment gets the remainder (when putRemainderFirst = true)
-                installmentAmount = remainderAmount;
-                BigDecimal ratio = installmentAmount.divide(totalAmount, 10, RoundingMode.HALF_UP);
-                principalAmount = totalPrincipal.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-                profitAmount = totalProfit.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-
-                accumulatedPrincipal = accumulatedPrincipal.add(principalAmount);
-                accumulatedProfit = accumulatedProfit.add(profitAmount);
-            } else {
-                // Regular installment with proportional distribution
-                installmentAmount = roundedMonthlyAmount;
-                BigDecimal ratio = installmentAmount.divide(totalAmount, 10, RoundingMode.HALF_UP);
-                principalAmount = totalPrincipal.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-                profitAmount = totalProfit.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-
-                accumulatedPrincipal = accumulatedPrincipal.add(principalAmount);
-                accumulatedProfit = accumulatedProfit.add(profitAmount);
-            }
-
-            InstallmentSchedule schedule = InstallmentSchedule.builder()
-                    .contract(contract)
-                    .sequenceNumber(i)
-                    .dueDate(currentDueDate)
-                    .amount(installmentAmount)
-                    .originalAmount(installmentAmount)
-                    .principalAmount(principalAmount)
-                    .profitAmount(profitAmount)
-                    .profitMonth(currentDueDate.format(MONTH_FORMAT))
-                    .status(PaymentStatus.PENDING)
-                    .isFinalPayment(isFinal)
-                    .discountApplied(BigDecimal.ZERO)
-                    .paidAmount(BigDecimal.ZERO)
-                    .build();
-
-            schedules.add(schedule);
-
-            // Move to next month
-            currentDueDate = currentDueDate.plusMonths(1);
-        }
-
-        return schedules;
-    }
-
-    /**
-     * Round amount to nearest multiple of 50 (round down)
-     */
-    private BigDecimal roundToMultipleOf50(BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal divided = amount.divide(ROUNDING_UNIT, 0, RoundingMode.DOWN);
-        BigDecimal rounded = divided.multiply(ROUNDING_UNIT);
-
-        // If rounded is 0 but amount > 0, return 50
-        if (rounded.compareTo(BigDecimal.ZERO) == 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
-            return ROUNDING_UNIT;
-        }
-
-        return rounded;
-    }
 
     /**
      * Swap remainder amount between first and last installment
@@ -497,13 +287,13 @@ public class InstallmentScheduleService {
         });
 
         // Calculate parameters for new schedules
-        ScheduleParameters params = calculateScheduleParameters(
+        ScheduleParameters params =scheduleGenerationPolicy.calculateScheduleParameters(
                 remainingAmount, newNumberOfMonths, newMonthlyAmount, contract.getMonths());
 
         // Create new schedules
-        List<InstallmentSchedule> newSchedules = createScheduleList(
+        List<InstallmentSchedule> newSchedules = scheduleFactory.createScheduleList(
                 contract, remainingAmount, remainingPrincipal, remainingProfit,
-                params.months, params.monthlyAmount, false);
+                params.getMonths(), params.getMonthlyAmount(), false);
 
         // Update due dates to start from newStartDate
         if (newStartDate == null) {
@@ -536,7 +326,7 @@ public class InstallmentScheduleService {
     // ============== CRUD METHODS ==============
 
     /**
-     * Create a single installment schedule manually
+     * Create a single installment collection manually
      */
     @Transactional
     public InstallmentScheduleResponse createSchedule(InstallmentScheduleRequest request) {
@@ -558,13 +348,13 @@ public class InstallmentScheduleService {
         }
 
         InstallmentSchedule saved = scheduleRepository.save(schedule);
-        log.info("Created installment schedule {} for contract {}", saved.getId(), contract.getId());
+        log.info("Created installment collection {} for contract {}", saved.getId(), contract.getId());
 
         return scheduleMapper.toResponse(saved);
     }
 
     /**
-     * Update an existing installment schedule
+     * Update an existing installment collection
      */
     @Transactional
     public InstallmentScheduleResponse updateSchedule(Long id, InstallmentScheduleRequest request) {
@@ -594,7 +384,7 @@ public class InstallmentScheduleService {
         }
 
         InstallmentSchedule saved = scheduleRepository.save(schedule);
-        log.info("Updated installment schedule {}", id);
+        log.info("Updated installment collection {}", id);
 
         return scheduleMapper.toResponse(saved);
     }
@@ -651,10 +441,11 @@ public class InstallmentScheduleService {
                 ? schedule.getPaidAmount() : BigDecimal.ZERO;
         BigDecimal amountDue = schedule.getAmount().subtract(totalDiscount).subtract(currentPaid);
 
-        // Calculate actual payment (don't over-pay this schedule)
+        // Calculate actual payment (don't over-pay this collection)
         BigDecimal actualPayment = paidAmount.min(amountDue);
 
-        // Update schedule payment information
+        // Update collection payment information
+        // Update collection payment information
         if (paidDate == null) {
             paidDate = LocalDate.now();
         }
@@ -677,7 +468,7 @@ public class InstallmentScheduleService {
         User currentUser = userRepository.findById(1L)
                 .orElseThrow(() -> new ObjectNotFoundException("messages.user.notFound", 1L));
 
-        // 1.add schedule expense
+        // 1.add collection expense
 
         if (expense.compareTo(BigDecimal.ZERO)> 0){
             addExpenseToSchedule(contract.getId(), schedule.getId(), expense,
@@ -706,23 +497,24 @@ public class InstallmentScheduleService {
         // 3. Process proportional profit for ANY payment (full or partial)
         profitProcessingService.processProportionalInstallmentProfit(saved, actualPayment, paidDate, currentUser);
 
-        // 4. Update paid principal and profit amounts on the schedule
+        // 4. Update paid principal and profit amounts on the collection
         updatePaidPrincipalAndProfit(saved, actualPayment);
 
         // 5. Update contract remaining amount
-        updateContractRemainingAmount(contract);
+        // this Handled by installments Listeners
+//        updateContractRemainingAmount(contract);
 
         // 6. Check if contract is completed
 
-        checkAndCompleteContract(contract);
+        contractCompletionPolicy.checkAndCompleteContract(contract);
 
-        // 7. Handle overpayment - apply to next schedule
+        // 7. Handle overpayment - apply to next collection
         BigDecimal overpayment = paidAmount.subtract(actualPayment);
         if (overpayment.compareTo(BigDecimal.ZERO) > 0) {
             //applyOverpaymentToNextSchedule(contract.getId(), overpayment, payment, currentUser);
         }
 
-        log.info("Marked installment schedule {} as {} with amount {} (discount: {})",
+        log.info("Marked installment collection {} as {} with amount {} (discount: {})",
                 scheduleId, saved.getStatus(), actualPayment, discount);
 
         return scheduleMapper.toResponse(saved);
@@ -756,7 +548,7 @@ public class InstallmentScheduleService {
                 .build();
 
         Payment saved = paymentRepository.save(payment);
-        log.debug("Created payment record {} for schedule {}", saved.getId(), schedule.getId());
+        log.debug("Created payment record {} for collection {}", saved.getId(), schedule.getId());
         return saved;
     }
 
@@ -785,31 +577,6 @@ public class InstallmentScheduleService {
         log.debug("Updated contract {} remaining amount to {}", contract.getId(), remaining);
     }
 
-    /**
-     * Check if all schedules are paid and mark contract as completed
-     * its added here not in contratservice to prevent circulate dependency
-     */
-    public void checkAndCompleteContract(Contract contract) {
-        Long pendingCount = scheduleRepository.countPendingByContractId(contract.getId());
-        BigDecimal remainingAmount = contract.getRemainingAmount();
-        BigDecimal totalPaid = contract.getTotalPaid().add(contract.getTotalDiscount()).add(contract.getDownPayment());
-
-        if (pendingCount == 0) {
-            if (totalPaid.compareTo(contract.getFinalPrice()) == 0 && remainingAmount.compareTo(BigDecimal.ZERO) == 0) {
-                contract.setStatus(ContractStatus.COMPLETED);
-                contract.setCompletionDate(LocalDate.now());
-                contractRepository.save(contract);
-                log.info("Contract {} marked as completed", contract.getId());
-            } else {
-                log.warn("Contract {} has no pending schedules but remaining amount is {} and total paid is {}. Not marking as completed.",
-                        contract.getId(), remainingAmount, totalPaid);
-                throw new BusinessException("messages.contract.notFullyPaid");
-            }
-        } else {
-            log.warn("Contract {} has {} pending schedules, not marking as completed", contract.getId(), pendingCount);
-            throw new BusinessException("messages.contract.hasUnpaid");
-        }
-    }
     // ============== QUERY METHODS ==============
 
     /**
@@ -964,34 +731,14 @@ public class InstallmentScheduleService {
      * @return
      */
     public boolean existsPaidByContractId(Long id) {
-         return scheduleRepository.existsPaidByContractId(id);
+//        boolean result = scheduleRepository.existsPaidByContractId(id);
+        boolean exists = scheduleRepository.existsByContractIdAndStatusIn
+                (id, List.of(PaymentStatus.PAID, PaymentStatus.PARTIALLY_PAID));
+        return exists;
     }
 
     // ============== HELPER CLASSES ==============
 
-
-    /**
-     * DTO for schedule parameters
-     */
-    private static class ScheduleParameters {
-        int months;
-        BigDecimal monthlyAmount;
-
-        ScheduleParameters(int months, BigDecimal monthlyAmount) {
-            this.months = months;
-            this.monthlyAmount = monthlyAmount;
-        }
-    }
-
-    /**
-     * DTO for monthly collection summary
-     */
-    public record MonthlyCollectionSummary(
-            String month,
-            BigDecimal expectedAmount,
-            BigDecimal actualAmount,
-            BigDecimal shortfall
-    ) {}
 
     /**
      * Update paid principal and profit amounts based on payment ratio
@@ -1013,7 +760,7 @@ public class InstallmentScheduleService {
         BigDecimal principalCollected = totalPrincipal.multiply(paymentRatio).setScale(2, RoundingMode.HALF_UP);
         BigDecimal profitCollected = totalProfit.multiply(paymentRatio).setScale(2, RoundingMode.HALF_UP);
 
-        log.debug("Payment ratio for schedule {}: {}%, principal={}, profit={}",
+        log.debug("Payment ratio for collection {}: {}%, principal={}, profit={}",
                 schedule.getId(), paymentRatio.multiply(BigDecimal.valueOf(100)), principalCollected, profitCollected);
 
         // لإTODO: These values could be stored in separate fields if needed for detailed tracking

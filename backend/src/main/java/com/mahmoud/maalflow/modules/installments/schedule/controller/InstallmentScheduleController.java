@@ -1,8 +1,9 @@
-package com.mahmoud.maalflow.modules.installments.contract.controller;
+package com.mahmoud.maalflow.modules.installments.schedule.controller;
 
-import com.mahmoud.maalflow.modules.installments.contract.dto.InstallmentScheduleRequest;
-import com.mahmoud.maalflow.modules.installments.contract.dto.InstallmentScheduleResponse;
-import com.mahmoud.maalflow.modules.installments.contract.service.InstallmentScheduleService;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleRequest;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleResponse;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.MonthlyCollectionSummary;
+import com.mahmoud.maalflow.modules.installments.schedule.service.InstallmentScheduleService;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -116,9 +117,9 @@ public class InstallmentScheduleController {
      * PUT /api/v1/installment-schedules/reschedule/{contractId}
      *
      * Parameters:
-     * - newNumberOfMonths: Number of months for new schedule (optional if monthlyAmount provided)
-     * - newMonthlyAmount: Monthly amount for new schedule (optional if numberOfMonths provided)
-     * - newStartDate: Start date for new schedule
+     * - newNumberOfMonths: Number of months for new collection (optional if monthlyAmount provided)
+     * - newMonthlyAmount: Monthly amount for new collection (optional if numberOfMonths provided)
+     * - newStartDate: Start date for new collection
      */
     @PutMapping("/reschedule/{contractId}")
     public ResponseEntity<List<InstallmentScheduleResponse>> rescheduleUnpaidInstallments(
@@ -149,7 +150,7 @@ public class InstallmentScheduleController {
     // ============== CRUD ENDPOINTS ==============
 
     /**
-     * Create a single installment schedule manually
+     * Create a single installment collection manually
      *
      * POST /api/v1/installment-schedules
      */
@@ -162,7 +163,7 @@ public class InstallmentScheduleController {
     }
 
     /**
-     * Update an existing installment schedule
+     * Update an existing installment collection
      *
      * PUT /api/v1/installment-schedules/{id}
      */
@@ -255,7 +256,7 @@ public class InstallmentScheduleController {
      * GET /api/v1/installment-schedules/monthly-summary?month=2026-01
      */
     @GetMapping("/monthly-summary")
-    public ResponseEntity<InstallmentScheduleService.MonthlyCollectionSummary> getMonthlySummary(
+    public ResponseEntity<MonthlyCollectionSummary> getMonthlySummary(
             @RequestParam String month) {
 
         return ResponseEntity.ok(scheduleService.getMonthlyCollectionSummary(month));

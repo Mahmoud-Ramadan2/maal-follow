@@ -1,6 +1,6 @@
-package com.mahmoud.maalflow.modules.installments.contract.repo;
+package com.mahmoud.maalflow.modules.installments.schedule.repo;
 
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -112,8 +113,13 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
 
     List<InstallmentSchedule> findByContractId(Long contractId);
 
-    @Query("SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM InstallmentSchedule s WHERE s.contract.id = :contractId AND s.status = 'PAID'")
-    boolean existsPaidByContractId(Long id);
+    @Query("""
+            SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM InstallmentSchedule s
+                        WHERE s.contract.id = :contractId AND s.status IN ( 'PAID', 'PARTIALLY_PAID')
+            """)
+    boolean existsPaidByContractId(Long contractId);
+// this faster as it stop when find any matches also it type safety
+    boolean existsByContractIdAndStatusIn(Long contractId, Collection<PaymentStatus> status);
 
 
     // Find schedules by profit month for profit distribution

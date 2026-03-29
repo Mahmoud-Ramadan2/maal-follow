@@ -2,11 +2,12 @@ package com.mahmoud.maalflow.modules.installments.payment.service;
 
 import com.mahmoud.maalflow.modules.installments.capital.service.CapitalService;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.contract.service.ContractCompletionPolicy;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
-import com.mahmoud.maalflow.modules.installments.contract.repo.InstallmentScheduleRepository;
+import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
 import com.mahmoud.maalflow.modules.installments.payment.entity.Payment;
 import com.mahmoud.maalflow.modules.installments.profit.service.ProfitProcessingService;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;

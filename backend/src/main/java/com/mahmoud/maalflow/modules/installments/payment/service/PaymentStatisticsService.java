@@ -3,7 +3,7 @@ package com.mahmoud.maalflow.modules.installments.payment.service;
 import com.mahmoud.maalflow.modules.installments.payment.dto.DailyPaymentSummary;
 import com.mahmoud.maalflow.modules.installments.payment.dto.PaymentStatistics;
 import com.mahmoud.maalflow.modules.installments.payment.repo.PaymentRepository;
-import com.mahmoud.maalflow.modules.installments.contract.repo.InstallmentScheduleRepository;
+import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

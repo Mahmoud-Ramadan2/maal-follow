@@ -2,7 +2,7 @@ package com.mahmoud.maalflow.modules.installments.payment.entity;
 
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus;
-import com.mahmoud.maalflow.modules.installments.contract.entity.InstallmentSchedule;
+import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
