@@ -47,6 +47,11 @@ public class ContractService {
     private final UserRepository userRepository;
     private final ContractMapper contractMapper;
     private final InstallmentScheduleService installmentScheduleService;
+    private final ContractFinancialValidator contractFinancialValidator;
+    private final ContractPricingPolicy contractPricingPolicy;
+    private final ContractTermCalculator contractTermCalculator;
+    private final ContractDefaultsApplier contractDefaultsApplier;
+    private final ContractStatusPolicy contractStatusPolicy;
     //private final MessageSource messageSource;
 
     @Transactional
@@ -98,7 +103,7 @@ public class ContractService {
         }
 
         // Apply default values
-        applyDefaults(contract);
+        contractDefaultsApplier.applyDefaults(contract);
 
         if (purchase.getBuyPrice() == null || purchase.getBuyPrice().compareTo(MIN_PURCHASE_PRICE) < 0) {
             throw new BusinessException("messages.buyPrice.invalid");
@@ -115,11 +120,11 @@ public class ContractService {
             contract.setMonths(null);
         }
         // Auto Calculate final price if not provided depending on Months and original price
-        setAndValidateFinalPrice(contract, contract.getFinalPrice(), contract.getOriginalPrice());
+        contractPricingPolicy.applyFinalPrice(contract, contract.getFinalPrice(), contract.getOriginalPrice());
 
 
         // Validate financials
-       validateFinancials(contract.getFinalPrice(),
+        contractFinancialValidator.validateFinancials(contract.getFinalPrice(),
                contract.getDownPayment() ,
                originalPrice,
                contract.getAgreedPaymentDay());
@@ -134,10 +139,11 @@ public class ContractService {
         contract.setRemainingAmount(remaining);
 
         // Calculate months and monthlyAmount based on user input
-        calculateMonthsAndAmount(contract, remaining, contract.getMonths(), request.getMonthlyAmount());
+        contractTermCalculator.calculateMonthsAndAmount(contract, remaining, contract.getMonths(), request.getMonthlyAmount());
 
         // Calculate profit
-       contract.setProfitAmount(calculateProfit(contract));
+        BigDecimal profitAmount = contractPricingPolicy.calculateProfit(contract);
+        contract.setProfitAmount(profitAmount);
        // Default net profit = profit amount initially
        contract.setNetProfit(contract.getProfitAmount());
 
@@ -191,9 +197,12 @@ public class ContractService {
 //        }
 //        // TODO: check for unpaid installments before changing purchase
 
-        if(request.getStatus() != null ) {
-            validateStatusTransition(existingContract.getStatus(), request.getStatus(), existingContract);
+        if(request.getStatus() != null && !request.getStatus().equals(existingContract.getStatus())) {
+            contractStatusPolicy.validateStatusTransition(existingContract.getStatus(), request.getStatus(), existingContract);
             existingContract.setStatus(request.getStatus());
+            if(request.getStatus().equals(ContractStatus.COMPLETED)) {
+                log.info("Contract {} marked as completed during update", existingContract.getId());
+            }
         }
 
         if (request.getPartnerId() != null) {
@@ -238,7 +247,7 @@ public class ContractService {
             existingContract.setMonthlyAmount(request.getMonthlyAmount());
         }
 
-        applyDefaults(existingContract);
+        contractDefaultsApplier.applyDefaults(existingContract);
 
         if (existingContract.getPurchase().getBuyPrice() == null || existingContract.getPurchase().getBuyPrice().compareTo(MIN_PURCHASE_PRICE) < 0) {
             throw new BusinessException("messages.buyPrice.invalid");
@@ -249,10 +258,10 @@ public class ContractService {
         existingContract.setOriginalPrice(originalPrice);
 
         // Auto Calculate final price if not provided depending on Months and original price
-        setAndValidateFinalPrice(existingContract, existingContract.getFinalPrice(), existingContract.getOriginalPrice());
+        contractPricingPolicy.applyFinalPrice(existingContract, existingContract.getFinalPrice(), existingContract.getOriginalPrice());
 
 
-        validateFinancials(existingContract.getFinalPrice(),
+        contractFinancialValidator.validateFinancials(existingContract.getFinalPrice(),
                 existingContract.getDownPayment(),
                 originalPrice,
                 existingContract.getAgreedPaymentDay());
@@ -264,7 +273,7 @@ public class ContractService {
         BigDecimal remaining = existingContract.getFinalPrice().subtract(existingContract.getDownPayment());
         existingContract.setRemainingAmount(remaining);
 
-        calculateMonthsAndAmount(existingContract, remaining, existingContract.getMonths(), existingContract.getMonthlyAmount());
+        contractTermCalculator.calculateMonthsAndAmount(existingContract, remaining, existingContract.getMonths(), existingContract.getMonthlyAmount());
 
 //        Integer effectiveMonths = request.getMonths() != null ? request.getMonths() : existingContract.getMonths();
 //        BigDecimal effectiveMonthlyAmount = request.getMonthlyAmount() != null ? request.getMonthlyAmount() : existingContract.getMonthlyAmount();
@@ -275,7 +284,15 @@ public class ContractService {
 
 
         // Calculate profit
-        existingContract.setProfitAmount(calculateProfit(existingContract));
+        existingContract.setProfitAmount(contractPricingPolicy.calculateProfit(existingContract));
+
+        // save contract
+        Contract updatedContract = contractRepository.save(existingContract);
+
+        // generate contract schedules
+        if (updatedContract.getStatus().equals(ContractStatus.ACTIVE) || updatedContract.getStatus().equals(ContractStatus.LATE)) {
+            installmentScheduleService.generateSchedulesForContract(updatedContract.getId());
+        }
 
         log.info("Contract updated: contractId={}, customerId={}, purchaseId={}, status={}",
                 existingContract.getId(),
@@ -283,7 +300,7 @@ public class ContractService {
                 existingContract.getPurchase() != null ? existingContract.getPurchase().getId() : null,
                 existingContract.getStatus());
 
-        return contractMapper.toContractResponse(contractRepository.save(existingContract));
+        return contractMapper.toContractResponse(updatedContract);
     }
 
 
@@ -414,11 +431,9 @@ public class ContractService {
     public ContractResponse markAsCompleted(Long contractId) {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new ObjectNotFoundException("messages.contract.notFound", contractId));
-         // TODO: Add checks to ensure all installments are paid before marking as completed
 
-        contract.setStatus(ContractStatus.COMPLETED);
-        contract.setCompletionDate(LocalDate.now());
-
+        contractStatusPolicy.validateStatusTransition(contract.getStatus(), ContractStatus.COMPLETED, contract);
+        log.info("Contract {} marked as completed", contract.getId());
         return contractMapper.toContractResponse(contractRepository.save(contract));
     }
 
@@ -437,271 +452,9 @@ public class ContractService {
     // ============== Helper Methods ==============
 
 
-
-    /**
-     * Validate financial fields of the contract
-     */
-    private void validateFinancials(
-            BigDecimal finalPrice,
-            BigDecimal downPayment,
-            BigDecimal originalPrice,
-            Integer agreedPaymentDay
-    ) {
-        if (finalPrice == null || downPayment == null || originalPrice == null || agreedPaymentDay == null) {
-            throw new BusinessException("messages.contract.invalidFinancialData");
-        }
-
-        if (downPayment.compareTo(finalPrice) > 0) {
-            throw new BusinessException("messages.contract.downPayment.invalid");
-        }
-
-        if (finalPrice.compareTo(originalPrice) < 0) {
-            throw new BusinessException("messages.contract.finalPrice.lessThanOrignalPrice");
-        }
-
-        if (agreedPaymentDay < 1 || agreedPaymentDay > 31) {
-            throw new BusinessException("messages.contract.agreedPaymentDay.invalid");
-
-        }
-    }
-
-    /**
-     * Apply default values to contract fields if not provided
-     */
-    private void applyDefaults(Contract contract) {
-        if (contract.getAdditionalCosts() == null)
-            contract.setAdditionalCosts(BigDecimal.ZERO);
-
-        if (contract.getAgreedPaymentDay() == null)
-            contract.setAgreedPaymentDay(1);
-
-        if (contract.getCashDiscountRate() == null)
-            contract.setCashDiscountRate(BigDecimal.ZERO);
-
-        if (contract.getEarlyPaymentDiscountRate() == null)
-            contract.setEarlyPaymentDiscountRate(BigDecimal.ZERO);
-
-        if (contract.getDownPayment() == null)
-            contract.setDownPayment(BigDecimal.ZERO);
-
-        if (contract.getFinalPrice() == null)
-            contract.setFinalPrice(BigDecimal.ZERO);
-
-    }
-
-    /**
-     * Auto Calculate final price if not provided depending Months and purchase price
-     */
-//    private void setAndValidateFinalPrice(Contract contract, BigDecimal finalPrice, BigDecimal purchasePrice) {
-//
-//        // TODO validate final price business logic
-//
-//        if (finalPrice == null) {
-//            finalPrice = BigDecimal.ZERO;
-//        }
-//
-//        if (purchasePrice == null) {
-//            purchasePrice = BigDecimal.ZERO;
-//        }
-//
-//        // Auto Calculate final price if not provided depending Months and purchase price
-//        if(finalPrice.compareTo(BigDecimal.ZERO) > 0 ) {
-//            // The minimum final price should be at least 10% markup over purchase price
-//            if (finalPrice.compareTo(purchasePrice) < 0) {
-//                throw new BusinessException("messages.contract.finalPrice.lessThanPurchasePrice");
-//            }
-//             if (finalPrice.compareTo(purchasePrice.
-//                    multiply(BigDecimal.valueOf(1.1))) < 0) {
-//                throw new BusinessException("messages.contract.finalPrice.lessThan10PercentMarkup");
-//            }
-//            else {
-//                 contract.setFinalPrice(finalPrice.setScale(2, RoundingMode.HALF_UP));
-//                return;
-//            }
-//        }
-//
-//        BigDecimal multiplier;
-//        if (contract.getMonths() <= 6) {
-//            // 30% markup for up to 6 months
-//            multiplier = BigDecimal.valueOf(1.3);
-//        } else if (contract.getMonths() <= 12) {
-//            // 40% markup for 7 to 12 months
-//            multiplier = BigDecimal.valueOf(1.4);
-//        } else {
-//            // 50% markup for more than 12 months
-//            multiplier = BigDecimal.valueOf(1.5);
-//        }
-//        BigDecimal computed = purchasePrice.multiply(multiplier)
-//                .setScale(2, RoundingMode.HALF_UP);
-//
-//        contract.setFinalPrice(computed);
-//    }
-    private void setAndValidateFinalPrice(Contract contract, BigDecimal finalPrice, BigDecimal originalPrice) {
-
-        // TODO validate final price business logic
-
-
-        // Auto Calculate final price if not provided depending Months and original price
-        if(finalPrice.compareTo(BigDecimal.ZERO) > 0 ) {
-            // The minimum final price should be at least 10% markup over the original price
-            if (finalPrice.compareTo(originalPrice.multiply(BigDecimal.valueOf(1.1))) < 0) {
-                throw new BusinessException("messages.contract.finalPrice.lessThan10PercentMarkup");
-            }
-            else {
-                contract.setFinalPrice(finalPrice.setScale(2, RoundingMode.HALF_UP));
-                return;
-            }
-        }
-
-        // cant complete if moths not provided in this case as its needed to calculate final price
-        // but it if final price provided and right value months can be not provided and will be calculated after that
-        if (contract.getMonths() == null || contract.getMonths() <= 0 || contract.getMonths() > 60) {
-            throw new BusinessException("messages.contract.invalidMonths");
-        }
-
-        BigDecimal multiplier;
-        if (contract.getMonths() <= 6) {
-            // 30% markup for up to 6 months
-            multiplier = BigDecimal.valueOf(1.3);
-        } else if (contract.getMonths() <= 12) {
-            // 40% markup for 7 to 12 months
-            multiplier = BigDecimal.valueOf(1.4);
-        } else {
-            // 50% markup for more than 12 months
-            multiplier = BigDecimal.valueOf(1.5);
-        }
-        BigDecimal computed = originalPrice.multiply(multiplier)
-                .setScale(2, RoundingMode.HALF_UP);
-
-        contract.setFinalPrice(computed);
-    }
-
-    /**
-     * Calculate profit amount based on purchase price and final price
-     * Requirement #15: Calculate original price + markup + additional costs
-     */
-    private BigDecimal calculateProfit(Contract contract) {
-        // TODO validate profit calculation business logic
-        // Profit = Final Price - Original Price (which includes purchase + additional costs)
-        return contract.getFinalPrice().subtract(contract.getOriginalPrice());
-    }
-
-    /**
-     * Calculate months and monthlyAmount based on user input.
-     * User can provide either months OR monthlyAmount, and the other will be calculated.
-     * If both are provided, validate they match.
-     * If neither is provided, throw an error.
-     */
-    private void calculateMonthsAndAmount(Contract contract, BigDecimal remainingAmount, Integer months, BigDecimal monthlyAmount) {
-        if (remainingAmount != null && remainingAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("messages.contract.remainingAmount.invalid");
-        }
-
-        // Case 1: Both months and monthlyAmount provided - validate they match
-        if (months != null && monthlyAmount != null) {
-            BigDecimal calculatedTotal = monthlyAmount.multiply(BigDecimal.valueOf(months));
-            BigDecimal difference = calculatedTotal.subtract(remainingAmount).abs();
-
-            // Allow small difference due to rounding (within 1% or 10 units)
-          //  BigDecimal tolerance = remainingAmount.multiply(BigDecimal.valueOf(0.01)).max(BigDecimal.TEN);
-
-//            if (difference.compareTo(tolerance) > 0) {
-            if (difference.compareTo(BigDecimal.ONE) > 0) {
-                log.warn("Months and monthlyAmount mismatch: months={}, monthlyAmount={}, total={}, remaining={}",
-                    months, monthlyAmount, calculatedTotal, remainingAmount);
-                throw new BusinessException("messages.contract.monthsAmountMismatch");
-            }
-
-            contract.setMonths(months);
-            contract.setMonthlyAmount(monthlyAmount);
-            return;
-        }
-
-        // Case 2: Only monthlyAmount provided - calculate months
-        if (monthlyAmount != null) {
-            if (monthlyAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new BusinessException("messages.contract.invalidMonthlyAmount");
-            }
-            if (monthlyAmount.compareTo(remainingAmount) > 0) {
-                throw new BusinessException("messages.contract.monthlyAmountExceedsTotal");
-            }
-
-            int calculatedMonths = remainingAmount.divide(monthlyAmount, 0, RoundingMode.UP).intValue();
-            contract.setMonths(calculatedMonths);
-            contract.setMonthlyAmount(monthlyAmount);
-            log.debug("Calculated months from monthlyAmount: monthlyAmount={}, calculatedMonths={}", monthlyAmount, calculatedMonths);
-            return;
-        }
-
-        // Case 3: Only months provided - calculate monthlyAmount
-        if (months != null) {
-            if (months <= 0) {
-                throw new BusinessException("messages.contract.invalidMonths");
-            }
-
-            BigDecimal calculatedAmount = remainingAmount.divide(
-                BigDecimal.valueOf(months),
-                2,
-                RoundingMode.HALF_UP
-            );
-
-            contract.setMonths(months);
-            contract.setMonthlyAmount(calculatedAmount);
-            log.debug("Calculated monthlyAmount from months: months={}, calculatedAmount={}", months, calculatedAmount);
-            return;
-        }
-
-        // Case 4: Neither provided - error
-        throw new BusinessException("messages.contract.monthsOrAmountRequired");
-    }
-
     private User resolveSystemUser() {
         return userRepository.findById(SYSTEM_USER_ID).orElse(null);
     }
 
-    private void validateStatusTransition(ContractStatus current, ContractStatus requested, Contract contract) {
-//TODO      Define valid status transitions:
-        if (requested == null || current == requested) {
-            return; // no change
-        }
-
-        if (requested == ContractStatus.COMPLETED) {
-            installmentScheduleService.checkAndCompleteContract(contract);
-            return;
-        }
-
-        switch (current) {
-
-            case ACTIVE:
-                // ACTIVE → COMPLETED or CANCELLED allowed
-                if ( requested == ContractStatus.CANCELLED) {
-                    return;
-                }
-                break;
-
-            case LATE:
-                // LATE → ACTIVE or CANCELLED allowed
-                // LATE is final → cannot change
-                if (requested == ContractStatus.LATE || requested == ContractStatus.ACTIVE) {
-                    return;
-                }
-                break;
-            case COMPLETED:
-                // COMPLETED is final → cannot reopen or cancel
-                if (requested == ContractStatus.COMPLETED) {
-                    return;
-                }
-                break;
-
-            case CANCELLED:
-                // CANCELLED is final → cannot change
-                if (requested == ContractStatus.CANCELLED) {
-                    return;
-                }
-                break;
-        }
-
-        throw new BusinessException("messages.contract.invalidStatusTransition");
-    }
 
 }
