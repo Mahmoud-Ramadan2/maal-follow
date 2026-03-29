@@ -7,6 +7,7 @@ import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseReq
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseResponse;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.contract.entity.ContractExpense;
+import com.mahmoud.maalflow.modules.installments.contract.event.ContractExpenseChangedEvent;
 import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.mapper.ContractExpenseMapper;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractExpenseRepository;
@@ -24,6 +25,7 @@ import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerType;
 import com.mahmoud.maalflow.modules.installments.ledger.repo.DailyLedgerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,8 @@ public class ContractExpenseService {
     private final UserRepository userRepository;
     private final ContractExpenseMapper expenseMapper;
     private final DailyLedgerRepository dailyLedgerRepository;
+    
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Create a new contract expense
@@ -85,7 +89,8 @@ public class ContractExpenseService {
         // Record expense in daily ledger
         recordExpenseInDailyLedger(saved, user);
 
-        // Note: Database triggers automatically update contract totals
+        // Note: publish an event will handle updating contract total expense and net profite, 
+        eventPublisher.publishEvent(new ContractExpenseChangedEvent(saved.getContract().getId()));
 
         return expenseMapper.toResponse(saved);
     }
@@ -127,7 +132,12 @@ public class ContractExpenseService {
         // TODO: Handle Updated By from Security Context
 //        expense.setUpdatedBy();
 
-        return expenseMapper.toResponse(expenseRepository.save(expense));
+        // Persist expense then keep ledger entry in sync with latest values.
+        ContractExpense updated = expenseRepository.save(expense);
+        updateExpenseInDailyLedger(updated);
+        eventPublisher.publishEvent(new ContractExpenseChangedEvent(updated.getContract().getId()));
+
+        return expenseMapper.toResponse(updated);
     }
 
     public List<ContractExpenseResponse> getExpensesByContractId(Long contractId) {
@@ -212,4 +222,38 @@ public class ContractExpenseService {
         dailyLedgerRepository.save(ledgerEntry);
         log.debug("Recorded expense {} in daily ledger", expense.getId());
     }
+
+    /**
+     * Update existing daily ledger entry for an expense, or create it if missing.
+     */
+    private void updateExpenseInDailyLedger(ContractExpense expense) {
+        String idempotencyKey = "LEDGER-EXP-" + expense.getId();
+        String description = expense.getInstallmentSchedule() != null ?
+                "مصاريف اضافية خاصة بالقسط " + expense.getInstallmentSchedule().getId() :
+                "مصاريف اضافية عامة للعقد " + expense.getContract().getId();
+
+        DailyLedger ledgerEntry = dailyLedgerRepository.findByIdempotencyKey(idempotencyKey)
+                .orElseGet(() -> DailyLedger.builder()
+                        .idempotencyKey(idempotencyKey)
+                        .user(expense.getCreatedBy())
+                        .build());
+
+        ledgerEntry.setType(LedgerType.EXPENSE);
+        ledgerEntry.setAmount(expense.getAmount());
+        ledgerEntry.setSource(LedgerSource.OPERATING_EXPENSE);
+        ledgerEntry.setReferenceType(expense.getInstallmentSchedule() != null ?
+                LedgerReferenceType.INSTALLMENT_SCHEDULE : LedgerReferenceType.CONTRACT_EXPENSE);
+        ledgerEntry.setReferenceId(expense.getId());
+        ledgerEntry.setDescription(description);
+        ledgerEntry.setDate(expense.getExpenseDate());
+        ledgerEntry.setPartner(expense.getPartner());
+
+        if (ledgerEntry.getUser() == null) {
+            ledgerEntry.setUser(expense.getCreatedBy());
+        }
+
+        dailyLedgerRepository.save(ledgerEntry);
+        log.debug("Updated ledger entry for expense {}", expense.getId());
+    }
 }
+
