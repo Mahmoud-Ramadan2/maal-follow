@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -368,5 +369,24 @@ public class GlobalExceptionHandler {
                 .build();
         log.error("Unexpected error: {}", request.getRequestURI(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    // Handle Locking Failure (Conflict) 409
+
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ApiErrorResponse> handlePessimisticLockingFailure(PessimisticLockingFailureException ex, HttpServletRequest request) {
+        String messageKey = "validation.capitalPool.concurrentUpdate";
+        String message = messageSource.getMessage(messageKey, null, LocaleContextHolder.getLocale());
+
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT.getReasonPhrase())
+                .message(message)
+                .path(request.getRequestURI())
+                .build();
+
+        log.error("Pessimistic lock timeout at {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }
