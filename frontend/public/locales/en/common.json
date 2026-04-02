@@ -28,7 +28,10 @@
     "capital": "Capital",
     "customers": "Customers",
     "contracts": "Contracts",
-    "vendors": "Vendors"
+    "schedules": "Schedules",
+    "collectionRoutes": "Collection Routes",
+    "vendors": "Vendors",
+    "users": "Users"
   },
 
   "header": {

@@ -28,7 +28,10 @@
     "capital": "رأس المال",
     "customers": "العملاء",
     "contracts": "العقود",
-    "vendors": "التجار"
+    "schedules": "الأقساط",
+    "collectionRoutes": "مسارات التحصيل",
+    "vendors": "التجار",
+    "users": "المستخدمون"
   },
 
   "header": {

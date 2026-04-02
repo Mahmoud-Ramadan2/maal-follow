@@ -1,0 +1,72 @@
+{
+  "title": "Users",
+  "createNew": "Create User",
+  "searchPlaceholder": "Search by name, email, or phone...",
+  "clearFilters": "Clear Filters",
+  "retry": "Retry",
+  "empty": "No users found",
+
+  "filter": {
+    "allRoles": "All Roles"
+  },
+
+  "role": {
+    "ADMIN": "Admin",
+    "OWNER": "Owner",
+    "MANAGER": "Manager",
+    "COLLECTOR": "Collector",
+    "ACCOUNTANT": "Accountant",
+    "USER": "User"
+  },
+
+  "columns": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "actions": "Actions"
+  },
+
+  "form": {
+    "createTitle": "Create User",
+    "editTitle": "Edit User",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "passwordOptional": "Password (optional)",
+    "role": "Role",
+    "submitCreate": "Create",
+    "submitUpdate": "Update"
+  },
+
+  "details": {
+    "title": "User #{{id}}",
+    "backToList": "Back to Users",
+    "userInfo": "User Information",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "createdAt": "Created At",
+    "notFound": "User not found"
+  },
+
+  "pagination": {
+    "showing": "Showing {{from}}-{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+
+  "created": "User created successfully",
+  "updated": "User updated successfully",
+  "deleted": "User deleted successfully",
+  "fetchError": "Failed to fetch users",
+  "fetchOneError": "Failed to fetch user",
+  "createError": "Failed to create user",
+  "updateError": "Failed to update user",
+  "deleteError": "Failed to delete user",
+  "deleteConfirm": "Delete this user?"
+}
+

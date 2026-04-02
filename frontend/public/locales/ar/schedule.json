@@ -1,0 +1,109 @@
+{
+  "title": " الأقساط",
+  "createNew": "إضافة قسط",
+  "searchPlaceholder": "ابحث باسم العميل...",
+  "filters": {
+    "status": "الحالة",
+    "contractId": "رقم العقد",
+    "paymentDay": "يوم الدفع",
+    "dueSoonDays": "مستحق خلال (أيام)",
+    "startDate": "من تاريخ",
+    "endDate": "إلى تاريخ",
+    "overdueOnly": "المتأخر فقط",
+    "clear": "مسح الفلاتر"
+  },
+  "actions": {
+    "pay": "دفع",
+    "remind": "تذكير"
+  },
+  "pay": {
+    "missingScheduleId": "مطلوب رقم القسط لبدء الدفع."
+  },
+  "reminders": {
+    "sent": "تم تنفيذ مهمة التذكير بنجاح.",
+    "failed": "فشل إرسال التذكير.",
+    "scheduleSpecificComingSoon": "التذكير المخصص لكل قسط قريباً."
+  },
+  "columns": {
+    "id": "المعرف",
+    "contractNumber": "العقد",
+    "sequence": "#",
+    "customerName": "العميل",
+    "dueDate": "تاريخ الاستحقاق",
+    "amount": "المبلغ المستحق",
+
+    "paidAmount": "المدفوع",
+    "status": "الحالة",
+    "profitMonth": "شهر الربح",
+    "actions": "الإجراءات"
+  },
+  "form": {
+    "createTitle": "إضافة قسط",
+    "editTitle": "تعديل قسط",
+    "editDataNotice": "أنت الآن تعدّل القيم الحالية للقسط.",
+    "metadataOnlyEditTitle": "وضع التعديل على البيانات الوصفية فقط",
+    "metadataOnlyEditDescription": "الحقول المالية (المبلغ، الخصم، الحالة) مقفلة بعد نشاط الدفع. يمكنك تحديث تاريخ الاستحقاق والملاحظات والمحصِّل فقط.",
+    "updateConfirm": "هل تريد تحديث هذا القسط بالقيم الجديدة؟",
+    "missingEditData": "تعذر تحميل بيانات القسط الحالية للتعديل. افتح صفحة التعديل من قائمة/تفاصيل الأقساط.",
+    "contractId": "رقم العقد",
+    "sequenceNumber": "رقم القسط",
+    "profitMonth": "شهر الربح (YYYY-MM)",
+    "originalAmount": "القيمة الأصلية",
+    "amount": "المبلغ المستحقة",
+    "paidAmount": "القيمة المدفوعة",
+    "profitPaid": "الربح المدفوع",
+    "principalPaid": "الأصل المدفوع",
+    "profitAmount": "قيمة الربح المستحق",
+    "principalAmount": "  قيمة الأصل المستحق",
+    "dueDate": "تاريخ الاستحقاق",
+    "paidDate": "تاريخ الدفع",
+    "discountApplied": "قيمة الخصم",
+    "status": "الحالة",
+    "collectorId": "معرف المحصل",
+    "collectorPlaceholder": "اختر المستلم",
+    "collectorName": "المستلم",
+    "isFinalPayment": "دفعة أخيرة",
+    "notes": "ملاحظات",
+    "submitCreate": "إضافة",
+    "submitUpdate": "تحديث"
+  },
+  "details": {
+    "title": "تفاصيل القسط #{{id}}",
+    "notFound": "لم يتم العثور على القسط",
+    "backToList": "العودة للقائمة",
+    "dates": "التواريخ",
+    "paidMoney": "المبالغ المدفوعة",
+    "amounts": "المبالغ",
+    "other": "بيانات أخرى",
+    "customerPhone": "هاتف العميل",
+    "notPaid": "لم يتم الدفع بعد",
+    "remaining": "المتبقي",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "status": {
+    "PENDING": "لم يدفع",
+    "PAID": "مدفوع",
+    "LATE": "متأخر",
+    "PARTIALLY_PAID": "مدفوع جزئياً",
+    "CANCELLED": "ملغى"
+  },
+  "pagination": {
+    "showing": "عرض {{from}}-{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "empty": "لا توجد اقساط",
+  "emptyState": {
+    "noSchedules": "لا توجد اقساط للعرض"
+  },
+  "fetchError": "فشل في جلب الأقساط",
+  "fetchOneError": "فشل في جلب القسط",
+  "createError": "فشل في إضافة القسط",
+  "updateError": "فشل في تحديث القسط",
+  "created": "تمت إضافة القسط بنجاح",
+  "updated": "تم تحديث القسط بنجاح",
+  "notFound": "لم يتم العثور على القسط"
+}
+

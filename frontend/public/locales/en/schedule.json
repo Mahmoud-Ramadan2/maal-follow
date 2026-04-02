@@ -1,0 +1,107 @@
+{
+  "title": "Installment Schedules",
+  "createNew": "Create Schedule",
+  "searchPlaceholder": "Search by customer name...",
+  "filters": {
+    "status": "Status",
+    "contractId": "Contract ID",
+    "paymentDay": "Payment Day",
+    "dueSoonDays": "Due Soon (days)",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "overdueOnly": "Overdue Only",
+    "clear": "Clear Filters"
+  },
+  "actions": {
+    "pay": "Pay",
+    "remind": "Remind"
+  },
+  "pay": {
+    "missingScheduleId": "Schedule ID is required to start payment."
+  },
+  "reminders": {
+    "sent": "Reminder job executed successfully.",
+    "failed": "Failed to send reminder.",
+    "scheduleSpecificComingSoon": "Schedule-specific reminders are coming soon."
+  },
+  "columns": {
+    "id": "ID",
+    "contractNumber": "Contract",
+    "sequence": "#",
+    "customerName": "Customer",
+    "dueDate": "Due Date",
+    "amount": "Amount",
+    "paidAmount": "Paid",
+    "status": "Status",
+    "profitMonth": "Profit Month",
+    "actions": "Actions"
+  },
+  "form": {
+    "createTitle": "Create Schedule",
+    "editTitle": "Edit Schedule",
+    "editDataNotice": "You are editing the current installment values loaded from the selected schedule.",
+    "metadataOnlyEditTitle": "Metadata-Only Edit Mode",
+    "metadataOnlyEditDescription": "Financial fields (amount, discount, status) are locked after payment activity. You may update due date, notes, and collector only.",
+    "updateConfirm": "Update this installment schedule with the new values?",
+    "missingEditData": "Cannot load current installment data for edit. Please open edit from the schedule list/details.",
+    "contractId": "Contract ID",
+    "sequenceNumber": "Sequence Number",
+    "profitMonth": "Profit Month (YYYY-MM)",
+    "originalAmount": " Original Amount",
+    "amount": "Amount",
+    "paidAmount": " Paid Amount",
+    "profitPaid": " Profit Paid",
+    "principalPaid": "  Principal Paid",
+    "profitAmount": " Profit Amount",
+    "principalAmount": "  Principal Amount",
+    "paidDate": " Paid Date",
+    "dueDate": "Due Date",
+    "discountApplied": "Discount Amount",
+    "status": "Status",
+    "collectorId": "Collector ID",
+    "collectorPlaceholder": "Select collector",
+    "isFinalPayment": "Final Payment",
+    "notes": "Notes",
+    "submitCreate": "Create",
+    "submitUpdate": "Update"
+  },
+  "details": {
+    "title": "Schedule #{{id}}",
+    "notFound": "Schedule not found",
+    "backToList": "Back to Schedules",
+    "dates": "Dates",
+    "paidMoney": "Paid Money",
+    "amounts": "Amounts",
+    "other": "Other",
+    "customerPhone": "Customer Phone",
+    "notPaid": "Not paid yet",
+    "remaining": "Remaining",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "PAID": "Paid",
+    "LATE": "Late",
+    "PARTIALLY_PAID": "Partially Paid",
+    "CANCELLED": "Cancelled"
+  },
+  "pagination": {
+    "showing": "Showing {{from}}-{{to}} of {{total}}",
+    "pageSize": "Rows per page:",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "empty": "No schedules found",
+  "emptyState": {
+    "noSchedules": "No schedules to display"
+  },
+  "fetchError": "Failed to fetch schedules",
+  "fetchOneError": "Failed to fetch schedule",
+  "createError": "Failed to create schedule",
+  "updateError": "Failed to update schedule",
+  "created": "Schedule created successfully",
+  "updated": "Schedule updated successfully",
+  "notFound": "Schedule not found"
+}
+

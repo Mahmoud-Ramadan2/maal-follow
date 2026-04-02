@@ -39,7 +39,7 @@
     "editTitle": "تعديل الدفعة",
     "idempotencyKey": "مفتاح المعاملة",
     "idempotencyKeyPlaceholder": "مفتاح فريد (مثال: PAY-2026-001)",
-    "installmentScheduleId": "جدول القسط",
+    "installmentScheduleId": "رقم القسط",
     "installmentSchedulePlaceholder": "اختر القسط (اختياري)",
     "amount": "المبلغ",
     "amountPlaceholder": "مثال: 250.00",
@@ -56,6 +56,7 @@
     "notes": "ملاحظات",
     "notesPlaceholder": "ملاحظات اختيارية…",
     "collectorId": "المحصّل",
+    "prefilledFromSchedule": "تم تعبئة النموذج من القسط رقم {{scheduleId}} (العقد #{{contractId}}، العميل: {{customerName}}، الاستحقاق: {{dueDate}}). يمكنك تعديل بيانات الدفع قبل الحفظ.",
     "submit": "حفظ الدفعة",
     "submitting": "جارٍ الحفظ…"
   },

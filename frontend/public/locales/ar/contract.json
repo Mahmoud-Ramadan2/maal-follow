@@ -68,7 +68,7 @@
     "purchaseSearchPlaceholder": "اكتب للبحث عن الشراء باسم المنتج أو التاجر…",
     "purchasePlaceholder": "اختر عملية شراء…",
     "finalPrice": "السعر النهائي",
-    "finalPricePlaceholder": "مثال: 5000",
+    "finalPricePlaceholder": "ضع 0 للحساب الألي",
     "downPayment": " المقدم",
     "downPaymentPlaceholder": "مثال: 1000",
     "months": "عدد الأشهر",
@@ -134,6 +134,8 @@
     "profitAmount": "الربح",
     "totalExpenses": "إجمالي المصاريف",
     "netProfit": "صافي الربح",
+    "capitalAllocated": "رأس المال المخصص",
+    "capitalReturned": "رأس المال المستعاد",
     "notes": "ملاحظات",
     "noNotes": "لا توجد ملاحظات",
     "notFound": "لم يتم العثور على العقد",
@@ -142,6 +144,9 @@
 
   "schedule": {
     "title": "جدول الأقساط",
+    "actions": "الإجراءات",
+    "pay": "دفع",
+    "remind": "تذكير",
     "sequence": "#",
     "dueDate": "تاريخ الاستحقاق",
     "amount": "المبلغ",

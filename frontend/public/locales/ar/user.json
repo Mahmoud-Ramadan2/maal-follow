@@ -1,0 +1,72 @@
+{
+  "title": "المستخدمون",
+  "createNew": "إضافة مستخدم",
+  "searchPlaceholder": "ابحث بالاسم أو البريد أو الهاتف...",
+  "clearFilters": "مسح الفلاتر",
+  "retry": "إعادة المحاولة",
+  "empty": "لا يوجد مستخدمون",
+
+  "filter": {
+    "allRoles": "كل الأدوار"
+  },
+
+  "role": {
+    "ADMIN": "مدير النظام",
+    "OWNER": "المالك",
+    "MANAGER": "مدير",
+    "COLLECTOR": "محصّل",
+    "ACCOUNTANT": "محاسب",
+    "USER": "مستخدم"
+  },
+
+  "columns": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "role": "الدور",
+    "actions": "الإجراءات"
+  },
+
+  "form": {
+    "createTitle": "إضافة مستخدم",
+    "editTitle": "تعديل مستخدم",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "password": "كلمة المرور",
+    "passwordOptional": "كلمة المرور (اختياري)",
+    "role": "الدور",
+    "submitCreate": "إضافة",
+    "submitUpdate": "تحديث"
+  },
+
+  "details": {
+    "title": "المستخدم #{{id}}",
+    "backToList": "العودة للمستخدمين",
+    "userInfo": "بيانات المستخدم",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "role": "الدور",
+    "createdAt": "تاريخ الإنشاء",
+    "notFound": "المستخدم غير موجود"
+  },
+
+  "pagination": {
+    "showing": "عرض {{from}}-{{to}} من {{total}}",
+    "pageSize": "عدد الصفوف:",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+
+  "created": "تم إنشاء المستخدم بنجاح",
+  "updated": "تم تحديث المستخدم بنجاح",
+  "deleted": "تم حذف المستخدم بنجاح",
+  "fetchError": "فشل في تحميل المستخدمين",
+  "fetchOneError": "فشل في تحميل المستخدم",
+  "createError": "فشل في إنشاء المستخدم",
+  "updateError": "فشل في تحديث المستخدم",
+  "deleteError": "فشل في حذف المستخدم",
+  "deleteConfirm": "هل تريد حذف هذا المستخدم؟"
+}
+

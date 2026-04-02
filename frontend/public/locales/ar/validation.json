@@ -60,17 +60,32 @@
     "address": { "size": "العنوان يجب ألا يتجاوز 200 حرفاً" },
     "partnershipType": { "required": "نوع الشراكة مطلوب" },
     "sharePercentage": { "min": "نسبة الحصة يجب أن تكون 0.01% على الأقل", "max": "نسبة الحصة لا يمكن أن تتجاوز 100%" },
+    "totalInvestment": {
+      "required": "مبلغ الاستثمار مطلوب",
+      "min": "مبلغ الاستثمار يجب أن يكون 0.01 على الأقل",
+      "format": "مبلغ الاستثمار يجب ألا يزيد عن منزلتين عشريتين"
+    },
     "investmentStartDate": { "required": "تاريخ بدء الاستثمار مطلوب" },
-    "profitCalculationStartMonth": { "size": "شهر حساب الأرباح يجب ألا يتجاوز 7 أحرف", "pattern": "الصيغة يجب أن تكون MM/YYYY" },
+    "profitCalculationStartMonth": { "size": "شهر حساب الأرباح يجب ألا يتجاوز 7 أحرف", "pattern": "الصيغة يجب أن تكون YYYY-MM" },
     "createdBy": { "required": "المنشئ مطلوب" }
   },
   "payment": {
     "idempotencyKey": { "required": "مفتاح المعاملة مطلوب", "size": "مفتاح المعاملة يجب ألا يتجاوز 100 حرفاً" },
-    "amount": { "required": "المبلغ مطلوب", "min": "المبلغ يجب أن يكون 0.01 على الأقل", "format": "صيغة المبلغ غير صحيحة" },
+    "amount": { "required": "المبلغ مطلوب", "min": "المبلغ يجب أن يكون 50 على الأقل", "format": "صيغة المبلغ غير صحيحة" },
     "paymentMethod": { "required": "طريقة الدفع مطلوبة" },
     "actualPaymentDate": { "required": "تاريخ الدفع مطلوب" },
     "agreedPaymentMonth": { "format": "صيغة الشهر يجب أن تكون YYYY-MM" },
-    "discountAmount": { "min": "الخصم لا يمكن أن يكون سالباً", "format": "صيغة الخصم غير صحيحة" }
+    "discountAmount": { "min": "الخصم لا يمكن أن يكون سالباً", "format": "صيغة الخصم غير صحيحة" },
+    "extraExpenses": { "min": "المصاريف لا يمكن أن تكون سالباً", "format": "الصيغة غير صحيحة" }
+  },
+  "schedule": {
+    "contractId": { "required": "العقد مطلوب" },
+    "sequenceNumber": { "required": "رقم القسط مطلوب", "positive": "رقم القسط يجب أن يكون أكبر من 0" },
+    "profitMonth": { "required": "شهر الربح مطلوب", "format": "صيغة شهر الربح يجب أن تكون YYYY-MM" },
+    "amount": { "required": "المبلغ مطلوب", "min": "المبلغ يجب أن يكون 0.01 على الأقل" },
+    "dueDate": { "required": "تاريخ الاستحقاق مطلوب" },
+    "discountApplied": { "min": "الخصم لا يمكن أن يكون سالباً" },
+    "collectorId": { "positive": "معرف المحصل يجب أن يكون رقماً موجباً" }
   },
   "capital": {
     "totalAmount": { "required": "المبلغ الإجمالي مطلوب", "positive": "المبلغ الإجمالي يجب أن يكون صفراً أو أكثر" },
@@ -79,5 +94,21 @@
     "transactionType": { "required": "نوع الحركة مطلوب" },
     "amount": { "required": "المبلغ مطلوب", "positive": "المبلغ يجب أن يكون موجباً" },
     "description": { "size": "الوصف يجب ألا يتجاوز 500 حرفاً" }
+  },
+  "user": {
+    "email": {
+      "invalid": "صيغة البريد الإلكتروني غير صحيحة",
+      "size": "البريد الإلكتروني يجب ألا يتجاوز 200 حرف"
+    },
+    "password": {
+      "required": "كلمة المرور مطلوبة",
+      "size": "كلمة المرور يجب أن تكون بين 6 و100 حرف"
+    },
+    "phone": {
+      "size": "الهاتف يجب ألا يتجاوز 20 حرف"
+    },
+    "role": {
+      "required": "الدور مطلوب"
+    }
   }
 }

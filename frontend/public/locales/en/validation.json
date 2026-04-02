@@ -59,8 +59,13 @@
     "address": { "size": "Address must not exceed 200 characters" },
     "partnershipType": { "required": "Partnership type is required" },
     "sharePercentage": { "min": "Share percentage must be at least 0.01%", "max": "Share percentage cannot exceed 100%" },
+    "totalInvestment": {
+      "required": "Investment amount is required",
+      "min": "Investment amount must be at least 0.01",
+      "format": "Investment amount must have at most 2 decimal places"
+    },
     "investmentStartDate": { "required": "Investment start date is required" },
-    "profitCalculationStartMonth": { "size": "Profit calculation month must not exceed 7 characters", "pattern": "Format must be MM/YYYY" },
+    "profitCalculationStartMonth": { "size": "Profit calculation month must not exceed 7 characters", "pattern": "Format must be YYYY-MM" },
     "createdBy": { "required": "Created by is required" }
   },
   "payment": {
@@ -69,7 +74,17 @@
     "paymentMethod": { "required": "Payment method is required" },
     "actualPaymentDate": { "required": "Payment date is required" },
     "agreedPaymentMonth": { "format": "Month format must be YYYY-MM" },
-    "discountAmount": { "min": "Discount cannot be negative", "format": "Invalid discount format" }
+    "discountAmount": { "min": "Discount cannot be negative", "format": "Invalid discount format" },
+    "extraExpenses": { "min": "Extra Expenses cannot be negative", "format": "Invalid format" }
+  },
+  "schedule": {
+    "contractId": { "required": "Contract is required" },
+    "sequenceNumber": { "required": "Sequence number is required", "positive": "Sequence number must be greater than 0" },
+    "profitMonth": { "required": "Profit month is required", "format": "Profit month must be in YYYY-MM format" },
+    "amount": { "required": "Amount is required", "min": "Amount must be at least 0.01" },
+    "dueDate": { "required": "Due date is required" },
+    "discountApplied": { "min": "Discount cannot be negative" },
+    "collectorId": { "positive": "Collector ID must be a positive number" }
   },
   "capital": {
     "totalAmount": { "required": "Total amount is required", "positive": "Total amount must be zero or positive" },
@@ -78,5 +93,21 @@
     "transactionType": { "required": "Transaction type is required" },
     "amount": { "required": "Amount is required", "positive": "Amount must be positive" },
     "description": { "size": "Description must not exceed 500 characters" }
+  },
+  "user": {
+    "email": {
+      "invalid": "Email format is invalid",
+      "size": "Email must not exceed 200 characters"
+    },
+    "password": {
+      "required": "Password is required",
+      "size": "Password must be between 6 and 100 characters"
+    },
+    "phone": {
+      "size": "Phone must not exceed 20 characters"
+    },
+    "role": {
+      "required": "Role is required"
+    }
   }
 }
