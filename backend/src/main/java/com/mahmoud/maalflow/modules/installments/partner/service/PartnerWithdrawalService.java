@@ -3,6 +3,10 @@ package com.mahmoud.maalflow.modules.installments.partner.service;
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
+import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
+import com.mahmoud.maalflow.modules.installments.capital.entity.CapitalPool;
+import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactionType;
+import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerWithdrawalRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerWithdrawalResponse;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
@@ -33,6 +37,8 @@ public class PartnerWithdrawalService {
     private final PartnerRepository partnerRepository;
     private final PartnerWithdrawalMapper withdrawalMapper;
     private final LedgerService ledgerService;
+    private final CapitalTransactionService capitalTransactionService;
+    private final PartnerShareService partnerShareService;
     @Transactional
     public PartnerWithdrawalResponse createWithdrawalRequest(PartnerWithdrawalRequest request) {
         // Validate partner has sufficient balance
@@ -88,7 +94,7 @@ public class PartnerWithdrawalService {
         // Validate balance at approval time as well
         validatePartnerBalance(withdrawal.getPartner().getId(), withdrawal.getAmount());
 
-        checkPendingWithdrawalLimit(withdrawal.getPartner().getId(), withdrawal.getAmount());
+        checkPendingWithdrawalLimit(withdrawal.getPartner().getId());
 
         withdrawal.setStatus(WithdrawalStatus.APPROVED);
         withdrawal.setApprovedAt(LocalDateTime.now());
@@ -105,8 +111,7 @@ public class PartnerWithdrawalService {
     @Transactional
     public PartnerWithdrawalResponse processWithdrawal(Long id) {
 
-        PartnerWithdrawal withdrawal = withdrawalRepository.findById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("messages.partner.withdrawal.notFound", id));
+        PartnerWithdrawal withdrawal = getWithdrawalByIdForUpdate(id);
 
         if (withdrawal.getStatus() != WithdrawalStatus.APPROVED) {
             throw new BusinessException("messages.partner.withdrawal.invalidStatusForProcessing");
@@ -122,6 +127,10 @@ public class PartnerWithdrawalService {
 
         // Update partner balance
         updatePartnerBalanceForWithdrawal(withdrawal.getPartner(), withdrawal.getAmount());
+
+        // Record capital movement for withdrawal
+        recordCapitalWithdrawal(withdrawal);
+        partnerShareService.recalculateSharePercentages(capitalTransactionService.getPoolForUpdate().getTotalAmount());
 
         // Record ledger expense entry
         recordWithdrawalExpense(withdrawal);
@@ -176,8 +185,15 @@ public class PartnerWithdrawalService {
 
     private void updatePartnerBalanceForWithdrawal(Partner partner, BigDecimal withdrawalAmount) {
         // Update totals and current balance
-        partner.setTotalWithdrawals(partner.getTotalWithdrawals().add(withdrawalAmount));
-        partner.setCurrentBalance(partner.getCurrentBalance().subtract(withdrawalAmount));
+        BigDecimal currentWithdrawals = partner.getTotalWithdrawals() != null
+                ? partner.getTotalWithdrawals()
+                : BigDecimal.ZERO;
+        BigDecimal currentBalance = partner.getCurrentBalance() != null
+                ? partner.getCurrentBalance()
+                : BigDecimal.ZERO;
+
+        partner.setTotalWithdrawals(currentWithdrawals.add(withdrawalAmount));
+        partner.setCurrentBalance(currentBalance.subtract(withdrawalAmount));
 
         partnerRepository.save(partner);
     }
@@ -209,7 +225,18 @@ public class PartnerWithdrawalService {
         }
     }
 
-    private void checkPendingWithdrawalLimit(Long partnerId, BigDecimal amount) {
+    private void recordCapitalWithdrawal(PartnerWithdrawal withdrawal) {
+        CapitalTransactionRequest txRequest = CapitalTransactionRequest.builder()
+                .transactionType(CapitalTransactionType.WITHDRAWAL)
+                .amount(withdrawal.getAmount())
+                .partnerId(withdrawal.getPartner().getId())
+                .description("Partner withdrawal processing ID " + withdrawal.getId())
+                .build();
+
+        capitalTransactionService.createCapitalTransaction(txRequest);
+    }
+
+    private void checkPendingWithdrawalLimit(Long partnerId) {
 
         Partner partner = partnerRepository.findById(partnerId)
                 .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", partnerId));
@@ -218,12 +245,21 @@ public class PartnerWithdrawalService {
         if (pendingTotal == null) {
             pendingTotal = BigDecimal.ZERO;
         }
-        BigDecimal newPendingTotal = pendingTotal.add(amount);
+        BigDecimal newPendingTotal = pendingTotal;
         if (newPendingTotal.compareTo(partner.getCurrentBalance()) > 0) {
             throw new BusinessException("messages.partner.withdrawal.exceedsPendingLimit");
         }
     }
 
+        /**
+         *  Get Withdrawalwith
+         *  pessimistic lock for update operations.
+         */
+        @Transactional
+        public PartnerWithdrawal getWithdrawalByIdForUpdate(Long id) {
 
+            return withdrawalRepository.findWithdrawalByIdForUpdate(id)
+                    .orElseThrow(() -> new ObjectNotFoundException("messages.partner.withdrawal.notFound", id));
+        }
 
 }

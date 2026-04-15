@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
+
 /**
  * Service for advanced partner profit sharing control.
  * Implements requirements 9, 10: Dynamic profit sharing control, 2-month delay, manual adjustments.
@@ -25,7 +27,6 @@ public class PartnerProfitControlService {
 
     private final PartnerRepository partnerRepository;
     private final PartnerProfitCalculationConfigRepository configRepository;
-    private static final DateTimeFormatter  MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
 
     /**
      * Start profit sharing for a partner.

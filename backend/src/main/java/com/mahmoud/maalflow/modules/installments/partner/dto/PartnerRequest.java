@@ -27,13 +27,13 @@ public class PartnerRequest {
     @Size(max = 200, message = "{validation.address.size}")
     private String address;
 
-    @NotNull(message = "{validation.partnershipType.required}")
+//    @NotNull(message = "{validation.partnershipType.required}")
     private PartnershipType partnershipType;
 
-    @DecimalMin(value = "0.01", message = "{validation.sharePercentage.invalid}")
-    @DecimalMax(value = "100.00", message = "{validation.sharePercentage.invalid}")
-    @Digits(integer = 3, fraction = 2, message = "{validation.sharePercentage.format}")
-    private BigDecimal sharePercentage;
+//    @DecimalMin(value = "0.01", message = "{validation.sharePercentage.invalid}")
+//    @DecimalMax(value = "100.00", message = "{validation.sharePercentage.invalid}")
+//    @Digits(integer = 3, fraction = 2, message = "{validation.sharePercentage.format}")
+//    private BigDecimal sharePercentage;
 
     private PartnerStatus status;
 
@@ -42,15 +42,17 @@ public class PartnerRequest {
     private LocalDate investmentStartDate;
 
     @Size(max = 7, message = "{validation.profitCalculationStartMonth.size}")
-    @Pattern(regexp = "^\\d{2}/\\d{4}$", message = "{validation.profitCalculationStartMonth.pattern}")
-    @DateTimeFormat(pattern = "MM/yyyy")
+    @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "{validation.profitCalculationStartMonth.pattern}")
     private String profitCalculationStartMonth;
 
+    @NotNull(message = "{validation.partner.totalInvestment.required}")
+    @DecimalMin(value = "100", message = "{validation.partner.totalInvestment.min}")
+    @Digits(integer = 12, fraction = 2, message = "{validation.partner.totalInvestment.format}")
     private BigDecimal totalInvestment;
 
-    private BigDecimal totalWithdrawals;
-
-    private BigDecimal currentBalance;
+//    private BigDecimal totalWithdrawals;
+//
+//    private BigDecimal currentBalance;
 
     private Boolean profitSharingActive;
 

@@ -4,8 +4,10 @@ import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.partner.enums.PartnerStatus;
 import com.mahmoud.maalflow.modules.installments.partner.enums.PartnershipType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,5 +28,11 @@ public interface PartnerRepository extends JpaRepository<Partner, Long> {
     boolean existsByPhone(String phone);
 
     List<Partner> findByStatusAndProfitSharingActive(PartnerStatus status, Boolean profitSharingActive);
-}
 
+    @Query("SELECT COALESCE(SUM(p.totalInvestment), 0) FROM Partner p")
+    BigDecimal sumTotalInvestment();
+
+    @Query("SELECT COALESCE(SUM(p.totalWithdrawals), 0) FROM Partner p")
+    BigDecimal sumTotalWithdrawals();
+
+}

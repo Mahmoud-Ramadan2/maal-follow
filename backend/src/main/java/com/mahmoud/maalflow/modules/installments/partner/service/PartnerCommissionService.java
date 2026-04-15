@@ -61,7 +61,6 @@ public class PartnerCommissionService {
     private final PartnerProfitCalculationConfigRepository configRepository;
     private final PartnerCommissionMapper partnerCommissionMapper;
 
-    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
 
     /**
      * Creates a new partner commission based on the request.

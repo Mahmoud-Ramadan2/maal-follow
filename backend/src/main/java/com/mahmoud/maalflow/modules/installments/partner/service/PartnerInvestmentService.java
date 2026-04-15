@@ -2,12 +2,18 @@ package com.mahmoud.maalflow.modules.installments.partner.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
+import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
+import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactionType;
+import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
+import com.mahmoud.maalflow.modules.installments.capital.service.CapitalPoolService;
+import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerInvestmentRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerInvestmentResponse;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerInvestment;
 import com.mahmoud.maalflow.modules.installments.partner.enums.InvestmentStatus;
 import com.mahmoud.maalflow.modules.installments.partner.enums.InvestmentType;
+import com.mahmoud.maalflow.modules.installments.partner.enums.PartnerStatus;
 import com.mahmoud.maalflow.modules.installments.partner.mapper.PartnerInvestmentMapper;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerInvestmentRepository;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
@@ -18,8 +24,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
 
 /**
  * Service for managing partner investments.
@@ -31,8 +42,13 @@ public class PartnerInvestmentService {
 
     private final PartnerInvestmentRepository investmentRepository;
     private final PartnerRepository partnerRepository;
+    private final CapitalPoolService capitalPoolService;
     private final PartnerInvestmentMapper investmentMapper;
     private final LedgerService ledgerService;
+    private final CapitalTransactionService capitalTransactionService;
+    private final PartnerShareService partnerShareService;
+
+
 
     @Transactional
     public PartnerInvestmentResponse createInvestment(PartnerInvestmentRequest request) {
@@ -42,12 +58,8 @@ public class PartnerInvestmentService {
 
         PartnerInvestment investment = investmentMapper.toPartnerInvestment(request);
 
-        // Default to PENDING when status is not provided, otherwise use provided status
-        if (request.getStatus() == null) {
-            investment.setStatus(InvestmentStatus.PENDING);
-        } else {
-            investment.setStatus(request.getStatus());
-        }
+        // Confirmation must go through confirmInvestment to guarantee side-effects.
+        investment.setStatus(InvestmentStatus.PENDING);
 
         if (investment.getAmount() == null || investment.getAmount().compareTo(BigDecimal.valueOf(100)) < 0) {
             throw new BusinessException("messages.partner.investmentAmount.invalid");
@@ -85,6 +97,12 @@ public class PartnerInvestmentService {
     }
 
     @Transactional(readOnly = true)
+    public PartnerInvestment getInvestmentByIdForUpdate(Long id) {
+        return investmentRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RuntimeException("Investment not found with id: " + id));
+    }
+
+    @Transactional(readOnly = true)
     public PartnerInvestmentResponse getInvestmentResponseById(Long id) {
         PartnerInvestment inv = getInvestmentById(id);
         return investmentMapper.toPartnerInvestmentResponse(inv);
@@ -93,23 +111,27 @@ public class PartnerInvestmentService {
     @Transactional
     public PartnerInvestmentResponse confirmInvestment(Long id) {
 
-        PartnerInvestment investment = getInvestmentById(id);
+        PartnerInvestment investment = getInvestmentByIdForUpdate(id);
         if (investment.getStatus() == InvestmentStatus.CONFIRMED) {
             return investmentMapper.toPartnerInvestmentResponse(investment);
         }
 
         Long partnerId = investment.getPartner().getId();
 
-        boolean exists = partnerRepository.existsById(partnerId);
+//        boolean exists = partnerRepository.existsById(partnerId);
+        Partner partner = partnerRepository.findById(partnerId)
+                .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", partnerId));
 
-        if (!exists) {
-            throw new UserNotFoundException("messages.partner.notFound", partnerId);
-        }
 
         investment.setStatus(InvestmentStatus.CONFIRMED);
-
         PartnerInvestment updated = investmentRepository.save(investment);
-        updatePartnerInvestmentBalance(partnerId);
+
+        // Update partner's total investment and balance,
+        // and set investment start date and profit calculation start month if this is the initial investment.
+        boolean isInitialInvestment = updated.getInvestmentType().equals(InvestmentType.INITIAL);
+        updatePartnerInvestmentBalanceAndDates(partnerId, isInitialInvestment);
+        recordCapitalInvestment(updated);
+        partnerShareService.recalculateSharePercentages(capitalPoolService.getPoolOrThrowForUpdate().getTotalAmount());
 
         // Record ledger income entry for confirmed investment
 
@@ -127,18 +149,46 @@ public class PartnerInvestmentService {
      * Update the total investment balance of a partner.
      */
     @Transactional
-    public void updatePartnerInvestmentBalance(Long partnerId) {
+    public void updatePartnerInvestmentBalanceAndDates(Long partnerId, boolean isInitialInvestment) {
 
         Partner partner = partnerRepository.findById(partnerId)
                 .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", partnerId));
 
+        if (isInitialInvestment) {
+            partner.setStatus(PartnerStatus.ACTIVE);
+            LocalDate currentDate = LocalDate.now();
+            partner.setInvestmentStartDate(currentDate);
+            partner.setProfitCalculationStartMonth(currentDate.plusMonths(2).format(MONTH_FORMAT));
+        }
+
         BigDecimal totalInvestment = investmentRepository.sumByPartnerIdAndStatus(
                 partnerId, InvestmentStatus.CONFIRMED);
 
-        partner.setTotalInvestment(totalInvestment != null ? totalInvestment : BigDecimal.ZERO);
+        BigDecimal safeTotalInvestment = totalInvestment != null ? totalInvestment : BigDecimal.ZERO;
+        BigDecimal safeTotalWithdrawals = partner.getTotalWithdrawals() != null
+                ? partner.getTotalWithdrawals()
+                : BigDecimal.ZERO;
+
+        partner.setTotalInvestment(safeTotalInvestment);
+        partner.setCurrentBalance(safeTotalInvestment.subtract(safeTotalWithdrawals));
 
         log.info("Updated total investment for partner id: {} to {}", partnerId, partner.getTotalInvestment());
         partnerRepository.save(partner);
+    }
+
+    /**
+     * Record capital transaction for confirmed investment.
+     *  recordCapitalInvestment is called after confirming the investment to ensure that only confirmed investments are recorded in the capital transactions. This method creates a new capital transaction of type INVESTMENT with the amount of the investment and links it to the partner. This allows us to track all capital movements related to partner investments in a consistent way.
+     */
+    private void recordCapitalInvestment(PartnerInvestment investment) {
+        CapitalTransactionRequest txRequest = CapitalTransactionRequest.builder()
+                .transactionType(CapitalTransactionType.INVESTMENT)
+                .amount(investment.getAmount())
+                .partnerId(investment.getPartner().getId())
+                .description("Partner investment confirmation ID " + investment.getId())
+                .build();
+
+        capitalTransactionService.createCapitalTransaction(txRequest);
     }
 
     /**

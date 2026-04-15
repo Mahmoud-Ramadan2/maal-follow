@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping("/api/v1/partner/customer-acquisitions")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = "*", maxAge = 3600)
 public class PartnerCustomerAcquisitionController {
 
     private final PartnerCustomerAcquisitionService acquisitionService;

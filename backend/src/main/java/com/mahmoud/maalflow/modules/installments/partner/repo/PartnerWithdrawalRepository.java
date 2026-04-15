@@ -3,13 +3,18 @@ package com.mahmoud.maalflow.modules.installments.partner.repo;
 import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerWithdrawal;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.partner.enums.WithdrawalStatus;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for PartnerWithdrawal entity.
@@ -29,5 +34,9 @@ public interface PartnerWithdrawalRepository extends JpaRepository<PartnerWithdr
 
     List<PartnerWithdrawal> findByPartnerAndRequestedAtBeforeOrderByRequestedAtAsc(Partner partner, LocalDateTime before);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")}) // Wait 3 seconds max
+    @Query("SELECT pw FROM PartnerWithdrawal pw WHERE pw.id = :id")
+    Optional<PartnerWithdrawal> findWithdrawalByIdForUpdate(Long id);
 }
 

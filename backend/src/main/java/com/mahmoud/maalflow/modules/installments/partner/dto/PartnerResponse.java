@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class PartnerResponse {
 
+    private Long id;
     private String name;
     private String phone;
     private String address;

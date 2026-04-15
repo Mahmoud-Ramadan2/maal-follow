@@ -13,9 +13,9 @@ public interface PartnerMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "totalInvestment", ignore = true)
     @Mapping(target = "totalWithdrawals", ignore = true)
     @Mapping(target = "currentBalance", ignore = true)
+    @Mapping(target = "sharePercentage", ignore = true)
     Partner toPartner(PartnerRequest partnerRequest);
 
     @Mapping(target = "createdByName", expression = "java(partner.getCreatedBy() != null ? partner.getCreatedBy().getName() : null)")

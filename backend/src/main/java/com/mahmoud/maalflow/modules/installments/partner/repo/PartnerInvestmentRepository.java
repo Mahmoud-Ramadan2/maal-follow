@@ -2,12 +2,18 @@ package com.mahmoud.maalflow.modules.installments.partner.repo;
 
 import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerInvestment;
 import com.mahmoud.maalflow.modules.installments.partner.enums.InvestmentStatus;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for PartnerInvestment entity.
@@ -24,4 +30,10 @@ public interface PartnerInvestmentRepository extends JpaRepository<PartnerInvest
 
 
     boolean existsByPartnerId(Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")}) // Wait 3 seconds max
+    @Query("SELECT pi FROM PartnerInvestment pi WHERE pi.id = :id")
+    Optional<PartnerInvestment> findByIdForUpdate(@Param("id") Long id);
+
 }
