@@ -6,4 +6,8 @@ public enum UserRole {
     USER,
     MANAGER,
     COLLECTOR
+    //TODO addmore roles
+    // OWNER: 'OWNER',
+    // ACCOUNTANT: 'ACCOUNTANT',
+
 }
