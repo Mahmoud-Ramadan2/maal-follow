@@ -1,5 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.collection.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mahmoud.maalflow.modules.installments.collection.enums.CollectionItemStatus;
 import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.math.BigDecimal;
 
 /**
  * Entity representing customers assigned to collection routes.
@@ -32,11 +35,13 @@ public class CollectionRouteItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collection_route_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_route_item_route"))
+    @JsonIgnoreProperties({"routeItems", "createdBy"})
     private CollectionRoute collectionRoute;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_route_item_customer"))
+    @JsonIgnoreProperties({"contracts", "accountLinks", "linkedBy", "collectionRouteItems", "createdBy"})
     private Customer customer;
 
     @Column(name = "sequence_order", nullable = false)
@@ -44,6 +49,16 @@ public class CollectionRouteItem {
 
     @Column(name = "estimated_collection_time")
     private LocalTime estimatedCollectionTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "collection_status", nullable = false)
+    private CollectionItemStatus collectionStatus = CollectionItemStatus.PENDING;
+
+    @Column(name = "amount", precision = 12, scale = 2)
+    private BigDecimal amount;
+
+    @Column(name = "collected_amount", precision = 12, scale = 2)
+    private BigDecimal collectedAmount;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;

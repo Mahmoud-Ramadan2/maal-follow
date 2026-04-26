@@ -32,5 +32,7 @@ public interface CollectionRouteRepository extends JpaRepository<CollectionRoute
      * Find routes created by a specific user.
      */
     List<CollectionRoute> findByCreatedById(Long userId);
+
+    List<CollectionRoute> findByIsActiveTrueOrderByNameAsc();
 }
 

@@ -1,5 +1,6 @@
 package com.mahmoud.maalflow.modules.installments.collection.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mahmoud.maalflow.modules.installments.collection.enums.RouteType;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
@@ -44,6 +45,7 @@ public class CollectionRoute {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false, foreignKey = @ForeignKey(name = "fk_route_created_by"))
+    @JsonIgnoreProperties({"password", "roles", "permissions", "createdBy", "updatedBy"})
     private User createdBy;
 
     @CreationTimestamp
@@ -55,6 +57,7 @@ public class CollectionRoute {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "collectionRoute", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"collectionRoute"})
     private List<CollectionRouteItem> routeItems;
 }
 

@@ -34,6 +34,10 @@ public interface CollectionRouteItemRepository extends JpaRepository<CollectionR
      */
     boolean existsByCollectionRouteIdAndCustomerId(Long routeId, Long customerId);
 
+    boolean existsByCollectionRouteIdAndCustomerIdAndIsActiveTrue(Long routeId, Long customerId);
+
+    List<CollectionRouteItem> findByCollectionRouteIdAndIdIn(Long routeId, List<Long> itemIds);
+
     /**
      * Get maximum sequence order for a route.
      */
