@@ -57,6 +57,8 @@
     "notesPlaceholder": "Optional notes…",
     "collectorId": "Collector",
     "prefilledFromSchedule": "Prefilled from schedule #{{scheduleId}} (contract #{{contractId}}, customer: {{customerName}}, due: {{dueDate}}). You can adjust payment details before submit.",
+    "submitConfirmTitle": "Confirm Payment",
+    "submitConfirm": "Confirm recording payment with amount {{amount}}?",
     "submit": "Save Payment",
     "submitting": "Saving…"
   },

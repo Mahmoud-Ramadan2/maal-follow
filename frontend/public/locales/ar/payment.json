@@ -57,6 +57,8 @@
     "notesPlaceholder": "ملاحظات اختيارية…",
     "collectorId": "المحصّل",
     "prefilledFromSchedule": "تم تعبئة النموذج من القسط رقم {{scheduleId}} (العقد #{{contractId}}، العميل: {{customerName}}، الاستحقاق: {{dueDate}}). يمكنك تعديل بيانات الدفع قبل الحفظ.",
+    "submitConfirmTitle": "تأكيد الدفع",
+    "submitConfirm": "تأكيد دفع مبلغ {{amount}}؟",
     "submit": "حفظ الدفعة",
     "submitting": "جارٍ الحفظ…"
   },

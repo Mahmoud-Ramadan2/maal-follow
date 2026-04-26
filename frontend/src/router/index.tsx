@@ -67,6 +67,12 @@ const partnerCreate = () => import('@pages/modules/installments/partner/PartnerC
 const partnerEdit   = () => import('@pages/modules/installments/partner/PartnerEditPage')
 const partnerView   = () => import('@pages/modules/installments/partner/PartnerViewPage')
 
+// Profit Distributions
+const profitList = () => import('@pages/modules/installments/profit/ProfitListPage')
+const profitCreate = () => import('@pages/modules/installments/profit/ProfitCreatePage')
+const profitEdit = () => import('@pages/modules/installments/profit/ProfitEditPage')
+const profitView = () => import('@pages/modules/installments/profit/ProfitViewPage')
+
 // Customers
 const customerList   = () => import('@pages/modules/installments/customer/CustomerListPage')
 const customerCreate = () => import('@pages/modules/installments/customer/CustomerCreatePage')
@@ -84,11 +90,30 @@ const contractCreate = () => import('@pages/modules/installments/contract/Contra
 const contractEdit   = () => import('@pages/modules/installments/contract/ContractEditPage')
 const contractView   = () => import('@pages/modules/installments/contract/ContractViewPage')
 
+// Schedules
+const scheduleList   = () => import('@pages/modules/installments/schedule/ScheduleListPage')
+const scheduleCreate = () => import('@pages/modules/installments/schedule/ScheduleCreatePage')
+const scheduleEdit   = () => import('@pages/modules/installments/schedule/ScheduleEditPage')
+const scheduleView   = () => import('@pages/modules/installments/schedule/ScheduleViewPage')
+
 // Vendors
 const vendorList   = () => import('@pages/modules/installments/vendor/VendorListPage')
 const vendorCreate = () => import('@pages/modules/installments/vendor/VendorCreatePage')
 const vendorEdit   = () => import('@pages/modules/installments/vendor/VendorEditPage')
 const vendorView   = () => import('@pages/modules/installments/vendor/VendorViewPage')
+
+// Users
+const userList   = () => import('@pages/modules/installments/user/UserListPage')
+const userCreate = () => import('@pages/modules/installments/user/UserCreatePage')
+const userEdit   = () => import('@pages/modules/installments/user/UserEditPage')
+const userView   = () => import('@pages/modules/installments/user/UserViewPage')
+
+// Collection Routes
+const collectionRouteList = () =>
+    import('@pages/modules/installments/collection/CollectionRouteListPage')
+        .then((m) => ({ default: m.CollectionRouteListPage }))
+const collectionRouteCreate = () => import('@pages/modules/installments/collection/CollectionRouteCreatePage')
+const collectionRouteView = () => import('@pages/modules/installments/collection/CollectionRouteViewPage')
 
 // 404
 const notFoundPage = () => import('@pages/NotFoundPage')
@@ -187,6 +212,24 @@ export const router = createBrowserRouter([
                 element: lazyLoad(partnerView),
             },
 
+            // ── Profit Distributions ───────────────────
+            {
+                path: APP_ROUTES.PROFITS.LIST,
+                element: lazyLoad(profitList),
+            },
+            {
+                path: APP_ROUTES.PROFITS.CREATE,
+                element: lazyLoad(profitCreate),
+            },
+            {
+                path: APP_ROUTES.PROFITS.EDIT_PATTERN,
+                element: lazyLoad(profitEdit),
+            },
+            {
+                path: APP_ROUTES.PROFITS.VIEW_PATTERN,
+                element: lazyLoad(profitView),
+            },
+
             // ── Customers ───────────────────────────────────
             {
                 path: APP_ROUTES.CUSTOMERS.LIST,
@@ -237,6 +280,24 @@ export const router = createBrowserRouter([
                 element: lazyLoad(contractView),
             },
 
+            // ── Schedules ───────────────────────────────────
+            {
+                path: APP_ROUTES.SCHEDULES.LIST,
+                element: lazyLoad(scheduleList),
+            },
+            {
+                path: APP_ROUTES.SCHEDULES.CREATE,
+                element: lazyLoad(scheduleCreate),
+            },
+            {
+                path: APP_ROUTES.SCHEDULES.EDIT_PATTERN,
+                element: lazyLoad(scheduleEdit),
+            },
+            {
+                path: APP_ROUTES.SCHEDULES.VIEW_PATTERN,
+                element: lazyLoad(scheduleView),
+            },
+
             // ── Vendors ─────────────────────────────────
             {
                 path: APP_ROUTES.VENDORS.LIST,
@@ -253,6 +314,38 @@ export const router = createBrowserRouter([
             {
                 path: APP_ROUTES.VENDORS.VIEW_PATTERN,
                 element: lazyLoad(vendorView),
+            },
+
+            // ── Users ─────────────────────────────────
+            {
+                path: APP_ROUTES.USERS.LIST,
+                element: lazyLoad(userList),
+            },
+            {
+                path: APP_ROUTES.USERS.CREATE,
+                element: lazyLoad(userCreate),
+            },
+            {
+                path: APP_ROUTES.USERS.EDIT_PATTERN,
+                element: lazyLoad(userEdit),
+            },
+            {
+                path: APP_ROUTES.USERS.VIEW_PATTERN,
+                element: lazyLoad(userView),
+            },
+
+            // ── Collection Routes ───────────────────────
+            {
+                path: APP_ROUTES.COLLECTION_ROUTES.LIST,
+                element: lazyLoad(collectionRouteList),
+            },
+            {
+                path: APP_ROUTES.COLLECTION_ROUTES.CREATE,
+                element: lazyLoad(collectionRouteCreate),
+            },
+            {
+                path: APP_ROUTES.COLLECTION_ROUTES.VIEW_PATTERN,
+                element: lazyLoad(collectionRouteView),
             },
 
             // ── 404 catch-all ───────────────────────────────

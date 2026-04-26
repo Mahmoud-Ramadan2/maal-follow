@@ -4,6 +4,7 @@
   "searchPlaceholder": "Search by customer name...",
   "filters": {
     "status": "Status",
+    "allStatuses": "All Statuses",
     "contractId": "Contract ID",
     "paymentDay": "Payment Day",
     "dueSoonDays": "Due Soon (days)",
@@ -41,7 +42,7 @@
     "editTitle": "Edit Schedule",
     "editDataNotice": "You are editing the current installment values loaded from the selected schedule.",
     "metadataOnlyEditTitle": "Metadata-Only Edit Mode",
-    "metadataOnlyEditDescription": "Financial fields (amount, discount, status) are locked after payment activity. You may update due date, notes, and collector only.",
+    "metadataOnlyEditDescription": "Financial fields (amount, discount, status) are locked after payment activity. You may update due date, notes.",
     "updateConfirm": "Update this installment schedule with the new values?",
     "missingEditData": "Cannot load current installment data for edit. Please open edit from the schedule list/details.",
     "contractId": "Contract ID",
@@ -93,6 +94,13 @@
     "next": "Next"
   },
   "empty": "No schedules found",
+  "monthlySummary": {
+    "title": "Monthly Collection Summary",
+    "expectedAmount": "Expected",
+    "actualAmount": "Collected",
+    "shortfall": "Shortfall",
+    "fetchError": "Failed to fetch monthly summary"
+  },
   "emptyState": {
     "noSchedules": "No schedules to display"
   },

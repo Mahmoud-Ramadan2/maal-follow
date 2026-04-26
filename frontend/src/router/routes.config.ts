@@ -51,6 +51,14 @@ export const APP_ROUTES = {
         VIEW_PATTERN: '/partners/:id',
     },
 
+    // ── Profit Distributions ──────────────────────────
+    PROFITS: {
+        LIST: '/profit-distributions',
+        CREATE: '/profit-distributions/create',
+        EDIT_PATTERN: '/profit-distributions/:id/edit',
+        VIEW_PATTERN: '/profit-distributions/:id',
+    },
+
     // ── Customers ───────────────────────────────────────────
     CUSTOMERS: {
         LIST: '/customers',
@@ -74,6 +82,14 @@ export const APP_ROUTES = {
         VIEW_PATTERN: '/contracts/:id',
     },
 
+    // ── Schedules ───────────────────────────────────────────
+    SCHEDULES: {
+        LIST: '/schedules',
+        CREATE: '/schedules/create',
+        EDIT_PATTERN: '/schedules/:id/edit',
+        VIEW_PATTERN: '/schedules/:id',
+    },
+
     // ── Vendors ─────────────────────────────────────────────
     VENDORS: {
         LIST: '/vendors',
@@ -81,6 +97,21 @@ export const APP_ROUTES = {
         /** Route pattern consumed by React Router (`:id` param) */
         EDIT_PATTERN: '/vendors/:id/edit',
         VIEW_PATTERN: '/vendors/:id',
+    },
+
+    // ── Users ───────────────────────────────────────────────
+    USERS: {
+        LIST: '/users',
+        CREATE: '/users/create',
+        EDIT_PATTERN: '/users/:id/edit',
+        VIEW_PATTERN: '/users/:id',
+    },
+
+    // ── Collection Routes ───────────────────────────────────
+    COLLECTION_ROUTES: {
+        LIST: '/collection-routes',
+        CREATE: '/collection-routes/create',
+        VIEW_PATTERN: '/collection-routes/:id',
     },
 
     // ── Catch-all ───────────────────────────────────────────
@@ -109,6 +140,10 @@ export const ROUTE_HELPERS = {
     PARTNER_EDIT: (id: number | string) => `/partners/${id}/edit`,
     PARTNER_VIEW: (id: number | string) => `/partners/${id}`,
 
+    // Profit distributions
+    PROFIT_EDIT: (id: number | string) => `/profit-distributions/${id}/edit`,
+    PROFIT_VIEW: (id: number | string) => `/profit-distributions/${id}`,
+
     // Customers
     CUSTOMER_EDIT: (id: number | string) => `/customers/${id}/edit`,
     CUSTOMER_VIEW: (id: number | string) => `/customers/${id}`,
@@ -120,7 +155,18 @@ export const ROUTE_HELPERS = {
     CONTRACT_EDIT: (id: number | string) => `/contracts/${id}/edit`,
     CONTRACT_VIEW: (id: number | string) => `/contracts/${id}`,
 
+    // Schedules
+    SCHEDULE_EDIT: (id: number | string) => `/schedules/${id}/edit`,
+    SCHEDULE_VIEW: (id: number | string) => `/schedules/${id}`,
+
     // Vendors
     VENDOR_EDIT: (id: number | string) => `/vendors/${id}/edit`,
     VENDOR_VIEW: (id: number | string) => `/vendors/${id}`,
+
+    // Users
+    USER_EDIT: (id: number | string) => `/users/${id}/edit`,
+    USER_VIEW: (id: number | string) => `/users/${id}`,
+
+    // Collection Routes
+    COLLECTION_ROUTE_VIEW: (id: number | string) => `/collection-routes/${id}`,
 } as const

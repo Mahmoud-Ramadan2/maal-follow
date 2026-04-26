@@ -8,6 +8,10 @@ import HandshakeIcon from '@mui/icons-material/Handshake'
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance'
 import PeopleIcon from '@mui/icons-material/People'
 import DescriptionIcon from '@mui/icons-material/Description'
+import EventNoteIcon from '@mui/icons-material/EventNote'
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+import RouteIcon from '@mui/icons-material/Route'
+import PieChartIcon from '@mui/icons-material/PieChart'
 import './Sidebar.css'
 
 // ────────────────────────────────────────────────────────────
@@ -39,9 +43,13 @@ const NAV_ITEMS: NavItem[] = [
     { labelKey: 'nav.procurement', path: APP_ROUTES.PROCUREMENT.LIST, icon: <ShoppingCartIcon fontSize="small" /> },
     { labelKey: 'nav.payments',   path: APP_ROUTES.PAYMENTS.LIST,   icon: <PaymentIcon fontSize="small" /> },
     { labelKey: 'nav.partners',   path: APP_ROUTES.PARTNERS.LIST,   icon: <HandshakeIcon fontSize="small" /> },
+    { labelKey: 'nav.profits', path: APP_ROUTES.PROFITS.LIST, icon: <PieChartIcon fontSize="small" /> },
     { labelKey: 'nav.capital',    path: APP_ROUTES.CAPITAL.LIST,     icon: <AccountBalanceIcon fontSize="small" /> },
     { labelKey: 'nav.customers',  path: APP_ROUTES.CUSTOMERS.LIST,  icon: <PeopleIcon fontSize="small" /> },
     { labelKey: 'nav.contracts',  path: APP_ROUTES.CONTRACTS.LIST,   icon: <DescriptionIcon fontSize="small" /> },
+    { labelKey: 'nav.schedules',  path: APP_ROUTES.SCHEDULES.LIST,   icon: <EventNoteIcon fontSize="small" /> },
+    { labelKey: 'nav.collectionRoutes', path: APP_ROUTES.COLLECTION_ROUTES.LIST, icon: <RouteIcon fontSize="small" /> },
+    { labelKey: 'nav.users',      path: APP_ROUTES.USERS.LIST,       icon: <ManageAccountsIcon fontSize="small" /> },
 ]
 
 // ────────────────────────────────────────────────────────────
