@@ -24,9 +24,15 @@ import java.time.LocalDateTime;
 public class CapitalPool {
 
     @Id
+    // its just have one row with id = 1
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    // using Pessimistic lock rather than Optimistic
+//    @Version
+//    @Column(name = "version", nullable = false)
+//    private Long version;
 
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;

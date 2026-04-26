@@ -1,6 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.capital.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
+import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalPoolRequest;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalPoolResponse;
 import com.mahmoud.maalflow.modules.installments.capital.entity.CapitalPool;
@@ -8,10 +9,9 @@ import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactio
 import com.mahmoud.maalflow.modules.installments.capital.mapper.CapitalPoolMapper;
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalTransactionRepository;
-import com.mahmoud.maalflow.modules.installments.partner.service.PartnerService;
+import com.mahmoud.maalflow.modules.installments.partner.service.PartnerShareService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.*;
 
 /**
  * Service for managing capital pool operations.
@@ -36,11 +38,8 @@ public class CapitalPoolService {
     private final CapitalPoolRepository capitalPoolRepository;
     private final CapitalTransactionRepository capitalTransactionRepository;
     private final CapitalPoolMapper capitalPoolMapper;
-    private final PartnerService partnerService;
+    private final PartnerShareService partnerShareService;
 
-    private static final Long DEFAULT_POOL_ID = 1L;
-    private static final int DEFAULT_HISTORY_PAGE_SIZE = 20;
-    private static final int MAX_HISTORY_PAGE_SIZE = 100;
 
 
     /**
@@ -56,7 +55,7 @@ public class CapitalPoolService {
         // Existence check only; no lock needed during creation flow.
         if (capitalPoolRepository.findById(DEFAULT_POOL_ID).isPresent()) {
             log.warn("Capital pool with ID {} already exists", DEFAULT_POOL_ID);
-            throw new BusinessException("validation.capitalPool.alreadyExists");
+            throw new BusinessException("messages.capitalPool.alreadyExists");
         }
 
         // Create new capital pool from request
@@ -65,7 +64,7 @@ public class CapitalPoolService {
         if (newPool.getId() == null) {
             newPool.setId(DEFAULT_POOL_ID);
         } else if (!newPool.getId().equals(DEFAULT_POOL_ID)) {
-            throw new BusinessException("validation.capitalPool.invalidId");
+            throw new BusinessException("messages.capitalPool.invalidId");
         }
         // Set initial amounts based on the request
         newPool.setTotalAmount(request.getTotalAmount());
@@ -80,7 +79,7 @@ public class CapitalPoolService {
         newPool.setReturnedAmount(BigDecimal.ZERO);
 
         CapitalPool savedPool = capitalPoolRepository.save(newPool);
-        partnerService.recalculateSharePercentages(savedPool.getTotalAmount());
+        partnerShareService.recalculateSharePercentages(savedPool.getTotalAmount());
 
         log.info("Created new capital pool with ID: {}, Total amount: {}", savedPool.getId(), savedPool.getTotalAmount());
 
@@ -105,7 +104,7 @@ public class CapitalPoolService {
         BigDecimal currentLocked = nz(currentPool.getLockedAmount());
 
         if (requestedTotal.compareTo(currentLocked) < 0) {
-            throw new BusinessException("validation.capitalPool.total.lessThanLocked");
+            throw new BusinessException("messages.capitalPool.total.lessThanLocked");
         }
 
         // Derived value: available is always total minus currently locked capital.
@@ -122,7 +121,7 @@ public class CapitalPoolService {
         assertPoolInvariants(currentPool);
 
         CapitalPool savedPool = capitalPoolRepository.save(currentPool);
-        partnerService.recalculateSharePercentages(savedPool.getTotalAmount());
+        partnerShareService.recalculateSharePercentages(savedPool.getTotalAmount());
 
         // Log the changes
         logCapitalPoolChanges(totalBefore, savedPool.getTotalAmount());
@@ -166,17 +165,17 @@ public class CapitalPoolService {
         BigDecimal ownerContribution = nz(currentPool.getOwnerContribution());
         BigDecimal partnerContributions = nz(totalInvestments).subtract(nz(totalWithdrawals));
         if (partnerContributions.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.partnerContributions.negative");
+            throw new BusinessException("messages.capitalPool.partnerContributions.negative");
         }
 
         BigDecimal lockedAmount = nz(totalAllocations).subtract(nz(totalReturns));
         if (lockedAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.lockedAmount.negative");
+            throw new BusinessException("messages.capitalPool.lockedAmount.negative");
         }
 
         BigDecimal totalAmount = ownerContribution.add(partnerContributions);
         if (totalAmount.compareTo(lockedAmount) < 0) {
-            throw new BusinessException("validation.capitalPool.total.lessThanLocked");
+            throw new BusinessException("messages.capitalPool.total.lessThanLocked");
         }
 
         BigDecimal availableAmount = totalAmount.subtract(lockedAmount);
@@ -193,7 +192,7 @@ public class CapitalPoolService {
         assertPoolInvariants(currentPool);
 
         CapitalPool savedPool = capitalPoolRepository.save(currentPool);
-        partnerService.recalculateSharePercentages(savedPool.getTotalAmount());
+        partnerShareService.recalculateSharePercentages(savedPool.getTotalAmount());
 
         log.info("Recalculated capital pool - Total: {}, Available: {}, Locked: {}, Returned: {}",
                 totalAmount, availableAmount, lockedAmount, returnedAmount);
@@ -222,7 +221,7 @@ public class CapitalPoolService {
                 || request.getOwnerContribution() == null
                 || request.getPartnerContributions() == null) {
             log.error("Capital pool amounts validation failed - request contains null values");
-            throw new BusinessException("validation.capitalPool.amounts.mismatch");
+            throw new BusinessException("messages.capitalPool.amounts.mismatch");
         }
 
         BigDecimal calculatedTotal = request.getOwnerContribution().add(request.getPartnerContributions());
@@ -230,23 +229,23 @@ public class CapitalPoolService {
         if (request.getTotalAmount().compareTo(calculatedTotal) != 0) {
             log.error("Capital pool amounts validation failed - Total: {}, Calculated: {}",
                     request.getTotalAmount(), calculatedTotal);
-            throw new BusinessException("validation.capitalPool.amounts.mismatch");
+            throw new BusinessException("messages.capitalPool.amounts.mismatch");
         }
 
         if (request.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.totalAmount.positive");
+            throw new BusinessException("messages.capitalPool.totalAmount.positive");
         }
         if (request.getOwnerContribution().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.ownerContribution.positive");
+            throw new BusinessException("messages.capitalPool.ownerContribution.positive");
         }
         if (request.getPartnerContributions().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.partnerContributions.positive");
+            throw new BusinessException("messages.capitalPool.partnerContributions.positive");
         }
     }
 
     private void validateManualUpdateAllowed() {
         if (capitalTransactionRepository.count() > 0) {
-            throw new BusinessException("validation.capitalPool.manualUpdate.notAllowed");
+            throw new BusinessException("messages.capitalPool.manualUpdate.notAllowed");
         }
     }
 
@@ -258,13 +257,13 @@ public class CapitalPoolService {
         BigDecimal partner = nz(pool.getPartnerContributions());
 
         if (available.compareTo(BigDecimal.ZERO) < 0 || locked.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("validation.capitalPool.amounts.mismatch");
+            throw new BusinessException("messages.capitalPool.amounts.mismatch");
         }
         if (total.compareTo(owner.add(partner)) != 0) {
-            throw new BusinessException("validation.capitalPool.amounts.mismatch");
+            throw new BusinessException("messages.capitalPool.amounts.mismatch");
         }
         if (total.compareTo(available.add(locked)) != 0) {
-            throw new BusinessException("validation.capitalPool.amounts.mismatch");
+            throw new BusinessException("messages.capitalPool.amounts.mismatch");
         }
     }
 
@@ -298,7 +297,7 @@ public class CapitalPoolService {
 
     private CapitalPool getPoolOrThrow() {
         return capitalPoolRepository.findById(DEFAULT_POOL_ID)
-                .orElseThrow(() -> new BusinessException("validation.capitalPool.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.capitalPool.configurationNotFound"));
     }
 
     /**
@@ -309,8 +308,7 @@ public class CapitalPoolService {
     public CapitalPool getPoolOrThrowForUpdate() {
 
         return capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID)
-                .orElseThrow(() -> new BusinessException("validation.capitalPool.notFound"));
-
+                .orElseThrow(() -> new ObjectNotFoundException("messages.capitalPool.configurationNotFound", DEFAULT_POOL_ID));
 
     }
 }

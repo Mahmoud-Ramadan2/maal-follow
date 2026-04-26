@@ -26,10 +26,9 @@ import java.util.Map;
  * @author Mahmoud
  */
 @RestController
-@RequestMapping("/api/v1/partner/capital-transactions")
+@RequestMapping("/api/v1/capital-transactions")
 @AllArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class CapitalTransactionController {
 
     private final CapitalTransactionService capitalTransactionService;

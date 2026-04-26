@@ -1,6 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.capital.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
+import com.mahmoud.maalflow.exception.UserNotFoundException;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionResponse;
 import com.mahmoud.maalflow.modules.installments.capital.entity.CapitalPool;
@@ -9,6 +10,7 @@ import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactio
 import com.mahmoud.maalflow.modules.installments.capital.mapper.CapitalTransactionMapper;
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalTransactionRepository;
+import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_POOL_ID;
+
 /**
  * Service for managing capital transactions in pooled capital model.
  * Handles all capital movement tracking and reporting from the shared pool.
@@ -40,7 +44,7 @@ public class CapitalTransactionService {
     private final CapitalPoolRepository capitalPoolRepository;
     private final CapitalTransactionMapper capitalTransactionMapper;
 
-    private static final Long DEFAULT_POOL_ID = 1L;
+    private final PartnerRepository partnerRepository;
 
     /**
      * Create a manual capital transaction (investment/withdrawal).
@@ -51,10 +55,24 @@ public class CapitalTransactionService {
         log.info("Creating capital transaction: type={}, amount={}",
                 request.getTransactionType(), request.getAmount());
 
+        if (request.getTransactionType().equals(CapitalTransactionType.INVESTMENT) || request.getTransactionType().equals(CapitalTransactionType.WITHDRAWAL)) {
+            // Partner id must provided and valid
+            if (request.getPartnerId() == null) {
+                throw new BusinessException("messages.capital.partnerId.required");
+            }
+            boolean exists = partnerRepository.existsById(request.getPartnerId());
+            if  (!exists) {
+                throw new UserNotFoundException("messages.partner.notFound", request.getPartnerId());
+            }
+        }
+        if (request.getContractId() != null){
+
+        }
         validateCapitalTransactionRequest(request);
 
-        // Get the pool
-        CapitalPool pool = getPool();
+        // Get the pool for update (lock the row)
+        CapitalPool pool = capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID)
+                .orElseThrow(() -> new BusinessException("messages.capital.poolNotFound"));
 
         // Record before state
         BigDecimal availableBefore = pool.getAvailableAmount();
@@ -66,6 +84,7 @@ public class CapitalTransactionService {
         // Save pool changes
         capitalPoolRepository.save(pool);
 
+
         // Create transaction record
         CapitalTransaction transaction = CapitalTransaction.builder()
                 .capitalPool(pool)
@@ -75,7 +94,10 @@ public class CapitalTransactionService {
                 .availableAfter(pool.getAvailableAmount())
                 .lockedBefore(lockedBefore)
                 .lockedAfter(pool.getLockedAmount())
-                .referenceType("MANUAL")
+                .referenceType(resolveReferenceType(request))
+                .referenceId(resolveReferenceId(request))
+                .partnerId(request.getPartnerId())
+                .contractId(request.getContractId())
                 .description(request.getDescription())
                 .transactionDate(LocalDate.now())
                 .build();
@@ -94,7 +116,7 @@ public class CapitalTransactionService {
 
         Page<CapitalTransaction> transactions = capitalTransactionRepository.findAll(
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                        Sort.by(Sort.Direction.DESC, "transactionDate")));
+                        Sort.by(Sort.Direction.DESC, "createdAt")));
 
         return transactions.map(capitalTransactionMapper::toResponse);
     }
@@ -122,6 +144,17 @@ public class CapitalTransactionService {
         List<CapitalTransaction> transactions = capitalTransactionRepository
                 .findByPartnerIdOrderByTransactionDateDesc(partnerId);
 
+        return transactions.stream()
+                .map(capitalTransactionMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get capital transactions by explicit reference link.
+     */
+    public List<CapitalTransactionResponse> getCapitalTransactionsByReference(String referenceType, Long referenceId) {
+        List<CapitalTransaction> transactions = capitalTransactionRepository
+                .findByReferenceTypeAndReferenceIdOrderByTransactionDateDesc(referenceType, referenceId);
         return transactions.stream()
                 .map(capitalTransactionMapper::toResponse)
                 .collect(Collectors.toList());
@@ -214,15 +247,6 @@ public class CapitalTransactionService {
 
         return summary;
     }
-
-    /**
-     * Get pool status.
-     */
-    @Transactional(readOnly = true)
-    public CapitalPool getPoolStatus() {
-        return getPool();
-    }
-
     /**
      * Apply transaction to pool based on transaction type.
      */
@@ -238,7 +262,7 @@ public class CapitalTransactionService {
 
             case WITHDRAWAL:
                 if (pool.getAvailableAmount().compareTo(amount) < 0) {
-                    throw new BusinessException("validation.capital.insufficientAvailable");
+                    throw new BusinessException("messages.capitalPool.insufficientAvailable");
                 }
                 pool.setTotalAmount(pool.getTotalAmount().subtract(amount));
                 pool.setAvailableAmount(pool.getAvailableAmount().subtract(amount));
@@ -246,15 +270,16 @@ public class CapitalTransactionService {
                 break;
 
             default:
-                throw new BusinessException("Unsupported manual transaction type: " + request.getTransactionType());
+                throw new BusinessException("messages.capital.transactionType.notAllowed");
         }
     }
 
     /**
      * Get or create default pool.
      */
-    private CapitalPool getPool() {
-        return capitalPoolRepository.findById(DEFAULT_POOL_ID)
+    @Transactional
+    public CapitalPool getPoolForUpdate() {
+        return capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID)
                 .orElseThrow(() -> new BusinessException("messages.capital.poolNotFound"));
     }
 
@@ -264,13 +289,42 @@ public class CapitalTransactionService {
     private void validateCapitalTransactionRequest(CapitalTransactionRequest request) {
         // Validate amount is positive
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("validation.capital.amount.positive");
+            throw new BusinessException("messages.capital.amount.positive");
         }
 
         // Validate transaction type is manual type only
         if (request.getTransactionType() != CapitalTransactionType.INVESTMENT &&
             request.getTransactionType() != CapitalTransactionType.WITHDRAWAL) {
-            throw new BusinessException("Only INVESTMENT and WITHDRAWAL transactions can be created manually");
+            throw new BusinessException("messages.capital.transactionType.notAllowed");
+        }
+
+        if (request.getReferenceId() != null &&
+                (request.getReferenceType() == null || request.getReferenceType().isBlank())) {
+            throw new BusinessException("messages.capital.referenceType.required");
         }
     }
+
+    private String resolveReferenceType(CapitalTransactionRequest request) {
+        if (request.getReferenceType() != null && !request.getReferenceType().isBlank()) {
+            return request.getReferenceType();
+        }
+        if (request.getContractId() != null) {
+            return "CONTRACT";
+        }
+        if (request.getPartnerId() != null) {
+            return "PARTNER_CONTRIBUTION";
+        }
+        return "MANUAL";
+    }
+
+    private Long resolveReferenceId(CapitalTransactionRequest request) {
+        if (request.getReferenceId() != null) {
+            return request.getReferenceId();
+        }
+        if (request.getContractId() != null) {
+            return request.getContractId();
+        }
+        return request.getPartnerId();
+    }
 }
+

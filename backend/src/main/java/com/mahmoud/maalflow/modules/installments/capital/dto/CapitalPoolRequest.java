@@ -12,17 +12,18 @@ import java.math.BigDecimal;
 @Data
 public class CapitalPoolRequest {
 
-    @NotNull(message = "validation.capitalPool.totalAmount.required")
-    @PositiveOrZero(message = "validation.capitalPool.totalAmount.positive")
+    @NotNull(message = "messages.capitalPool.totalAmount.required")
+    @PositiveOrZero(message = "messages.capitalPool.totalAmount.positive")
     private BigDecimal totalAmount;
 
-    @NotNull(message = "validation.capitalPool.ownerContribution.required")
-    @PositiveOrZero(message = "validation.capitalPool.ownerContribution.positive")
+    @NotNull(message = "messages.capitalPool.ownerContribution.required")
+    @PositiveOrZero(message = "messages.capitalPool.ownerContribution.positive")
     private BigDecimal ownerContribution;
 
-    @NotNull(message = "validation.capitalPool.partnerContributions.required")
-    @PositiveOrZero(message = "validation.capitalPool.partnerContributions.positive")
+    @NotNull(message = "messages.capitalPool.partnerContributions.required")
+    @PositiveOrZero(message = "messages.capitalPool.partnerContributions.positive")
     private BigDecimal partnerContributions;
 
     private String description;
 }
+

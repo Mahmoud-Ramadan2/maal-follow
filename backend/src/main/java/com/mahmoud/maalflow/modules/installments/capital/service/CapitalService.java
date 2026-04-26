@@ -8,6 +8,7 @@ import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactio
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
 import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalTransactionRepository;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
+import com.mahmoud.maalflow.modules.installments.partner.service.PartnerShareService;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_POOL_ID;
 
 /**
  * Capital Service - Pooled Capital Model
@@ -39,8 +42,9 @@ public class CapitalService {
 
     private final CapitalPoolRepository capitalPoolRepository;
     private final CapitalTransactionRepository capitalTransactionRepository;
+    private final PartnerShareService partnerShareService;
 
-    private static final Long DEFAULT_POOL_ID = 1L;
+    private final CapitalPoolService capitalPoolService;
 
     /**
      * Allocate capital from pool when contract is created.
@@ -66,14 +70,17 @@ public class CapitalService {
 
         log.info("Allocating {} capital for contract {}", amount, contract.getId());
 
-        CapitalPool pool = getPool();
+        // Use pessimistic lock to prevent concurrent modifications
+//        CapitalPool pool = capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID)
+        CapitalPool pool = capitalPoolService.getPoolOrThrowForUpdate();
 
         // Check available capital
         if (pool.getAvailableAmount().compareTo(amount) < 0) {
-            throw new BusinessException(
-                String.format("Insufficient available capital. Available: %s, Required: %s",
-                    pool.getAvailableAmount(), amount)
-            );
+            throw new BusinessException("messages.capital.availableAmountLessRequired");
+//            throw new BusinessException(
+//                String.format("Insufficient available capital. Available: %s, Required: %s",
+//                    pool.getAvailableAmount(), amount)
+//            );
         }
 
         // Record before state
@@ -87,6 +94,9 @@ public class CapitalService {
 
         // Update contract
         contract.setCapitalAllocated(amount);
+
+        // Recalculate partner share percentages after capital change
+        partnerShareService.recalculateSharePercentages(pool.getTotalAmount());
 
         // Record transaction
         recordTransaction(
@@ -102,7 +112,9 @@ public class CapitalService {
             contract.getId(),
             contract.getPartner() != null ? contract.getPartner().getId() : null,
             currentUser,
-            String.format("Capital allocated for contract %d", contract.getId())
+//            String.format("Capital allocated for contract %d", contract.getId())
+                String.format("رأس المال تم تخصيصه للعقد %d", contract.getId())
+
         );
 
         log.info("Capital allocated: {} from pool. Available: {} → {}, Locked: {} → {}",
@@ -141,11 +153,16 @@ public class CapitalService {
         log.info("Returning {} capital from payment {} for contract {}",
             principalPaid, paymentId, contract.getId());
 
-        CapitalPool pool = getPool();
+        // Use pessimistic lock to prevent concurrent modifications
+//        CapitalPool pool = capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID)
+//            .orElseThrow(() -> new ObjectNotFoundException(
+//                "messages.capital.poolNotFound", DEFAULT_POOL_ID));
+        CapitalPool pool = capitalPoolService.getPoolOrThrowForUpdate();
 
         if (pool.getLockedAmount().compareTo(principalPaid) < 0) {
             log.warn("Locked amount {} < return amount {}. Pool may be inconsistent.",
                 pool.getLockedAmount(), principalPaid);
+            throw new BusinessException("messages.capital.lockedAmountLessReturn");
         }
 
         // Record before state
@@ -164,6 +181,9 @@ public class CapitalService {
             : BigDecimal.ZERO;
         contract.setCapitalReturned(currentReturned.add(principalPaid));
 
+        // Recalculate partner share percentages after capital change
+        partnerShareService.recalculateSharePercentages(pool.getTotalAmount());
+
         // Record transaction
         recordTransaction(
             pool,
@@ -178,7 +198,8 @@ public class CapitalService {
             contract.getId(),
             contract.getPartner() != null ? contract.getPartner().getId() : null,
             currentUser,
-            String.format("Capital returned from payment %d (principal: %s)", paymentId, principalPaid)
+//            String.format("Capital returned from payment %d (principal: %s)", paymentId, principalPaid)
+                String.format("تم استرداد رأس المال من قسط رقم  %d (القيمة المستردة: %s)", paymentId, principalPaid)
         );
 
         log.info("Capital returned: {} to pool. Locked: {} → {}, Available: {} → {}",
@@ -202,7 +223,7 @@ public class CapitalService {
     private CapitalPool getPool() {
         return capitalPoolRepository.findById(DEFAULT_POOL_ID)
             .orElseThrow(() -> new ObjectNotFoundException(
-                "messages.capital.poolNotFound", DEFAULT_POOL_ID)
+                "messages.capitalPool.notFound", DEFAULT_POOL_ID)
             );
     }
 

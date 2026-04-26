@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.*;
  * REST Controller for capital pool management.
  */
 @RestController
-@RequestMapping("/api/v1/partner/capital-pool")
+@RequestMapping("/api/v1/capital-pool")
 @AllArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = "*", maxAge = 3600)
 public class CapitalPoolController {
 
     private final CapitalPoolService capitalPoolService;

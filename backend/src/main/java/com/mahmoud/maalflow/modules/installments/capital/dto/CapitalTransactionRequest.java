@@ -35,6 +35,12 @@ public class CapitalTransactionRequest {
 
     private Long contractId;
 
+    // Optional explicit payout/reference linkage for reconciliation queries.
+    @Size(max = 50, message = "{messages.capital.referenceType.size}")
+    private String referenceType;
+
+    private Long referenceId;
+
     @Size(max = 500, message = "{messages.capital.description.size}")
     private String description;
 }
