@@ -4,6 +4,7 @@ import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractExpenseRequest;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
+import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus;
 import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
 import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.mahmoud.maalflow.modules.installments.payment.service.PaymentStatisticsService.getDailyPaymentSummaries;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
 
 /**
  * Service for managing payments with comprehensive business validation.
@@ -59,8 +61,9 @@ public class PaymentService {
     private final LedgerService ledgerService;
     private final ContractExpenseService contractExpenseService;
     private final PaymentProcessingService paymentProcessingService;
+    private final PaymentQueryService paymentQueryService;
+    private final PaymentReportService paymentReportService;
 
-    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
 
     /**
      *  PaymentService is responsible for processing payments
@@ -96,18 +99,16 @@ public class PaymentService {
                             "messages.installmentSchedule.notFound", request.getInstallmentScheduleId()));
             contract = schedule.getContract();
 
-            // Validate schedule can be paid
-            if (schedule.getStatus() == com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.CANCELLED) {
-                throw new BusinessException("messages.schedule.canceledCannotPay");
-            }
-            if (schedule.getStatus() == com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.PAID) {
-                throw new BusinessException("messages.schedule.alreadyPaid");
-            }
+            validateScheduleCanReceivePayment(schedule);
         }
 
         //   3. CALCULATE DISCOUNT
         //   manual discount if provided or max(final, early )
         BigDecimal finalDiscount = calculateFinalDiscount(request, schedule);
+
+        if (schedule != null) {
+            validateDiscountAgainstRemainingDue(schedule, finalDiscount);
+        }
 
         //   4. CREATE PAYMENT RECORD
         Payment payment = createPaymentEntity(request, schedule, finalDiscount);
@@ -323,9 +324,7 @@ public class PaymentService {
      */
     @Transactional(readOnly = true)
     public PaymentResponse getById(Long id) {
-        Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("messages.payment.notFound", id));
-        return paymentMapper.toPaymentResponse(payment);
+        return paymentQueryService.getById(id);
     }
 
     /**
@@ -333,8 +332,7 @@ public class PaymentService {
      */
     @Transactional(readOnly = true)
     public Optional<PaymentResponse> getByIdempotencyKey(String idempotencyKey) {
-        return paymentRepository.findByIdempotencyKey(idempotencyKey)
-                .map(paymentMapper::toPaymentResponse);
+        return paymentQueryService.getByIdempotencyKey(idempotencyKey);
     }
 
     /**
@@ -342,8 +340,7 @@ public class PaymentService {
      */
     @Transactional(readOnly = true)
     public Page<PaymentSummary> list(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paymentDate"));
-        return paymentRepository.findAll(pageable).map(paymentMapper::toPaymentSummary);
+        return paymentQueryService.list(page, size);
     }
 
     /**
@@ -351,10 +348,7 @@ public class PaymentService {
      */
     @Transactional(readOnly = true)
     public Page<PaymentSummary> listByMonth(String month, int page, int size) {
-        validatePaymentMonth(month);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paymentDate"));
-        return paymentRepository.findByAgreedPaymentMonth(month, pageable)
-                .map(paymentMapper::toPaymentSummary);
+        return paymentQueryService.listByMonth(month, page, size);
     }
 
     /**
@@ -363,12 +357,7 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public Page<PaymentSummary> listByDateRange(LocalDateTime startDate, LocalDateTime endDate,
                                                 int page, int size) {
-        if (startDate.isAfter(endDate)) {
-            throw new BusinessException("messages.payment.invalidDateRange");
-        }
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paymentDate"));
-        return paymentRepository.findByPaymentDateBetween(startDate, endDate, pageable)
-                .map(paymentMapper::toPaymentSummary);
+        return paymentQueryService.listByDateRange(startDate, endDate, page, size);
     }
 
     /**
@@ -386,9 +375,71 @@ public class PaymentService {
      */
     @Transactional(readOnly = true)
     public Page<PaymentSummary> listEarlyPayments(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "paymentDate"));
-        return paymentRepository.findWithFilters(null, null, true, pageable)
-                .map(paymentMapper::toPaymentSummary);
+        return paymentQueryService.listEarlyPayments(page, size);
+    }
+
+    /**
+     * Unified search with optional filters and pagination.
+     */
+    @Transactional(readOnly = true)
+    public Page<PaymentSummary> search(
+            String month,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isEarlyPayment,
+            com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus status,
+            com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod paymentMethod,
+            Long collectorId,
+            Long contractId,
+            String customerName,
+            BigDecimal minNetAmount,
+            int page,
+            int size
+    ) {
+        return paymentQueryService.search(
+                month,
+                startDate,
+                endDate,
+                isEarlyPayment,
+                status,
+                paymentMethod,
+                collectorId,
+                contractId,
+                customerName,
+                minNetAmount,
+                page,
+                size
+        );
+    }
+
+    /**
+     * Filter-based report summary for dashboard and BI cards.
+     */
+    @Transactional(readOnly = true)
+    public PaymentReportResponse getReportSummary(
+            String month,
+            LocalDate startDate,
+            LocalDate endDate,
+            Boolean isEarlyPayment,
+            com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus status,
+            com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod paymentMethod,
+            Long collectorId,
+            Long contractId,
+            String customerName,
+            BigDecimal minNetAmount
+    ) {
+        return paymentReportService.getReportSummary(
+                month,
+                startDate,
+                endDate,
+                isEarlyPayment,
+                status,
+                paymentMethod,
+                collectorId,
+                contractId,
+                customerName,
+                minNetAmount
+        );
     }
 
     /**
@@ -400,7 +451,7 @@ public class PaymentService {
         return paymentRepository.findAll(
                 org.springframework.data.jpa.domain.Specification.where(
                         (root, query, criteriaBuilder) ->
-                            criteriaBuilder.greaterThan(root.get("discountAmount"), BigDecimal.ZERO)
+                                criteriaBuilder.greaterThan(root.get("discountAmount"), BigDecimal.ZERO)
                 ), pageable)
                 .map(paymentMapper::toPaymentSummary);
     }
@@ -454,12 +505,12 @@ public class PaymentService {
                 .orElseThrow(() -> new ObjectNotFoundException("messages.payment.notFound", id));
 
         // Business Rule: Cannot cancel already cancelled or refunded payment
-        if (payment.getStatus() == com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.CANCELLED ||
-                payment.getStatus() == com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.REFUNDED) {
+        if (payment.getStatus() == PaymentProcessingStatus.CANCELLED ||
+                payment.getStatus() == PaymentProcessingStatus.REFUNDED) {
             throw new BusinessException("messages.payment.alreadyCancelledOrRefunded");
         }
 
-        payment.setStatus(com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.CANCELLED);
+        payment.setStatus(PaymentProcessingStatus.CANCELLED);
         if (reason != null && !reason.isBlank()) {
             payment.setNotes((payment.getNotes() != null ? payment.getNotes() + "\n" : "")
                     + "Cancelled: " + reason);
@@ -482,11 +533,11 @@ public class PaymentService {
                 .orElseThrow(() -> new ObjectNotFoundException("messages.payment.notFound", id));
 
         // Business Rule: Can only refund completed payments
-        if (payment.getStatus() != com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.COMPLETED) {
+        if (payment.getStatus() != PaymentProcessingStatus.COMPLETED) {
             throw new BusinessException("messages.payment.cannotRefundNonCompleted");
         }
 
-        payment.setStatus(com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.REFUNDED);
+        payment.setStatus(PaymentProcessingStatus.REFUNDED);
         if (reason != null && !reason.isBlank()) {
             payment.setNotes((payment.getNotes() != null ? payment.getNotes() + "\n" : "")
                     + "Refunded: " + reason);
@@ -504,7 +555,7 @@ public class PaymentService {
 
     /**
      * Calculate final discount amount combining automatic and manual discounts.
-     * Implements requirement 7: “A mechanism for making a discount when paying early or in the last installment.”     */
+     * */
     private BigDecimal calculateFinalDiscount(PaymentRequest request, InstallmentSchedule schedule) {
         if (request.getDiscountAmount() != null && request.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0) {
             log.info("Using manual discount amount: {}", request.getDiscountAmount());
@@ -532,6 +583,40 @@ public class PaymentService {
     }
 
     /**
+     * Validate that the schedule can still receive a payment.
+     */
+    private void validateScheduleCanReceivePayment(InstallmentSchedule schedule) {
+        if (schedule.getStatus() == com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.CANCELLED) {
+            throw new BusinessException("messages.schedule.canceledCannotPay");
+        }
+        if (schedule.getStatus() == com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.PAID
+                || schedule.getStatus() == com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.PARTIALLY_PAID
+                && schedule.getPaidAmount() != null
+                && schedule.getPaidAmount().compareTo(schedule.getAmount().subtract(
+                        schedule.getDiscountApplied() != null ? schedule.getDiscountApplied() : BigDecimal.ZERO)) >= 0) {
+            throw new BusinessException("messages.schedule.alreadyPaid");
+        }
+    }
+
+    /**
+     * Validate that the requested discount does not exceed the remaining amount due on the schedule.
+     */
+    private void validateDiscountAgainstRemainingDue(InstallmentSchedule schedule, BigDecimal discount) {
+        BigDecimal paidAmount = schedule.getPaidAmount() != null ? schedule.getPaidAmount() : BigDecimal.ZERO;
+        BigDecimal appliedDiscount = schedule.getDiscountApplied() != null ? schedule.getDiscountApplied() : BigDecimal.ZERO;
+        BigDecimal remainingDueBeforeDiscount = schedule.getAmount().subtract(appliedDiscount).subtract(paidAmount);
+
+        if (remainingDueBeforeDiscount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("messages.schedule.alreadyPaid");
+        }
+
+        BigDecimal effectiveDiscount = discount != null ? discount : BigDecimal.ZERO;
+        if (effectiveDiscount.compareTo(remainingDueBeforeDiscount) > 0) {
+            throw new BusinessException("messages.payment.discountExceedsRemainingAmount");
+        }
+    }
+
+    /**
      * Create payment entity with all calculated fields.
      */
     private Payment createPaymentEntity(PaymentRequest request, InstallmentSchedule schedule, BigDecimal discount) {
@@ -546,7 +631,7 @@ public class PaymentService {
         }
         payment.setPaymentDate(LocalDateTime.now());
         // TODO make it pending and update to completed after all processing is successful
-        payment.setStatus(com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.COMPLETED);
+        payment.setStatus(PaymentProcessingStatus.COMPLETED);
         payment.setInstallmentSchedule(schedule);
         payment.setDiscountAmount(discount);
         payment.setNetAmount(request.getAmount().subtract(discount));
@@ -582,25 +667,6 @@ public class PaymentService {
         }
     }
 
-    /**
-     * Update installment schedule status after payment.
-     */
-    private void updateInstallmentScheduleStatus(InstallmentSchedule schedule, Payment payment) {
-
-        // Update schedule with payment information
-        schedule.setPaidAmount(schedule.getPaidAmount().add(payment.getNetAmount()));
-        schedule.setPaidDate(payment.getActualPaymentDate());
-
-        // Determine new status
-        if (schedule.getPaidAmount().compareTo(schedule.getAmount()) >= 0) {
-            schedule.setStatus(com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.PAID);
-        } else {
-            schedule.setStatus(com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus.PARTIALLY_PAID);
-        }
-
-        installmentScheduleRepository.save(schedule);
-        log.info("Updated installment schedule {} status to {}", schedule.getId(), schedule.getStatus());
-    }
 
     /**
      * Validate payment request business rules.

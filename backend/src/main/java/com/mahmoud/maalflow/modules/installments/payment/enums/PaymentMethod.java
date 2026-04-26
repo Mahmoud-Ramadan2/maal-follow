@@ -10,6 +10,7 @@ public enum PaymentMethod {
 
     CASH,
     VODAFONE_CASH,
+    INSTAPAY,
     BANK_TRANSFER,
     OTHER
 }

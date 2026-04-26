@@ -10,6 +10,7 @@ import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepositor
 import com.mahmoud.maalflow.modules.installments.schedule.repo.InstallmentScheduleRepository;
 import com.mahmoud.maalflow.modules.installments.payment.entity.Payment;
 import com.mahmoud.maalflow.modules.installments.profit.service.ProfitProcessingService;
+import com.mahmoud.maalflow.modules.installments.schedule.service.ScheduleStatusStateMachine;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,8 @@ public class PaymentProcessingService {
     private final CapitalService capitalService;
     private final ProfitProcessingService profitProcessingService;
     private final PaymentReminderService reminderService;
+    private final ContractCompletionPolicy contractCompletionPolicy;
+    private final ScheduleStatusStateMachine scheduleStatusStateMachine;
 
     /**
      * Process installment-specific payment logic:
@@ -79,7 +82,7 @@ public class PaymentProcessingService {
         //   C. RETURN CAPITAL (IMMEDIATE)
         // Principal portion frees up locked capital
         //  TODO CHECK
-        if (principalPaid.compareTo(BigDecimal.ZERO) > 0 && contract.getPartner() != null) {
+        if (principalPaid.compareTo(BigDecimal.ZERO) > 0) {
             capitalService.returnCapitalFromPayment(contract, principalPaid, payment.getId(), currentUser);
         }
 
@@ -163,10 +166,11 @@ public class PaymentProcessingService {
         boolean isFullyPaid = schedule.getPaidAmount().compareTo(
                 schedule.getAmount().subtract(totalDiscount)) >= 0;
 
+        //  Update status based on payment
         if (isFullyPaid) {
-            schedule.setStatus(PaymentStatus.PAID);
+            scheduleStatusStateMachine.transition(schedule, PaymentStatus.PAID);
         } else if (schedule.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
-            schedule.setStatus(PaymentStatus.PARTIALLY_PAID);
+            scheduleStatusStateMachine.transition(schedule, PaymentStatus.PARTIALLY_PAID);
         }
 
         log.info("Updated schedule {} status to {} - Principal paid: {}, Profit paid: {}",
@@ -200,33 +204,37 @@ public class PaymentProcessingService {
      * Update contract remaining amount and check completion
      */
     public void updateContractProgress(Contract contract) {
+
+
+        // THis auto done by instalment listener
         // Recalculate remaining amount from unpaid schedules
-        List<InstallmentSchedule> schedules = installmentScheduleRepository
-                .findByContractIdOrderBySequenceNumberAsc(contract.getId());
-
-        BigDecimal totalRemaining = schedules.stream()
-                .filter(s -> s.getStatus() != PaymentStatus.PAID
-                        && s.getStatus() != PaymentStatus.CANCELLED)
-                .map(s -> {
-                    BigDecimal amount = s.getAmount();
-                    BigDecimal paid = s.getPaidAmount() != null ? s.getPaidAmount() : BigDecimal.ZERO;
-                    BigDecimal discount = s.getDiscountApplied() != null ? s.getDiscountApplied() : BigDecimal.ZERO;
-                    return amount.subtract(paid).subtract(discount);
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        contract.setRemainingAmount(totalRemaining);
+//        List<InstallmentSchedule> schedules = installmentScheduleRepository
+//                .findByContractIdOrderBySequenceNumberAsc(contract.getId());
+//
+//        BigDecimal totalRemaining = schedules.stream()
+//                .filter(s -> s.getStatus() != PaymentStatus.PAID
+//                        && s.getStatus() != PaymentStatus.CANCELLED)
+//                .map(s -> {
+//                    BigDecimal amount = s.getAmount();
+//                    BigDecimal paid = s.getPaidAmount() != null ? s.getPaidAmount() : BigDecimal.ZERO;
+//                    BigDecimal discount = s.getDiscountApplied() != null ? s.getDiscountApplied() : BigDecimal.ZERO;
+//                    return amount.subtract(paid).subtract(discount);
+//                })
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//        contract.setRemainingAmount(totalRemaining);
 
         // Check if contract is completed
-        boolean allPaid = schedules.stream()
-                .allMatch(s -> s.getStatus() == PaymentStatus.PAID
-                        || s.getStatus() == PaymentStatus.CANCELLED);
-
-        if (allPaid && totalRemaining.compareTo(BigDecimal.ZERO) <= 0) {
-            contract.setStatus(ContractStatus.COMPLETED);
-            contract.setCompletionDate(LocalDate.now());
-            log.info("Contract {} completed!", contract.getId());
-        }
+//        boolean allPaid = schedules.stream()
+//                .allMatch(s -> s.getStatus() == PaymentStatus.PAID
+//                        || s.getStatus() == PaymentStatus.CANCELLED);
+//
+//        if (allPaid && totalRemaining.compareTo(BigDecimal.ZERO) <= 0) {
+//            contract.setStatus(ContractStatus.COMPLETED);
+//            contract.setCompletionDate(LocalDate.now());
+//            log.info("Contract {} completed!", contract.getId());
+//        }
+        contractCompletionPolicy.checkAndCompleteContract(contract, null);
 
         contractRepository.save(contract);
     }

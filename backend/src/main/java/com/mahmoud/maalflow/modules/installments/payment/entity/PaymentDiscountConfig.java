@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 
 /**
  * Entity for tracking payment discount configurations and calculations.
- * Implements requirement 7: "آلية لعمل الخصم عند الدفع مبكرا أو في آخر قسط"
  */
 @Entity
 @Table(name = "payment_discount_config")

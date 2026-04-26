@@ -2,7 +2,7 @@
 package com.mahmoud.maalflow.modules.installments.payment.dto;
 
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
-import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus;
+import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +34,7 @@ public class PaymentRequest {
     private Long installmentScheduleId;
 
     @NotNull(message = "{validation.payment.amount.required}")
-    @DecimalMin(value = "0.01", message = "{validation.payment.amount.min}")
+    @DecimalMin(value = "50", message = "{validation.payment.amount.min}")
     @Digits(integer = 10, fraction = 2, message = "{validation.payment.amount.format}")
     private BigDecimal amount;
 
@@ -46,7 +46,7 @@ public class PaymentRequest {
 
     private Long receiptDocumentId;
 
-    private PaymentStatus status;
+    private PaymentProcessingStatus status;
 
     @Digits(integer = 10, fraction = 2, message = "{validation.payment.amount.format}")
     BigDecimal extraExpenses;

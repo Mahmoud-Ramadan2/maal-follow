@@ -29,6 +29,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
     Optional<Payment> findByIdempotencyKey(String idempotencyKey);
 
     /**
+     * Find payments linked to a specific installment schedule.
+     */
+    List<Payment> findByInstallmentScheduleIdOrderByPaymentDateDesc(Long installmentScheduleId);
+
+    /**
      * Check if payment exists by idempotency key.
      */
     boolean existsByIdempotencyKey(String idempotencyKey);

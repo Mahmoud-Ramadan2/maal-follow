@@ -18,6 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_REMINDER_DAYS;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MAX_REMINDER_ATTEMPTS;
+
 /**
  * Service for managing payment reminders.
 * Implements requirement 17: “Make a reminder to submit the claim five days before it is paid.”
@@ -33,8 +36,6 @@ public class PaymentReminderService {
     private MessageSource messageSource;
 
 
-    private static final int DEFAULT_REMINDER_DAYS = 5;
-    private static final int MAX_REMINDER_ATTEMPTS = 5;
 
     /**
      * Create payment reminders for upcoming due dates.
@@ -72,7 +73,7 @@ public class PaymentReminderService {
 * Implements: “Make a reminder to submit the claim five days before it is paid.”
      * */
 
-    @Scheduled(cron = "0 0 8 * * ?") // Daily at 8 AM
+    @Scheduled(cron = "0 00 08 * * ?") // Daily at 8 AM
     @Async
     @Transactional
     public void sendPendingReminders() {
@@ -100,7 +101,7 @@ public class PaymentReminderService {
      * Send recurring reminders for overdue payments.
      * Continues sending reminders until payment is received.
      */
-    @Scheduled(cron = "0 0 8 * * ?") // Daily at 8AM
+    @Scheduled(cron = "0 00 08 * * ?") // Daily at 8AM
     @Async
     @Transactional
     public void sendRecurringReminders() {

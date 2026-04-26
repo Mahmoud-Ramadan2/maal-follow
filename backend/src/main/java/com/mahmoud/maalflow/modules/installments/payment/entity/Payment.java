@@ -1,7 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.payment.entity;
 
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
-import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus;
+import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus;
 import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import jakarta.persistence.*;
@@ -57,7 +57,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private PaymentStatus status = PaymentStatus.PENDING;
+    private PaymentProcessingStatus status = PaymentProcessingStatus.PENDING;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
@@ -117,7 +117,7 @@ public class Payment {
             );
         }
         if (this.status == null) {
-            this.status = PaymentStatus.PENDING;
+            this.status = PaymentProcessingStatus.PENDING;
         }
     }
 }

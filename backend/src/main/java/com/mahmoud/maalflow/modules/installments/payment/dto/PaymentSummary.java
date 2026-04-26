@@ -1,7 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.payment.dto;
 
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
-import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus;
+import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +26,7 @@ public class PaymentSummary {
     private BigDecimal amount;
     private BigDecimal netAmount;
     private PaymentMethod paymentMethod;
-    private PaymentStatus status;
+    private PaymentProcessingStatus status;
     private LocalDate actualPaymentDate;
     private String agreedPaymentMonth;
     private Boolean isEarlyPayment;

@@ -2,9 +2,11 @@ package com.mahmoud.maalflow.modules.installments.payment.controller;
 
 import com.mahmoud.maalflow.modules.installments.payment.dto.*;
 import com.mahmoud.maalflow.modules.installments.payment.enums.DiscountType;
+import com.mahmoud.maalflow.modules.installments.payment.service.PaymentCommandService;
 import com.mahmoud.maalflow.modules.installments.payment.service.PaymentDiscountService;
+import com.mahmoud.maalflow.modules.installments.payment.service.PaymentQueryService;
+import com.mahmoud.maalflow.modules.installments.payment.service.PaymentReportService;
 import com.mahmoud.maalflow.modules.installments.payment.service.PaymentReminderService;
-import com.mahmoud.maalflow.modules.installments.payment.service.PaymentService;
 import com.mahmoud.maalflow.modules.installments.payment.service.PaymentStatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +32,12 @@ import java.util.Optional;
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(origins = "*", maxAge = 3600)
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentCommandService paymentCommandService;
+    private final PaymentQueryService paymentQueryService;
+    private final PaymentReportService paymentReportService;
     private final PaymentDiscountService discountService;
     private final PaymentReminderService reminderService;
     private final PaymentStatisticsService statisticsService;
@@ -44,7 +48,7 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<PaymentResponse> processPayment(@Valid @RequestBody PaymentRequest request) {
         log.info("REST request to process payment for amount: {}", request.getAmount());
-        PaymentResponse response = paymentService.processPayment(request);
+        PaymentResponse response = paymentCommandService.processPayment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -54,8 +58,17 @@ public class PaymentController {
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable Long id) {
         log.info("REST request to get payment: {}", id);
-        PaymentResponse response = paymentService.getById(id);
+        PaymentResponse response = paymentQueryService.getById(id);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get payment reconciliation snapshot.
+     */
+    @GetMapping("/{id}/reconciliation")
+    public ResponseEntity<PaymentReconciliationResponse> getPaymentReconciliation(@PathVariable Long id) {
+        log.info("REST request to get payment reconciliation: {}", id);
+        return ResponseEntity.ok(paymentQueryService.getReconciliation(id));
     }
 
     /**
@@ -64,7 +77,7 @@ public class PaymentController {
     @GetMapping("/by-key/{idempotencyKey}")
     public ResponseEntity<PaymentResponse> getPaymentByIdempotencyKey(@PathVariable String idempotencyKey) {
         log.info("REST request to get payment by idempotency key: {}", idempotencyKey);
-        Optional<PaymentResponse> response = paymentService.getByIdempotencyKey(idempotencyKey);
+        Optional<PaymentResponse> response = paymentQueryService.getByIdempotencyKey(idempotencyKey);
         return response.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -77,7 +90,73 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         log.info("REST request to get all payments - page: {}, size: {}", page, size);
-        Page<PaymentSummary> response = paymentService.list(page, size);
+        Page<PaymentSummary> response = paymentQueryService.list(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Unified paginated search for payments using optional filters.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<PaymentSummary>> searchPayments(
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Boolean isEarlyPayment,
+            @RequestParam(required = false) com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus status,
+            @RequestParam(required = false) com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod paymentMethod,
+            @RequestParam(required = false) Long collectorId,
+            @RequestParam(required = false) Long contractId,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) BigDecimal minNetAmount,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Page<PaymentSummary> response = paymentQueryService.search(
+                month,
+                startDate,
+                endDate,
+                isEarlyPayment,
+                status,
+                paymentMethod,
+                collectorId,
+                contractId,
+                customerName,
+                minNetAmount,
+                page,
+                size
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Filter-based payment report summary.
+     */
+    @GetMapping("/reports/summary")
+    public ResponseEntity<PaymentReportResponse> getPaymentReportSummary(
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Boolean isEarlyPayment,
+            @RequestParam(required = false) com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus status,
+            @RequestParam(required = false) com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod paymentMethod,
+            @RequestParam(required = false) Long collectorId,
+            @RequestParam(required = false) Long contractId,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) BigDecimal minNetAmount
+    ) {
+        PaymentReportResponse response = paymentReportService.getReportSummary(
+                month,
+                startDate,
+                endDate,
+                isEarlyPayment,
+                status,
+                paymentMethod,
+                collectorId,
+                contractId,
+                customerName,
+                minNetAmount
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -90,7 +169,7 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         log.info("REST request to get payments for month: {}", month);
-        Page<PaymentSummary> response = paymentService.listByMonth(month, page, size);
+        Page<PaymentSummary> response = paymentQueryService.listByMonth(month, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -104,7 +183,7 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         log.info("REST request to get payments between {} and {}", startDate, endDate);
-        Page<PaymentSummary> response = paymentService.listByDateRange(startDate, endDate, page, size);
+        Page<PaymentSummary> response = paymentQueryService.listByDateRange(startDate, endDate, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -116,7 +195,7 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         log.info("REST request to get early payments");
-        Page<PaymentSummary> response = paymentService.listEarlyPayments(page, size);
+        Page<PaymentSummary> response = paymentQueryService.listEarlyPayments(page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -193,6 +272,7 @@ public class PaymentController {
 
     /**
      * Create payment reminders for upcoming due dates.
+     * */
     @PostMapping("/reminders/create")
     public ResponseEntity<Void> createPaymentReminders() {
         log.info("REST request to create payment reminders");
@@ -217,7 +297,7 @@ public class PaymentController {
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
         log.info("REST request to cancel payment: {}", id);
-        PaymentResponse response = paymentService.cancelPayment(id, reason);
+        PaymentResponse response = paymentCommandService.cancelPayment(id, reason);
         return ResponseEntity.ok(response);
     }
 
@@ -229,7 +309,7 @@ public class PaymentController {
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
         log.info("REST request to refund payment: {}", id);
-        PaymentResponse response = paymentService.refundPayment(id, reason);
+        PaymentResponse response = paymentCommandService.refundPayment(id, reason);
         return ResponseEntity.ok(response);
     }
 
@@ -237,6 +317,8 @@ public class PaymentController {
 
     /**
      * Create or update payment discount configuration.
+     *
+     * */
     @PostMapping("/discount-config")
     public ResponseEntity<PaymentDiscountConfigResponse> saveDiscountConfig(
             @Valid @RequestBody PaymentDiscountConfigRequest request) {
