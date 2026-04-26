@@ -3,6 +3,7 @@ package com.mahmoud.maalflow.modules.installments.contract.controller;
 
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractRequest;
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractResponse;
+import com.mahmoud.maalflow.modules.installments.contract.dto.ContractMetadataUpdateRequest;
 import com.mahmoud.maalflow.modules.installments.contract.service.ContractService;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
 import jakarta.validation.Valid;
@@ -37,6 +38,13 @@ public class ContractController {
             @PathVariable Long id,
             @Valid @RequestBody ContractRequest request) {
         return ResponseEntity.ok(contractService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/metadata")
+    public ResponseEntity<ContractResponse> updateContractMetadata(
+            @PathVariable Long id,
+            @Valid @RequestBody ContractMetadataUpdateRequest request) {
+        return ResponseEntity.ok(contractService.updateMetadata(id, request));
     }
 
     @GetMapping("/{id}")

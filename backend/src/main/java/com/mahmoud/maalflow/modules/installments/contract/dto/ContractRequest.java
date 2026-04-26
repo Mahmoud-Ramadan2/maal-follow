@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ContractRequest {
-    @NotNull(message = "{messages.contract.finalPrice.required}")
+//    @NotNull(message = "{messages.contract.finalPrice.required}")
     @DecimalMin(value = "100", message = "{messages.contract.finalPrice.invalid}")
     @Digits(integer = 10, fraction = 2, message = "{messages.contract.finalPrice.format}")
     private BigDecimal finalPrice;

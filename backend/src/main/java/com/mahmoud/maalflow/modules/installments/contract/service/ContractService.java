@@ -5,6 +5,7 @@ import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractRequest;
 import com.mahmoud.maalflow.modules.installments.contract.dto.ContractResponse;
+import com.mahmoud.maalflow.modules.installments.contract.dto.ContractMetadataUpdateRequest;
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.contract.mapper.ContractMapper;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
@@ -16,6 +17,7 @@ import com.mahmoud.maalflow.modules.installments.purchase.entity.Purchase;
 import com.mahmoud.maalflow.modules.installments.purchase.repo.PurchaseRepository;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ContractStatus;
 import com.mahmoud.maalflow.modules.installments.schedule.service.InstallmentScheduleService;
+import com.mahmoud.maalflow.modules.installments.capital.service.CapitalService;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
 import lombok.AllArgsConstructor;
@@ -32,13 +34,13 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MIN_PURCHASE_PRICE;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.SYSTEM_USER_ID;
+
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ContractService {
-
-    private static final Long SYSTEM_USER_ID = 1L;
-    private static final BigDecimal MIN_PURCHASE_PRICE = BigDecimal.valueOf(100);
 
     private final CustomerRepository customerRepository;
     private final PurchaseRepository purchaseRepository;
@@ -52,6 +54,7 @@ public class ContractService {
     private final ContractTermCalculator contractTermCalculator;
     private final ContractDefaultsApplier contractDefaultsApplier;
     private final ContractStatusPolicy contractStatusPolicy;
+    private final CapitalService capitalService;
     //private final MessageSource messageSource;
 
     @Transactional
@@ -150,13 +153,22 @@ public class ContractService {
         // save contract
         Contract savedContract = contractRepository.save(contract);
 
+        // Allocate capital: financed principal = (originalPrice - downPayment)
+        BigDecimal financedPrincipal = contract.getOriginalPrice().subtract(contract.getDownPayment());
+        User currentUser = resolveSystemUser();
+        if (financedPrincipal.compareTo(BigDecimal.ZERO) > 0 && currentUser != null) {
+            capitalService.allocateCapitalForContract(savedContract, financedPrincipal, currentUser);
+            savedContract = contractRepository.save(savedContract); // Refresh to get capitalAllocated
+        }
+
         // generate contract schedules
         if (savedContract.getStatus().equals(ContractStatus.ACTIVE)) {
             installmentScheduleService.generateSchedulesForContract(savedContract.getId());
         }
 
-        log.info("Contract created: contractId={}, customerId={}, purchaseId={}, status={}",
-                savedContract.getId(), finalCustomerId, request.getPurchaseId(), savedContract.getStatus());
+        log.info("Contract created: contractId={}, customerId={}, purchaseId={}, status={}, capitalAllocated={}",
+                savedContract.getId(), finalCustomerId, request.getPurchaseId(), savedContract.getStatus(), 
+                savedContract.getCapitalAllocated());
 
 
         return contractMapper.toContractResponse(savedContract);
@@ -176,6 +188,9 @@ public class ContractService {
             throw new BusinessException("messages.contract.cannotModifyAfterPayments");
         }
 
+        // Only allow metadata edits after contract activation (if preferred)
+        // For now, allow full edits before payment activity
+        
         if (request.getResponsibleUserId() != null) {
             User responsibleUser = userRepository.findById(request.getResponsibleUserId())
                     .orElseThrow(() -> new UserNotFoundException("messages.user.notFound", request.getResponsibleUserId()));
@@ -301,6 +316,42 @@ public class ContractService {
                 existingContract.getStatus());
 
         return contractMapper.toContractResponse(updatedContract);
+    }
+
+    /**
+     * Update non-financial metadata only (notes, responsible user, partner).
+     * Callable even after payment activity.
+     */
+    @Transactional
+    public ContractResponse updateMetadata(Long id, ContractMetadataUpdateRequest request) {
+        Contract contract = contractRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("messages.contract.notFound", id));
+
+        if (request.getNotes() != null) {
+            contract.setNotes(request.getNotes());
+        }
+
+        if (Boolean.TRUE.equals(request.getClearResponsibleUser())) {
+            contract.setResponsibleUser(null);
+        } else if (request.getResponsibleUserId() != null) {
+            User responsibleUser = userRepository.findById(request.getResponsibleUserId())
+                    .orElseThrow(() -> new UserNotFoundException("messages.user.notFound", request.getResponsibleUserId()));
+            contract.setResponsibleUser(responsibleUser);
+        }
+
+        if (Boolean.TRUE.equals(request.getClearPartner())) {
+            contract.setPartner(null);
+        } else if (request.getPartnerId() != null) {
+            Partner partner = partnerRepository.findById(request.getPartnerId())
+                    .orElseThrow(() -> new ObjectNotFoundException("messages.partner.notFound", request.getPartnerId()));
+            contract.setPartner(partner);
+        }
+
+        contract.setUpdatedBy(resolveSystemUser());
+        Contract saved = contractRepository.save(contract);
+
+        log.info("Updated contract {} metadata only", id);
+        return contractMapper.toContractResponse(saved);
     }
 
 

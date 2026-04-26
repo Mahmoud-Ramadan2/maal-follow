@@ -29,7 +29,7 @@ public class ContractStatusPolicy {
         }
 
         if (requested == ContractStatus.COMPLETED) {
-            contractCompletionPolicy.checkAndCompleteContract(contract);
+            contractCompletionPolicy.checkAndCompleteContract(contract, ContractStatus.COMPLETED);
             return;
         }
 

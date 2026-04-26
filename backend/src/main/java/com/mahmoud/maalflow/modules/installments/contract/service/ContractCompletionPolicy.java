@@ -25,7 +25,7 @@ public class ContractCompletionPolicy {
     /**
      * Check if all schedules are paid and mark contract as completed
      */
-    public void checkAndCompleteContract(Contract contract) {
+    public void checkAndCompleteContract(Contract contract, ContractStatus requestedStatus) {
         Long pendingCount = scheduleRepository.countPendingByContractId(contract.getId());
         BigDecimal remainingAmount = contract.getRemainingAmount();
         BigDecimal totalPaid = contract.getTotalPaid()
@@ -41,7 +41,8 @@ public class ContractCompletionPolicy {
                         contract.getId(), remainingAmount, totalPaid);
                 throw new BusinessException("messages.contract.notFullyPaid");
             }
-        } else {
+        }
+        else if (requestedStatus != null && requestedStatus == ContractStatus.COMPLETED) {
             log.warn("Contract {} has {} pending schedules, not marking as completed", contract.getId(), pendingCount);
             throw new BusinessException("messages.contract.hasUnpaidInstallments");
         }

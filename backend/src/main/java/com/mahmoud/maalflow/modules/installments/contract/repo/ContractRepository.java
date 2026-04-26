@@ -50,6 +50,8 @@ SELECT new com.mahmoud.maalflow.modules.installments.contract.dto.ContractRespon
         c.profitAmount,
         c.totalExpenses,
         c.netProfit,
+        c.capitalAllocated,
+        c.capitalReturned,
         c.startDate,
         c.completionDate,
            c.createdAt,

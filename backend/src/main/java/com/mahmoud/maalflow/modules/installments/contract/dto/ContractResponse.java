@@ -59,6 +59,10 @@ public class ContractResponse {
     // Net Profit = Profit Amount - Total Expenses
     private BigDecimal netProfit;
 
+    // Capital tracking
+    private BigDecimal capitalAllocated;
+    private BigDecimal capitalReturned;
+
     // Dates
     private LocalDate startDate;
     private LocalDate completionDate;
