@@ -94,6 +94,24 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     long countCustomersWithActiveFalse();
 
     @Query("""
+        SELECT c FROM Customer c
+        WHERE c.active = true
+          AND (:searchTerm IS NULL OR TRIM(:searchTerm) = ''
+               OR LOWER(c.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+               OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
+               OR LOWER(c.address) LIKE LOWER(CONCAT('%', :searchTerm, '%')))
+          AND (:address IS NULL OR TRIM(:address) = ''
+               OR LOWER(c.address) LIKE LOWER(CONCAT('%', :address, '%')))
+          AND NOT EXISTS (
+               SELECT 1 FROM CollectionRouteItem cri
+               WHERE cri.customer.id = c.id AND cri.isActive = true
+          )
+        """)
+    Page<Customer> searchEligibleForCollectionRoute(Pageable pageable,
+                                                    @Param("searchTerm") String searchTerm,
+                                                    @Param("address") String address);
+
+    @Query("""
         SELECT COUNT(DISTINCT c) FROM Customer c
         JOIN c.contracts con
     WHERE c.active = true AND con.status = 'ACTIVE'
