@@ -2,7 +2,9 @@ package com.mahmoud.maalflow.modules.installments.profit.repo;
 
 import com.mahmoud.maalflow.modules.installments.profit.entity.MonthlyProfitDistribution;
 import com.mahmoud.maalflow.modules.installments.profit.enums.ProfitDistributionStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +16,10 @@ import java.util.Optional;
  */
 @Repository
 public interface MonthlyProfitDistributionRepository extends JpaRepository<MonthlyProfitDistribution, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT mpd FROM MonthlyProfitDistribution mpd WHERE mpd.id = :id")
+    Optional<MonthlyProfitDistribution> findByIdForUpdate(Long id);
 
     Optional<MonthlyProfitDistribution> findByMonthYear(String monthYear);
 

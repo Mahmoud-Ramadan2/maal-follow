@@ -17,6 +17,7 @@ import com.mahmoud.maalflow.modules.installments.profit.repo.MonthlyProfitDistri
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_MANAGEMENT_FEE_PERCENTAGE;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_ZAKAT_FEE_PERCENTAGE;
 
 /**
  * Service for processing profit from installment payments.
@@ -44,9 +48,6 @@ public class ProfitProcessingService {
     private final MonthlyProfitDistributionRepository profitDistributionRepository;
     private final ContractExpenseRepository contractExpenseRepository;
 
-    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
-    // System settings (should come from configuration/database in production)
-    private static final BigDecimal DEFAULT_MANAGEMENT_FEE_PERCENTAGE = BigDecimal.valueOf(0.30); // 30%
     // TODO: Zakat calculation needs more requirements - commented out for now
     // private static final BigDecimal DEFAULT_ZAKAT_PERCENTAGE = BigDecimal.valueOf(0.025); // 2.5%
 
@@ -151,7 +152,7 @@ public class ProfitProcessingService {
 
         // 4. Accumulate net profit for partner distribution (AFTER management fee and expenses)
         if (netProfit.compareTo(BigDecimal.ZERO) > 0) {
-            accumulateMonthlyProfit(schedule.getProfitMonth(), netProfit, grossProfit, managementFee, BigDecimal.ZERO, scheduleExpensesToday);
+            accumulateMonthlyProfit(schedule, netProfit, grossProfit, managementFee, BigDecimal.ZERO, scheduleExpensesToday);
         }
 
         log.info("Processed {} for schedule {}: gross={}, mgmtFee={}, expenses={}, net={}, payment={}",
@@ -172,7 +173,8 @@ public class ProfitProcessingService {
      * Calculate management fee from profit (30% default)
      */
     private BigDecimal calculateManagementFee(BigDecimal profit) {
-        return profit.multiply(DEFAULT_MANAGEMENT_FEE_PERCENTAGE).setScale(2, RoundingMode.HALF_UP);
+        return profit.multiply(DEFAULT_MANAGEMENT_FEE_PERCENTAGE)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     // TODO: Zakat calculation commented out until requirements are finalized
@@ -263,7 +265,7 @@ public class ProfitProcessingService {
      * Note: netProfit is AFTER management fee and expenses deduction
      */
     private void accumulateMonthlyProfit(
-            String monthYear,
+            InstallmentSchedule schedule,
             BigDecimal netProfit,
             BigDecimal grossProfit,
             BigDecimal managementFee,
@@ -271,11 +273,51 @@ public class ProfitProcessingService {
             BigDecimal expenses) {
 
         // Find or create monthly profit distribution record
+        String monthYear = schedule.getProfitMonth();
+        String finalMonthYear = monthYear;
         MonthlyProfitDistribution distribution = profitDistributionRepository
                 .findByMonthYear(monthYear)
-                .orElseGet(() -> createNewMonthlyDistribution(monthYear));
+                .orElseGet(() -> createNewMonthlyDistribution(finalMonthYear));
 
-        // Accumulate values - note that netProfitForPartners is what goes to partners
+        // check if currunt distribtion is distributed or locked
+        // so it will be added to next month with notfifctinon
+        boolean rolledOver = false;
+        MonthlyProfitDistribution originalDistribution = null;
+        while (distribution.getStatus().equals(ProfitDistributionStatus.DISTRIBUTED) || distribution.getStatus().equals(ProfitDistributionStatus.LOCKED)) {
+
+            rolledOver = true;
+            originalDistribution = distribution;
+
+            log.info("Current distribution for month {} is already {}, creating new distribution for next month",
+                    monthYear, distribution.getStatus());
+
+            // Create new distribution for next month
+            LocalDate currentMonth = LocalDate.parse(monthYear + "-01", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String nextMonthYear = currentMonth.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            distribution = profitDistributionRepository
+                    .findByMonthYear(nextMonthYear)
+                    .orElseGet(() -> createNewMonthlyDistribution(nextMonthYear));
+
+            monthYear = nextMonthYear;
+
+        }
+
+        if (rolledOver) {
+            String note = String.format("تم إضافة ربح القسط رقم %d للعقد %d لشهر %s إلى توزيعات شهر %s بسبب حالة توزيع الشهر الحالي: %s",
+                    schedule.getSequenceNumber(),
+                    schedule.getContract().getId(),
+                    schedule.getProfitMonth(),
+                    monthYear,
+                    originalDistribution.getStatus());
+
+            if (distribution.getCalculationNotes() == null || distribution.getCalculationNotes().isBlank()) {
+                distribution.setCalculationNotes(note);
+            } else {
+                distribution.setCalculationNotes(distribution.getCalculationNotes() + " | " + note);
+            }
+        }
+
+            // Accumulate values - note that netProfit is what goes to partners
         distribution.setTotalProfit(
                 safeAdd(distribution.getTotalProfit(), grossProfit));
         distribution.setManagementFeeAmount(
@@ -287,6 +329,12 @@ public class ProfitProcessingService {
         // This is the amount that will be distributed to partners (after management fee and expenses)
         distribution.setDistributableProfit(
                 safeAdd(distribution.getDistributableProfit(), netProfit));
+
+        distribution.setPartnersTotalProfit(
+                safeAdd(distribution.getPartnersTotalProfit(), netProfit));
+
+        distribution.setOwnerProfit(
+                safeAdd(distribution.getOwnerProfit(), netProfit));
 
         profitDistributionRepository.save(distribution);
         log.debug("Accumulated profit for month {}: gross={}, mgmtFee={}, expenses={}, distributable={}",
@@ -304,8 +352,8 @@ public class ProfitProcessingService {
         newDist.setZakatAmount(BigDecimal.ZERO);
         newDist.setContractExpensesAmount(BigDecimal.ZERO);
         newDist.setDistributableProfit(BigDecimal.ZERO);
-        newDist.setManagementFeePercentage(DEFAULT_MANAGEMENT_FEE_PERCENTAGE.multiply(BigDecimal.valueOf(100)));
-//        newDist.setZakatPercentage(DEFAULT_ZAKAT_PERCENTAGE.multiply(BigDecimal.valueOf(100)));
+        newDist.setManagementFeePercentage(DEFAULT_MANAGEMENT_FEE_PERCENTAGE);
+        newDist.setZakatPercentage(DEFAULT_ZAKAT_FEE_PERCENTAGE);
         newDist.setStatus(ProfitDistributionStatus.PENDING);
         return profitDistributionRepository.save(newDist);
     }
