@@ -9,6 +9,7 @@ import { useCapitalPool, useCapitalPoolActions, useCapitalTransactionCreate } fr
 import { capitalPoolSchema, capitalTransactionSchema } from '@utils/validators/capital.validator'
 import type { CapitalPoolFormData, CapitalTransactionFormData } from '@utils/validators/capital.validator'
 import { CapitalTransactionType } from '@/types/modules/capital.types'
+import type { CapitalTransactionType as CapitalTransactionTypeValue } from '@/types/modules/capital.types'
 import Button from '@components/common/Button'
 import Input from '@components/common/Input'
 import Card from '@components/ui/Card'
@@ -17,9 +18,6 @@ import { APP_ROUTES } from '@/router/routes.config'
 import './CapitalFormPage.css'
 
 export default function CapitalFormPage(): ReactNode {
-    const { t } = useTranslation('capital')
-    const { t: tc } = useTranslation('common')
-    const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const isTransactionTab = searchParams.get('tab') === 'transaction'
 
@@ -149,7 +147,11 @@ function TransactionForm(): ReactNode {
     const descValue = watch('description') ?? ''
 
     const onSubmit = async (data: CapitalTransactionFormData) => {
-        const payload = { ...data, description: data.description || undefined }
+        const payload = {
+            ...data,
+            transactionType: data.transactionType as CapitalTransactionTypeValue,
+            description: data.description || undefined,
+        }
         const result = await createTransaction(payload)
         if (result) navigate(APP_ROUTES.CAPITAL.LIST)
     }

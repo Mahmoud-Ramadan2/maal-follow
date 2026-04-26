@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -23,15 +23,21 @@ export default function PaymentListPage(): ReactNode {
     const [monthFilter, setMonthFilter] = useState('')
     const { page, size, setSize, nextPage, prevPage } = usePagination()
 
-    const monthParam = monthFilter || undefined
-    const { payments, loading, error, totalPages, totalElements, refetch } = usePayments(page, size, monthParam)
+    const filters = useMemo(() => ({
+        page,
+        size,
+        ...(monthFilter ? { month: monthFilter } : {}),
+    }), [page, size, monthFilter])
 
-    const handleClear = () => { setMonthFilter('') }
+    const { payments, loading, error, totalPages, totalElements, refetch } = usePayments(filters)
+
+    const handleClear = useCallback(() => { setMonthFilter('') }, [])
+    const goToCreate = useCallback(() => navigate(APP_ROUTES.PAYMENTS.CREATE), [navigate])
 
     const from = totalElements === 0 ? 0 : page * size + 1
     const to = Math.min((page + 1) * size, totalElements)
 
-    const columns: TableColumn<PaymentSummary>[] = [
+    const columns: TableColumn<PaymentSummary>[] = useMemo(() => [
         { key: 'id', label: t('columns.id') },
         {
             key: 'amount', label: t('columns.amount'),
@@ -78,7 +84,7 @@ export default function PaymentListPage(): ReactNode {
                 </div>
             ),
         },
-    ]
+    ], [navigate, t, tc])
 
     if (error && payments.length === 0) {
         return (
@@ -93,7 +99,7 @@ export default function PaymentListPage(): ReactNode {
         <div>
             <div className="payment-list__header">
                 <h1 className="payment-list__title">{t('title')}</h1>
-                <Button onClick={() => navigate(APP_ROUTES.PAYMENTS.CREATE)}>{t('createNew')}</Button>
+                <Button onClick={goToCreate}>{t('createNew')}</Button>
             </div>
 
             <div className="payment-list__filters">

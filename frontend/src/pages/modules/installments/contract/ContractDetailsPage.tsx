@@ -1,14 +1,17 @@
 import type { ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useContract, useContractComplete, useInstallmentActions } from '@hooks/modules'
+import { useContract, useContractComplete, useInstallmentActions, useSchedulePayment } from '@hooks/modules'
 import Button from '@components/common/Button'
+import Input from '@components/common/Input'
 import Card from '@components/ui/Card'
 import LoadingSpinner from '@components/ui/LoadingSpinner'
 import { APP_ROUTES, ROUTE_HELPERS } from '@/router/routes.config'
 import { formatCurrency } from '@utils/helpers/format.helper'
 import { formatDate, formatDateTime } from '@utils/helpers/ index'
-import type { InstallmentSchedule, ContractExpense } from '@/types/modules/contract.types'
+import type { ContractExpense } from '@/types/modules/contract.types'
+import type { InstallmentSchedule, PaymentStatus } from '@/types/modules/schedule.types'
 import './ContractDetailsPage.css'
 
 export default function ContractDetailsPage(): ReactNode {
@@ -17,10 +20,47 @@ export default function ContractDetailsPage(): ReactNode {
     const navigate = useNavigate()
     const { t } = useTranslation('contract')
     const { t: tc } = useTranslation('common')
+    const [schedulePage, setSchedulePage] = useState(0)
+    const [scheduleSize, setScheduleSize] = useState(10)
+    const [scheduleStatusFilter, setScheduleStatusFilter] = useState<PaymentStatus | 'ALL'>('ALL')
+    const [scheduleDueSoonInput, setScheduleDueSoonInput] = useState('')
+    const [scheduleStartDate, setScheduleStartDate] = useState('')
+    const [scheduleEndDate, setScheduleEndDate] = useState('')
+    const [scheduleOverdueOnly, setScheduleOverdueOnly] = useState(false)
+    const [rescheduleMonthsInput, setRescheduleMonthsInput] = useState('')
+    const [rescheduleAmountInput, setRescheduleAmountInput] = useState('')
+    const [rescheduleStartDateInput, setRescheduleStartDateInput] = useState('')
+    const [skipReason, setSkipReason] = useState('')
 
-    const { contract, schedules, expenses, loading, error, refetch } = useContract(contractId)
+    const scheduleFilters = useMemo(() => ({
+        ...(scheduleStatusFilter !== 'ALL' ? { status: scheduleStatusFilter } : {}),
+        ...(scheduleDueSoonInput.trim() ? { dueSoonDays: Number(scheduleDueSoonInput) } : {}),
+        ...(scheduleStartDate ? { startDate: scheduleStartDate } : {}),
+        ...(scheduleEndDate ? { endDate: scheduleEndDate } : {}),
+        ...(scheduleOverdueOnly ? { overdueOnly: true } : {}),
+    }), [scheduleDueSoonInput, scheduleEndDate, scheduleOverdueOnly, scheduleStartDate, scheduleStatusFilter])
+
+    const {
+        contract,
+        schedules,
+        scheduleTotalPages,
+        scheduleTotalElements,
+        expenses,
+        loading,
+        error,
+        refetch,
+    } = useContract(contractId, { schedulePage, scheduleSize, scheduleFilters })
     const { completeContract, loading: completeLoading } = useContractComplete()
-    const { generate, swapRemainder, deleteUnpaid, loading: scheduleActionLoading } = useInstallmentActions()
+    const {
+        generate,
+        rescheduleUnpaidInstallments,
+        skipMonthPayment,
+        updateScheduleMetadata,
+        swapRemainder,
+        deleteUnpaid,
+        loading: scheduleActionLoading,
+    } = useInstallmentActions()
+    const { openPaymentForm, sendReminder, loading: reminderLoading } = useSchedulePayment()
 
     const handleComplete = async () => {
         const done = await completeContract(contractId)
@@ -41,6 +81,50 @@ export default function ContractDetailsPage(): ReactNode {
         const ok = await deleteUnpaid(contractId)
         if (ok) refetch()
     }
+
+    const handleReschedule = async () => {
+        const result = await rescheduleUnpaidInstallments(contractId, {
+            ...(rescheduleMonthsInput.trim() ? { newNumberOfMonths: Number(rescheduleMonthsInput) } : {}),
+            ...(rescheduleAmountInput.trim() ? { newMonthlyAmount: Number(rescheduleAmountInput) } : {}),
+            ...(rescheduleStartDateInput ? { newStartDate: rescheduleStartDateInput } : {}),
+        })
+        if (result) refetch()
+    }
+
+    const handleSkipMonth = async () => {
+        if (!skipReason.trim()) return
+        const ok = await skipMonthPayment(contractId, skipReason.trim())
+        if (ok) {
+            setSkipReason('')
+            refetch()
+        }
+    }
+
+    const handleMetadataUpdate = async (schedule: InstallmentSchedule) => {
+        if (!schedule.id) return
+        const dueDate = window.prompt(t('schedule.metadataDueDatePrompt'), schedule.dueDate || '')
+        if (dueDate === null) return
+        const notes = window.prompt(t('schedule.metadataNotesPrompt'), schedule.notes || '')
+        if (notes === null) return
+
+        const result = await updateScheduleMetadata(schedule.id, {
+            dueDate: dueDate || undefined,
+            notes: notes || undefined,
+        })
+        if (result) refetch()
+    }
+
+    const clearScheduleFilters = () => {
+        setScheduleStatusFilter('ALL')
+        setScheduleDueSoonInput('')
+        setScheduleStartDate('')
+        setScheduleEndDate('')
+        setScheduleOverdueOnly(false)
+        setSchedulePage(0)
+    }
+
+    const scheduleFrom = scheduleTotalElements === 0 ? 0 : (schedulePage * scheduleSize) + 1
+    const scheduleTo = Math.min((schedulePage + 1) * scheduleSize, scheduleTotalElements)
 
     if (loading) {
         return <div className="contract-details__center"><LoadingSpinner size="lg" /></div>
@@ -191,6 +275,14 @@ export default function ContractDetailsPage(): ReactNode {
                                 {formatCurrency(contract.netProfit)}
                             </span>
                         </div>
+                        <div className="contract-details__financial-card">
+                            <span className="contract-details__financial-label">{t('details.capitalAllocated')}</span>
+                            <span className="contract-details__financial-value">{formatCurrency(contract.capitalAllocated)}</span>
+                        </div>
+                        <div className="contract-details__financial-card">
+                            <span className="contract-details__financial-label">{t('details.capitalReturned')}</span>
+                            <span className="contract-details__financial-value">{formatCurrency(contract.capitalReturned)}</span>
+                        </div>
                     </div>
                 </Card>
             </div>
@@ -206,12 +298,12 @@ export default function ContractDetailsPage(): ReactNode {
                                     {t('schedule.generate')}
                                 </Button>
                             )}
-                            {schedules.length > 0 && (
+                            {schedules.length > 1 && (
                                 <>
                                     <Button size="sm" variant="secondary" onClick={handleSwap} loading={scheduleActionLoading}>
                                         {t('schedule.swapRemainder')}
                                     </Button>
-                                    <Button size="sm" variant="danger" onClick={handleDeleteUnpaid} loading={scheduleActionLoading}>
+                                    <Button disabled={true} size="sm" variant="danger" onClick={handleDeleteUnpaid} loading={scheduleActionLoading}>
                                         {t('schedule.deleteUnpaid')}
                                     </Button>
                                 </>
@@ -219,39 +311,212 @@ export default function ContractDetailsPage(): ReactNode {
                         </div>
                     </div>
 
+                    <div className="contract-details__schedule-toolbar">
+                        <select
+                            className="contract-details__pagination-select"
+                            value={scheduleStatusFilter}
+                            onChange={(e) => {
+                                setSchedulePage(0)
+                                setScheduleStatusFilter(e.target.value as PaymentStatus | 'ALL')
+                            }}
+                        >
+                            <option value="ALL">{t('schedule.allStatuses')}</option>
+                            <option value="PENDING">{t('paymentStatus.PENDING')}</option>
+                            <option value="PAID">{t('paymentStatus.PAID')}</option>
+                            <option value="LATE">{t('paymentStatus.LATE')}</option>
+                            <option value="PARTIALLY_PAID">{t('paymentStatus.PARTIALLY_PAID')}</option>
+                            <option value="CANCELLED">{t('paymentStatus.CANCELLED')}</option>
+                        </select>
+                        <Input
+                            name="scheduleDueSoonDays"
+                            type="number"
+                            placeholder={t('schedule.dueSoonDays')}
+                            value={scheduleDueSoonInput}
+                            onChange={(e) => {
+                                setSchedulePage(0)
+                                setScheduleDueSoonInput(e.target.value)
+                            }}
+                        />
+                        <Input
+                            name="scheduleStartDate"
+                            type="date"
+                            value={scheduleStartDate}
+                            onChange={(e) => {
+                                setSchedulePage(0)
+                                setScheduleStartDate(e.target.value)
+                            }}
+                        />
+                        <Input
+                            name="scheduleEndDate"
+                            type="date"
+                            value={scheduleEndDate}
+                            onChange={(e) => {
+                                setSchedulePage(0)
+                                setScheduleEndDate(e.target.value)
+                            }}
+                        />
+                        <label className="contract-details__filter-checkbox">
+                            <input
+                                type="checkbox"
+                                checked={scheduleOverdueOnly}
+                                onChange={(e) => {
+                                    setSchedulePage(0)
+                                    setScheduleOverdueOnly(e.target.checked)
+                                }}
+                            />
+                            <span>{t('schedule.overdueOnly')}</span>
+                        </label>
+                        <Button size="sm" variant="secondary" onClick={clearScheduleFilters}>
+                            {t('schedule.clearFilters')}
+                        </Button>
+                    </div>
+
+                    <div className="contract-details__schedule-toolbar">
+                        <Input
+                            name="rescheduleMonths"
+                            type="number"
+                            placeholder={t('schedule.newNumberOfMonths')}
+                            value={rescheduleMonthsInput}
+                            onChange={(e) => setRescheduleMonthsInput(e.target.value)}
+                        />
+                        <Input
+                            name="rescheduleAmount"
+                            type="number"
+                            placeholder={t('schedule.newMonthlyAmount')}
+                            value={rescheduleAmountInput}
+                            onChange={(e) => setRescheduleAmountInput(e.target.value)}
+                        />
+                        <Input
+                            name="rescheduleStartDate"
+                            type="date"
+                            value={rescheduleStartDateInput}
+                            onChange={(e) => setRescheduleStartDateInput(e.target.value)}
+                        />
+                        <Button size="sm" variant="secondary" onClick={handleReschedule} loading={scheduleActionLoading}>
+                            {t('schedule.reschedule')}
+                        </Button>
+                        <Input
+                            name="skipMonthReason"
+                            placeholder={t('schedule.skipMonthReason')}
+                            value={skipReason}
+                            onChange={(e) => setSkipReason(e.target.value)}
+                        />
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={handleSkipMonth}
+                            loading={scheduleActionLoading}
+                            disabled={!skipReason.trim()}
+                        >
+                            {t('schedule.skipMonth')}
+                        </Button>
+                    </div>
+
                     {schedules.length > 0 ? (
-                        <table className="contract-details__table">
-                            <thead>
-                                <tr>
-                                    <th>{t('schedule.sequence')}</th>
-                                    <th>{t('schedule.dueDate')}</th>
-                                    <th>{t('schedule.amount')}</th>
-                                    <th>{t('schedule.paidAmount')}</th>
-                                    <th>{t('schedule.paidDate')}</th>
-                                    <th>{t('schedule.status')}</th>
-                                    <th>{t('schedule.profitMonth')}</th>
-                                    <th>{t('schedule.notes')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {schedules.map((s: InstallmentSchedule, idx: number) => (
-                                    <tr key={idx}>
-                                        <td>{s.sequenceNumber}{s.isFinalPayment ? ' ★' : ''}</td>
-                                        <td>{formatDate(s.dueDate)}</td>
-                                        <td>{formatCurrency(s.amount)}</td>
-                                        <td>{s.paidAmount ? formatCurrency(s.paidAmount) : '—'}</td>
-                                        <td>{s.paidDate ? formatDate(s.paidDate) : '—'}</td>
-                                        <td>
-                                            <span className={`contract-details__payment-badge contract-details__payment-badge--${s.status}`}>
-                                                {t(`paymentStatus.${s.status}`)}
-                                            </span>
-                                        </td>
-                                        <td>{s.profitMonth || '—'}</td>
-                                        <td>{s.notes || '—'}</td>
+                        <>
+                            <table className="contract-details__table">
+                                <thead>
+                                    <tr>
+                                        <th>{t('schedule.sequence')}</th>
+                                        <th>{t('schedule.dueDate')}</th>
+                                        <th>{t('schedule.amount')}</th>
+                                        <th>{t('schedule.paidAmount')}</th>
+                                        <th>{t('schedule.paidDate')}</th>
+                                        <th>{t('schedule.status')}</th>
+                                        <th>{t('schedule.profitMonth')}</th>
+                                        <th>{t('schedule.notes')}</th>
+                                        <th>{t('schedule.actions')}</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {schedules.map((s: InstallmentSchedule, idx: number) => (
+                                        <tr key={idx}>
+                                            <td>{s.sequenceNumber}{s.isFinalPayment ? ' ★' : ''}</td>
+                                            <td>{formatDate(s.dueDate)}</td>
+                                            <td>{formatCurrency(s.amount)}</td>
+                                            <td>{s.paidAmount ? formatCurrency(s.paidAmount) : '—'}</td>
+                                            <td>{s.paidDate ? formatDate(s.paidDate) : '—'}</td>
+                                            <td>
+                                                <span className={`contract-details__payment-badge contract-details__payment-badge--${s.status}`}>
+                                                    {t(`paymentStatus.${s.status}`)}
+                                                </span>
+                                            </td>
+                                            <td>{s.profitMonth || '—'}</td>
+                                            <td>{s.notes || '—'}</td>
+                                            <td>
+                                                <div className="contract-details__row-actions">
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => openPaymentForm(s)}
+                                                        disabled={!s.id || s.status === 'PAID' || s.status === 'CANCELLED'}
+                                                    >
+                                                        {t('schedule.pay')}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => sendReminder(s)}
+                                                        disabled={!s.id || reminderLoading}
+                                                    >
+                                                        {t('schedule.remind')}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => handleMetadataUpdate(s)}
+                                                        disabled={!s.id || scheduleActionLoading}
+                                                    >
+                                                        {t('schedule.updateMetadata')}
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="contract-details__pagination">
+                                <span className="contract-details__pagination-info">
+                                    {t('pagination.showing', {
+                                        from: scheduleFrom,
+                                        to: scheduleTo,
+                                        total: scheduleTotalElements,
+                                    })}
+                                </span>
+                                <div className="contract-details__pagination-actions">
+                                    <label htmlFor="schedule-page-size">{t('pagination.pageSize')}</label>
+                                    <select
+                                        id="schedule-page-size"
+                                        className="contract-details__pagination-select"
+                                        value={scheduleSize}
+                                        onChange={(e) => {
+                                            setSchedulePage(0)
+                                            setScheduleSize(Number(e.target.value))
+                                        }}
+                                    >
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                    </select>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => setSchedulePage((prev) => Math.max(0, prev - 1))}
+                                        disabled={schedulePage === 0}
+                                    >
+                                        {t('pagination.previous')}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => setSchedulePage((prev) => prev + 1)}
+                                        disabled={schedulePage + 1 >= scheduleTotalPages}
+                                    >
+                                        {t('pagination.next')}
+                                    </Button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <div className="contract-details__placeholder">
                             <span className="contract-details__placeholder-icon">📅</span>

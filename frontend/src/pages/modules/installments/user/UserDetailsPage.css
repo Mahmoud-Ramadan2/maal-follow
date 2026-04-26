@@ -1,0 +1,11 @@
+.user-details__header { display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-3); margin-block-end: var(--spacing-4); flex-wrap: wrap; }
+.user-details__header-left { display: flex; align-items: center; gap: var(--spacing-2); flex-wrap: wrap; }
+.user-details__title { margin: 0; font-size: var(--font-size-2xl); color: var(--text-primary); }
+.user-details__actions { display: flex; gap: var(--spacing-2); }
+.user-details__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-3); color: var(--text-primary); }
+.user-details__center { display: grid; place-items: center; gap: var(--spacing-3); padding: var(--spacing-10); }
+
+@media (max-width: 768px) {
+  .user-details__grid { grid-template-columns: 1fr; }
+}
+

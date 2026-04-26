@@ -138,7 +138,7 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
     const selectedPurchaseId = watch('purchaseId')
 
     const toOptionalNumber = (value: number | null | undefined): number | undefined => {
-        if (value === undefined || Number.isNaN(value)) return undefined
+        if (value == null || Number.isNaN(value)) return undefined
         return value
     }
 
@@ -271,20 +271,20 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
                         </div>
 
                         {/* Status */}
-                        {/*<div className="form-field">*/}
-                        {/*    <label className="form-field__label">{t('details.status')}</label>*/}
-                        {/*    <select*/}
-                        {/*        className={`contract-form__select ${errors.status ? 'contract-form__select--error' : ''}`}*/}
-                        {/*        {...register('status')}*/}
-                        {/*    >*/}
-                        {/*        <option value={ContractStatus.ACTIVE}>{t('status.ACTIVE')}</option>*/}
-                        {/*        <option value={ContractStatus.LATE}>{t('status.LATE')}</option>*/}
-                        {/*        <option value={ContractStatus.COMPLETED}>{t('status.COMPLETED')}</option>*/}
-                        {/*        <option value={ContractStatus.CANCELLED}>{t('status.CANCELLED')}</option>*/}
-                        {/*    </select>*/}
-                        {/*    {errors.status &&*/}
-                        {/*        <span className="form-field__error" role="alert">{errors.status.message}</span>}*/}
-                        {/*</div>*/}
+                        <div className="form-field">
+                            <label className="form-field__label">{t('details.status')}</label>
+                            <select
+                                className={`contract-form__select ${errors.status ? 'contract-form__select--error' : ''}`}
+                                {...register('status')}
+                            >
+                                <option value={ContractStatus.ACTIVE}>{t('status.ACTIVE')}</option>
+                                <option value={ContractStatus.LATE}>{t('status.LATE')}</option>
+                                <option value={ContractStatus.COMPLETED}>{t('status.COMPLETED')}</option>
+                                <option value={ContractStatus.CANCELLED}>{t('status.CANCELLED')}</option>
+                            </select>
+                            {errors.status &&
+                                <span className="form-field__error" role="alert">{errors.status.message}</span>}
+                        </div>
 
                         {/* Contract Number */}
                         {/*<Input*/}

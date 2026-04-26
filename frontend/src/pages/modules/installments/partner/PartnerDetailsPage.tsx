@@ -8,7 +8,13 @@ import LoadingSpinner from '@components/ui/LoadingSpinner'
 import { APP_ROUTES, ROUTE_HELPERS } from '@/router/routes.config'
 import { formatCurrency } from '@utils/helpers/format.helper'
 import { formatDate, formatDateTime } from '@utils/helpers/ index'
-import type { PartnerInvestment, PartnerWithdrawal } from '@/types/modules/partner.types'
+import type {
+    PartnerCommission,
+    PartnerCustomerAcquisition,
+    PartnerInvestment,
+    PartnerMonthlyProfit,
+    PartnerWithdrawal,
+} from '@/types/modules/partner.types'
 import './PartnerDetailsPage.css'
 
 export default function PartnerDetailsPage(): ReactNode {
@@ -18,7 +24,7 @@ export default function PartnerDetailsPage(): ReactNode {
     const { t } = useTranslation('partner')
     const { t: tc } = useTranslation('common')
 
-    const { partner, investments, withdrawals, loading, error } = usePartner(partnerId)
+    const { partner, investments, withdrawals, commissions, acquisitions, monthlyProfits, loading, error } = usePartner(partnerId)
     const { deletePartner, loading: deleteLoading } = usePartnerDelete()
 
     const handleDelete = async () => {
@@ -65,6 +71,10 @@ export default function PartnerDetailsPage(): ReactNode {
                     <div className="partner-details__field">
                         <span className="partner-details__label">{t('details.phone')}</span>
                         <span className="partner-details__value">{partner.phone}</span>
+                    </div>
+                    <div className="partner-details__field">
+                        <span className="partner-details__label">{t('details.nationalId')}</span>
+                        <span className="partner-details__value">{partner.nationalId}</span>
                     </div>
                     <div className="partner-details__field">
                         <span className="partner-details__label">{t('details.address')}</span>
@@ -117,6 +127,10 @@ export default function PartnerDetailsPage(): ReactNode {
                         <div className="partner-details__financial-card">
                             <span className="partner-details__financial-label">{t('details.totalInvestment')}</span>
                             <span className="partner-details__financial-value partner-details__financial-value--positive">{formatCurrency(partner.totalInvestment)}</span>
+                        </div>
+                        <div className="partner-details__financial-card">
+                            <span className="partner-details__financial-label">{t('details.effectiveInvestment')}</span>
+                            <span className="partner-details__financial-value partner-details__financial-value--positive">{formatCurrency(partner.effectiveInvestment)}</span>
                         </div>
                         <div className="partner-details__financial-card">
                             <span className="partner-details__financial-label">{t('details.totalWithdrawals')}</span>
@@ -217,6 +231,108 @@ export default function PartnerDetailsPage(): ReactNode {
             </div>
 
             {/* ═══ Notes ═══ */}
+            <div className="partner-details__section">
+                <Card>
+                    <h3 className="partner-details__section-title">{t('commission.title')}</h3>
+                    {commissions.length > 0 ? (
+                        <table className="partner-details__table">
+                            <thead>
+                            <tr>
+                                <th>{t('commission.amount')}</th>
+                                <th>{t('commission.type')}</th>
+                                <th>{t('commission.status')}</th>
+                                <th>{t('commission.calculatedAt')}</th>
+                                <th>{t('commission.paidAt')}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {commissions.map((c: PartnerCommission) => (
+                                <tr key={c.id}>
+                                    <td>{formatCurrency(c.commissionAmount)}</td>
+                                    <td>{t(`commissionType.${c.commissionType}`)}</td>
+                                    <td>{t(`commissionStatus.${c.status}`)}</td>
+                                    <td>{formatDateTime(c.calculatedAt)}</td>
+                                    <td>{c.paidAt ? formatDateTime(c.paidAt) : '—'}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="partner-details__placeholder">
+                            <span className="partner-details__placeholder-text">{t('commission.empty')}</span>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            <div className="partner-details__section">
+                <Card>
+                    <h3 className="partner-details__section-title">{t('acquisition.title')}</h3>
+                    {acquisitions.length > 0 ? (
+                        <table className="partner-details__table">
+                            <thead>
+                            <tr>
+                                <th>{t('acquisition.customer')}</th>
+                                <th>{t('acquisition.phone')}</th>
+                                <th>{t('acquisition.status')}</th>
+                                <th>{t('acquisition.commissionPercentage')}</th>
+                                <th>{t('acquisition.totalCommissionEarned')}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {acquisitions.map((a: PartnerCustomerAcquisition) => (
+                                <tr key={a.id}>
+                                    <td>{a.customerName}</td>
+                                    <td>{a.customerPhone}</td>
+                                    <td>{t(`acquisitionStatus.${a.status}`)}</td>
+                                    <td>{a.commissionPercentage}%</td>
+                                    <td>{formatCurrency(a.totalCommissionEarned)}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="partner-details__placeholder">
+                            <span className="partner-details__placeholder-text">{t('acquisition.empty')}</span>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            <div className="partner-details__section">
+                <Card>
+                    <h3 className="partner-details__section-title">{t('monthlyProfit.title')}</h3>
+                    {monthlyProfits.length > 0 ? (
+                        <table className="partner-details__table">
+                            <thead>
+                            <tr>
+                                <th>{t('monthlyProfit.month')}</th>
+                                <th>{t('monthlyProfit.investmentAmount')}</th>
+                                <th>{t('monthlyProfit.sharePercentage')}</th>
+                                <th>{t('monthlyProfit.calculatedProfit')}</th>
+                                <th>{t('monthlyProfit.status')}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {monthlyProfits.map((p: PartnerMonthlyProfit) => (
+                                <tr key={p.id}>
+                                    <td>{p.profitDistributionMonth}</td>
+                                    <td>{formatCurrency(p.investmentAmount)}</td>
+                                    <td>{p.sharePercentage}%</td>
+                                    <td>{formatCurrency(p.calculatedProfit)}</td>
+                                    <td>{t(`profitStatus.${p.status}`)}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="partner-details__placeholder">
+                            <span className="partner-details__placeholder-text">{t('monthlyProfit.empty')}</span>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
             <div className="partner-details__section">
                 <Card title={t('details.notes')}>
                     {partner.notes ? (

@@ -1,0 +1,6 @@
+.profit-form__header { margin-bottom: var(--spacing-5); }
+.profit-form__title { margin: 0; font-size: var(--font-size-2xl); color: var(--text-primary); }
+.profit-form__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--spacing-4); }
+.profit-form__actions { display: flex; justify-content: flex-end; gap: var(--spacing-3); margin-top: var(--spacing-5); }
+.profit-form__loading { display: flex; justify-content: center; padding: var(--spacing-10); }
+

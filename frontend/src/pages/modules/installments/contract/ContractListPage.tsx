@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-import { useContracts, useContractComplete } from '@hooks/modules'
+import { useContracts } from '@hooks/modules'
 import { usePagination } from '@hooks/common'
 import Table from '@components/common/Table'
 import type { TableColumn } from '@components/common/Table'
@@ -33,7 +33,8 @@ export default function ContractListPage(): ReactNode {
     const { page, size, nextPage, prevPage, setSize } = usePagination()
 
     const statusToFetch= activeTab
-    const { contracts: rawContracts, loading, error, totalPages, totalElements, refetch } = useContracts(statusToFetch, page, size)
+    const { contracts: rawContracts, loading, error, totalPages, totalElements, refetch } =
+        useContracts(statusToFetch, page, size)
 
     // ── Client-side search filter ──────────────────────────
     const contracts = useMemo(() => {
@@ -48,13 +49,6 @@ export default function ContractListPage(): ReactNode {
         )
     }, [rawContracts, searchTerm])
 
-    // ── Complete action ────────────────────────────────────
-    const { completeContract } = useContractComplete()
-
-    const handleComplete = async (id: number) => {
-        const done = await completeContract(id)
-        if (done) refetch()
-    }
 
     const handleClearFilters = () => { setSearchTerm(''); setActiveTab('ACTIVE') }
 
@@ -120,7 +114,7 @@ export default function ContractListPage(): ReactNode {
         <div>
             {/* Header */}
             <div className="contract-list__header">
-                <h1 className="contract-list__title">{t('title')}</h1>
+                <h1     className="contract-list__title">{t('title')}</h1>
                 <Button onClick={() => navigate(APP_ROUTES.CONTRACTS.CREATE)}>
                     {t('createNew')}
                 </Button>
