@@ -62,6 +62,12 @@ public class PartnerWithdrawal {
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
+    @Column(name = "rejected_at")
+    private LocalDateTime rejectedAt;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
@@ -78,6 +84,10 @@ public class PartnerWithdrawal {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")
     private User approvedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rejected_by")
+    private User rejectedBy;
 
     @Override
     public String toString() {

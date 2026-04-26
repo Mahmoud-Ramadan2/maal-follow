@@ -20,6 +20,7 @@ public class PartnerResponse {
     private Long id;
     private String name;
     private String phone;
+    private String nationalId;
     private String address;
     private PartnershipType partnershipType;
     private BigDecimal sharePercentage;
@@ -27,6 +28,7 @@ public class PartnerResponse {
     private LocalDate investmentStartDate;
     private String profitCalculationStartMonth;
     private BigDecimal totalInvestment;
+    private BigDecimal effectiveInvestment;
     private BigDecimal totalWithdrawals;
     private BigDecimal currentBalance;
     private Boolean profitSharingActive;

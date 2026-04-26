@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -32,11 +33,24 @@ public interface PartnerWithdrawalRepository extends JpaRepository<PartnerWithdr
     @Query("SELECT SUM(pw.amount) FROM PartnerWithdrawal pw WHERE pw.partner.id = :partnerId AND pw.status = :status")
     BigDecimal sumByPartnerIdAndStatus(Long partnerId, WithdrawalStatus status);
 
+    @Query("""
+SELECT pw FROM PartnerWithdrawal pw WHERE pw.partner = :partner
+             AND pw.requestedAt < :before ORDER BY pw.requestedAt ASC
+""")
     List<PartnerWithdrawal> findByPartnerAndRequestedAtBeforeOrderByRequestedAtAsc(Partner partner, LocalDateTime before);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")}) // Wait 3 seconds max
     @Query("SELECT pw FROM PartnerWithdrawal pw WHERE pw.id = :id")
     Optional<PartnerWithdrawal> findWithdrawalByIdForUpdate(Long id);
-}
 
+    @Query("""
+SELECT COALESCE(SUM(w.amount), 0)
+FROM PartnerWithdrawal w
+WHERE w.partner.id = :partnerId
+  AND w.status IN ('APPROVED', 'COMPLETED')
+  AND w.approvedAt <= :endOfDay
+""")
+    BigDecimal sumApprovedOrCompletedWithdrawalsByPartnerUpToDate(@Param("partnerId") Long partnerId,
+                                                                   @Param("endOfDay") LocalDateTime endOfDay);
+}

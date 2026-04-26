@@ -35,6 +35,9 @@ public class Partner {
     @Column(name = "name", nullable = false, length = 200)
     private String name;
 
+    @Column(name = "national_id", length = 20)
+    private String nationalId;
+
     @Column(name = "phone", length = 20)
     private String phone;
 
@@ -64,6 +67,10 @@ public class Partner {
     private BigDecimal totalInvestment;
 
     @ColumnDefault("0.00")
+    @Column(name = "effective_investment", precision = 15, scale = 2)
+    private BigDecimal effectiveInvestment;
+
+    @ColumnDefault("0.00")
     @Column(name = "total_withdrawals", precision = 15, scale = 2)
     private BigDecimal totalWithdrawals;
 
@@ -73,6 +80,7 @@ public class Partner {
 
     @Column(name = "profit_sharing_active")
     private Boolean profitSharingActive = true;
+
 
     @Column(name = "notes")
     private String notes;

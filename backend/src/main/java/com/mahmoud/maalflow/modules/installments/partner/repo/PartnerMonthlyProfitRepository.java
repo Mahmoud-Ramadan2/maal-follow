@@ -23,4 +23,9 @@ public interface PartnerMonthlyProfitRepository extends JpaRepository<PartnerMon
 
     @Query("SELECT SUM(pmp.calculatedProfit) FROM PartnerMonthlyProfit pmp WHERE pmp.partner.id = :partnerId AND pmp.status = :status")
     BigDecimal sumProfitByPartnerIdAndStatus(Long partnerId, ProfitStatus status);
+
+
+    boolean existsByProfitDistributionIdAndStatusNot(Long id, ProfitStatus profitStatus);
+
+    void deleteByProfitDistributionId(Long id);
 }

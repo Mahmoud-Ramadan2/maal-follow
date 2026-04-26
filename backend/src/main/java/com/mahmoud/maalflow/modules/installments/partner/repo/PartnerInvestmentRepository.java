@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,5 +36,15 @@ public interface PartnerInvestmentRepository extends JpaRepository<PartnerInvest
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")}) // Wait 3 seconds max
     @Query("SELECT pi FROM PartnerInvestment pi WHERE pi.id = :id")
     Optional<PartnerInvestment> findByIdForUpdate(@Param("id") Long id);
+
+
+    @Query("""
+SELECT COALESCE(SUM(pi.amount), 0) FROM PartnerInvestment pi
+             WHERE pi.partner.id = :id
+             AND pi.status = 'CONFIRMED'
+             AND pi.investedAt <= :investmentCutoffDateTime
+""")
+    BigDecimal sumConfirmedInvestmentsByPartnerBeforeDate(@Param("id") Long id,
+                                                          @Param("investmentCutoffDateTime") LocalDateTime investmentCutoffDateTime);
 
 }

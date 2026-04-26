@@ -31,7 +31,7 @@ public class PartnerProfitCalculationConfig {
 
     @NotNull
     @Column(name = "management_fee_percentage", nullable = false, precision = 5, scale = 2)
-    private BigDecimal managementFeePercentage = BigDecimal.valueOf(5.00); // Default 5%
+    private BigDecimal managementFeePercentage = BigDecimal.valueOf(30.00); // Default 30%
 
     @NotNull
     @Column(name = "zakat_percentage", nullable = false, precision = 5, scale = 2)

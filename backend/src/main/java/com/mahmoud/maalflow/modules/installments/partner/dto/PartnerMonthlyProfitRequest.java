@@ -16,26 +16,26 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class PartnerMonthlyProfitRequest {
 
-    @NotNull(message = "{validation.partnerId.required}")
+    @NotNull(message = "{messages.partner.partnerId.required}")
     private Long partnerId;
 
-    @NotNull(message = "{validation.profitDistributionId.required}")
+    @NotNull(message = "{messages.partner.profitDistributionId.required}")
     private Long profitDistributionId;
 
-    @NotNull(message = "{validation.investmentAmount.required}")
-    @DecimalMin(value = "0.01", message = "{validation.investmentAmount.min}")
-    @Digits(integer = 12, fraction = 2, message = "{validation.investmentAmount.format}")
+    @NotNull(message = "{messages.partner.investmentAmount.required}")
+    @DecimalMin(value = "0.01", message = "{messages.partner.investmentAmount.min}")
+    @Digits(integer = 12, fraction = 2, message = "{messages.partner.investmentAmount.format}")
     private BigDecimal investmentAmount;
 
-    @NotNull(message = "{validation.sharePercentage.required}")
-    @DecimalMin(value = "0.00", message = "{validation.sharePercentage.invalid}")
-    @DecimalMax(value = "10.00", message = "{validation.sharePercentage.invalid}")
-    @Digits(integer = 5, fraction = 2, message = "{validation.sharePercentage.format}")
+    @NotNull(message = "{messages.partner.sharePercentage.required}")
+    @DecimalMin(value = "0.00", message = "{messages.partner.sharePercentage.invalid}")
+    @DecimalMax(value = "10.00", message = "{messages.partner.sharePercentage.invalid}")
+    @Digits(integer = 5, fraction = 2, message = "{messages.partner.sharePercentage.format}")
     private BigDecimal sharePercentage;
 
-    @NotNull(message = "{validation.calculatedProfit.required}")
-    @DecimalMin(value = "0.01", message = "{validation.calculatedProfit.min}")
-    @Digits(integer = 12, fraction = 2, message = "{validation.calculatedProfit.format}")
+    @NotNull(message = "{messages.partner.calculatedProfit.required}")
+    @DecimalMin(value = "0.01", message = "{messages.partner.calculatedProfit.min}")
+    @Digits(integer = 12, fraction = 2, message = "{messages.partner.calculatedProfit.format}")
     private BigDecimal calculatedProfit;
 
     private ProfitStatus status;

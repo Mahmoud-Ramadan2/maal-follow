@@ -20,7 +20,7 @@ import java.util.List;
  * Implements requirement: "إضافة عملاء يعملون بالأقساط لحسابي ولهم نسبة"
  */
 @RestController
-@RequestMapping("/api/v1/partner/customer-acquisitions")
+@RequestMapping("/api/v1/partner-customer-acquisitions")
 @RequiredArgsConstructor
 @Slf4j
 //@CrossOrigin(origins = "*", maxAge = 3600)

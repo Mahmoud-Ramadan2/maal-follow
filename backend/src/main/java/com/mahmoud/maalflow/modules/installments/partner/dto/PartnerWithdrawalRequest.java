@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PartnerWithdrawalRequest {
 
-    @NotNull(message = "{validation.partnerId.required}")
+    @NotNull(message = "{messages.partner.partnerId.required}")
     private Long partnerId;
 
     @NotNull(message = "{validation.amount.required}")
@@ -21,10 +21,10 @@ public class PartnerWithdrawalRequest {
     @Digits(integer = 12, fraction = 2, message = "{validation.amount.format}")
     private BigDecimal amount;
 
-    @NotNull(message = "{validation.withdrawalType.required}")
+    @NotNull(message = "{messages.partner.withdrawalType.required}")
     private WithdrawalType withdrawalType;
 
-    @Size(max = 500, message = "{validation.requestReason.size}")
+    @Size(max = 500, message = "{messages.partner.requestReason.size}")
     private String requestReason;
 
     @Size(max = 500, message = "{validation.notes.size}")

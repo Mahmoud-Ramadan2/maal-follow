@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PartnerProfitSharingRequest {
 
-    @NotNull(message = "{validation.partnerId.required}")
+    @NotNull(message = "{messages.partner.partnerId.required}")
     private Long partnerId;
 
     @NotNull(message = "{validation.amount.required}")
@@ -21,10 +21,10 @@ public class PartnerProfitSharingRequest {
     @Digits(integer = 12, fraction = 2, message = "{validation.amount.format}")
     private BigDecimal amount;
 
-    @NotNull(message = "{validation.sharePercentage.required}")
-    @DecimalMin(value = "0.00", message = "{validation.sharePercentage.invalid}")
-    @DecimalMax(value = "100.00", message = "{validation.sharePercentage.invalid}")
-    @Digits(integer = 5, fraction = 2, message = "{validation.sharePercentage.format}")
+    @NotNull(message = "{messages.partner.sharePercentage.required}")
+    @DecimalMin(value = "0.00", message = "{messages.partner.sharePercentage.invalid}")
+    @DecimalMax(value = "100.00", message = "{messages.partner.sharePercentage.invalid}")
+    @Digits(integer = 5, fraction = 2, message = "{messages.partner.sharePercentage.format}")
     private BigDecimal sharePercentage;
 
     private CommissionStatus status;

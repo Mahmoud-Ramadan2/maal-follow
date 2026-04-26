@@ -54,9 +54,10 @@ public class PartnerController {
         return ResponseEntity.ok(response);
     }
 
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePartner(@PathVariable Long id) {
-        partnerService.deletePartner(id);
+    public ResponseEntity<Void> softDeletePartner(@PathVariable Long id) {
+        partnerService.softDeletePartner(id);
         return ResponseEntity.noContent().build();
     }
 }

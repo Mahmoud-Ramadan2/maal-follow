@@ -1,14 +1,17 @@
 package com.mahmoud.maalflow.modules.installments.partner.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
-import com.mahmoud.maalflow.modules.installments.capital.entity.CapitalPool;
-import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
+import com.mahmoud.maalflow.exception.DuplicateNationalIdException;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerInvestmentRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerResponse;
+import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerInvestment;
+import com.mahmoud.maalflow.modules.installments.partner.enums.InvestmentStatus;
+import com.mahmoud.maalflow.modules.installments.partner.enums.InvestmentType;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.partner.enums.PartnerStatus;
 import com.mahmoud.maalflow.modules.installments.partner.mapper.PartnerMapper;
+import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerInvestmentRepository;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
@@ -16,12 +19,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.DEFAULT_POOL_ID;
 import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
 
 /**
@@ -36,10 +38,8 @@ public class PartnerService {
     private final PartnerRepository partnerRepository;
     private final PartnerMapper partnerMapper;
     private final UserRepository userRepository;
-    private final CapitalPoolRepository capitalPoolRepository;
     private final PartnerInvestmentService partnerInvestmentService;
-    private final PartnerShareService partnerShareService;
-
+    private final PartnerInvestmentRepository partnerInvestmentRepository;
 
     /**
      * Creates a new partner with comprehensive business rule validation.
@@ -52,44 +52,50 @@ public class PartnerService {
     public PartnerResponse createPartner(PartnerRequest request) {
         log.info("Creating partner with name: {} and phone: {}", request.getName(), request.getPhone());
 
+        // Business Rule 1: Validate national ID uniqueness
+        if (request.getNationalId() != null && !request.getNationalId().isBlank()) {
+            if (partnerRepository.existsByNationalId(request.getNationalId())) {
+                log.error("Duplicate national ID: {}", request.getNationalId());
+                throw new DuplicateNationalIdException("messages.partner.nationalId.exists", request.getNationalId());
+            }
+        }
         // Business Rule 1: Validate phone number uniqueness
         if (partnerRepository.existsByPhone(request.getPhone())) {
             log.error("Attempt to create partner with duplicate phone number: {}", request.getPhone());
-            throw new BusinessException("validation.phone.exists");
+            throw new BusinessException("messages.partner.phone.exists");
         }
         // Business Rule 2: Validate investment start date (cannot be in the future)
-//        if (request.getInvestmentStartDate() != null &&
-//            request.getInvestmentStartDate().isAfter(LocalDate.now())) {
-//            log.error("Investment start date cannot be in the future: {}", request.getInvestmentStartDate());
-//            throw new BusinessException("messages.partner.investmentStartDate.future");
-//        }
+        if (request.getInvestmentStartDate() != null &&
+                request.getInvestmentStartDate().isAfter(LocalDate.now())) {
+            log.error("Investment start date cannot be in the future: {}", request.getInvestmentStartDate());
+            throw new BusinessException("messages.partner.investmentStartDate.future");
+        }
 
         // Map request to entity
         Partner partner = partnerMapper.toPartner(request);
 
         // Business Rule 3: Validate profit calculation start month format and logic
-//        if (request.getProfitCalculationStartMonth() != null) {
-//            validateProfitCalculationMonth(request.getProfitCalculationStartMonth(),
-//                                          request.getInvestmentStartDate());
-//        } else {
-//
-//        // equals to investment start date plus two months
-//            partner.setProfitCalculationStartMonth(
-//                    partner.getInvestmentStartDate().plusMonths(2).format(MONTH_FORMAT)
-//            );
-//            log.debug("Auto-set profit calculation start month to: {}",
-//                    partner.getProfitCalculationStartMonth());
-//        }
+        if (request.getProfitCalculationStartMonth() != null) {
+            validateProfitCalculationMonth(request.getProfitCalculationStartMonth(),
+                    request.getInvestmentStartDate());
+        } else {
+
+            // equals to investment start date plus two months
+            partner.setProfitCalculationStartMonth(
+                    partner.getInvestmentStartDate().plusMonths(2).format(MONTH_FORMAT)
+            );
+            log.debug("Auto-set profit calculation start month to: {}",
+                    partner.getProfitCalculationStartMonth());
+        }
         // Set InvestmentStartDate and ProfitCalculationStartMethod with null  as  they will be set later by admin when confirming the investment.
-        partner.setInvestmentStartDate(null);
-        partner.setProfitCalculationStartMonth(null);
+//        partner.setInvestmentStartDate(null);
+//        partner.setProfitCalculationStartMonth(null);
 
 
         // TODO: Auto set user
-        if (request.getCreatedBy() == null){
+        if (request.getCreatedBy() == null) {
             partner.setCreatedBy(userRepository.findById(1L).orElse(null)); // Temporary hardcoded user ID
-        }
-        else {
+        } else {
             boolean exist = userRepository.existsById(request.getCreatedBy());
             if (!exist) {
                 log.error("User not found with id: {} so set Defult user during partner creation", request.getCreatedBy());
@@ -107,19 +113,15 @@ public class PartnerService {
             partner.setStatus(PartnerStatus.INACTIVE);
         }
 
-        // Business Rule 5: Initialize financial fields and derive current balance.
-        partner.setTotalInvestment(nz(partner.getTotalInvestment()));
-
-//        if (partner.getTotalWithdrawals() == null)
-            partner.setTotalWithdrawals(BigDecimal.ZERO);
-
-        partner.setCurrentBalance(partner.getTotalInvestment().subtract(partner.getTotalWithdrawals()));
+        partner.setTotalInvestment(request.getTotalInvestment());
+        partner.setTotalWithdrawals(BigDecimal.ZERO);
+        partner.setEffectiveInvestment(BigDecimal.ZERO);
+        partner.setCurrentBalance(request.getTotalInvestment());
 
         // Business Rule 6: Set profit sharing active by default
         if (partner.getProfitSharingActive() == null) {
             partner.setProfitSharingActive(true);
         }
-
 
 
         // TODO: Set createdBy from security context when authentication is implemented
@@ -128,8 +130,10 @@ public class PartnerService {
         Partner savedPartner = partnerRepository.save(partner);
 
         // record investment in partner investment service with pending status
-        String notes = "استثمار أولي للشريك رقم " + savedPartner.getName() + " (ID: " + savedPartner.getId() + ")";
-        recordPartnerInvestment(partner.getTotalInvestment(), partner.getId(), notes);
+        String notes = "إضافة استثمار أولي للشريك "
+                + savedPartner.getName()
+                + " (رقم: " + savedPartner.getId() + ")";
+        recordPartnerInvestment(nz(request.getTotalInvestment()), partner.getId(), notes);
 
         // investment will be confirmed later by admin,
         // so shares will be recalculated when confirming the investment.
@@ -142,11 +146,10 @@ public class PartnerService {
     }
 
 
-
     /**
      * Updates an existing partner with validation.
      *
-     * @param id Partner ID
+     * @param id      Partner ID
      * @param request Update request
      * @return Updated partner response
      * @throws BusinessException if validation fails or partner not found
@@ -164,7 +167,11 @@ public class PartnerService {
         if (request.getStatus() != null && request.getStatus().equals(PartnerStatus.INACTIVE)) {
             throw new BusinessException("messages.partner.status.inactiveNotAllowed");
         }
-
+        if (request.getNationalId() != null && !request.getNationalId().equals(partner.getNationalId())) {
+            if (partnerRepository.existsByNationalId(request.getNationalId())) {
+                throw new DuplicateNationalIdException("messages.partner.nationalId.exists", request.getNationalId());
+            }
+        }
         // Business Rule: Validate phone uniqueness if phone is being changed
         if (request.getPhone() != null && !request.getPhone().equals(partner.getPhone())) {
             if (partnerRepository.existsByPhone(request.getPhone())) {
@@ -197,10 +204,10 @@ public class PartnerService {
         if (request.getNotes() != null && !request.getNotes().equals(partner.getNotes())) {
             partner.setNotes(request.getNotes());
         }
-
-        // Note: totalInvestment, totalWithdrawals, and currentBalance should be auto-calculated
-        // based on actual investment and withdrawal records, not updated directly from the request
-
+        // Initial investment amount can be edited only before any confirmed investment exists.
+        if (request.getTotalInvestment() != null && request.getTotalInvestment().compareTo(partner.getTotalInvestment()) != 0) {
+            handleInitialInvestmentUpdate(partner, request.getTotalInvestment());
+        }
         Partner updatedPartner = partnerRepository.save(partner);
 
         // No update Money so no need to call
@@ -257,13 +264,13 @@ public class PartnerService {
 
 
     /**
-     * Deletes a partner after validating business rules.
+     * Soft Delete a partner after validating business rules.
      *
      * @param id Partner ID
      * @throws BusinessException if partner has active balance or not found
      */
     @Transactional
-    public void deletePartner(Long id) {
+    public void softDeletePartner(Long id) {
         log.info("Deleting partner with ID: {}", id);
 
         Partner partner = partnerRepository.findById(id)
@@ -274,27 +281,28 @@ public class PartnerService {
 
         // Business Rule: Check if partner has active investments before deletion
         if (partner.getCurrentBalance() != null &&
-            partner.getCurrentBalance().compareTo(BigDecimal.ZERO) > 0) {
+                partner.getCurrentBalance().compareTo(BigDecimal.ZERO) > 0) {
             log.error("Cannot delete partner with active balance. Partner ID: {}, Balance: {}",
-                     id, partner.getCurrentBalance());
+                    id, partner.getCurrentBalance());
             throw new BusinessException("messages.partner.delete.hasBalance");
         }
 
-        partnerRepository.delete(partner);
+        partner.setStatus(PartnerStatus.INACTIVE);
+        partnerRepository.save(partner);
         log.info("Successfully deleted partner with ID: {}", id);
     }
 
     /**
      * Validates profit calculation start month format and business logic.
      *
-     * @param profitMonth The profit calculation start month (YYYY-MM format)
+     * @param profitMonth         The profit calculation start month (YYYY-MM format)
      * @param investmentStartDate The investment start date
      * @throws BusinessException if validation fails
      */
     private void validateProfitCalculationMonth(String profitMonth, LocalDate investmentStartDate) {
         // Validate format (already validated by @Pattern, but double-check)
         if (!profitMonth.matches("^\\d{4}-\\d{2}$")) {
-            throw new BusinessException("validation.profitCalculationStartMonth.pattern");
+            throw new BusinessException("messages.partner.profitCalculationStartMonth.pattern");
         }
 
         // Business Rule: Profit calculation month should not be before investment start month
@@ -302,34 +310,71 @@ public class PartnerService {
             String investmentMonth = investmentStartDate.format(MONTH_FORMAT);
             if (profitMonth.compareTo(investmentMonth) < 0) {
                 log.error("Profit calculation month {} is before investment start month {}",
-                         profitMonth, investmentMonth);
-                throw new BusinessException("validation.profitMonth.beforeInvestment");
+                        profitMonth, investmentMonth);
+                throw new BusinessException("messages.partner.profitMonth.beforeInvestment");
             }
         }
     }
 
-    private void recalculateSharesFromCurrentPool() {
-        CapitalPool pool = capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID).orElse(null);
-        if (pool != null) {
-            partnerShareService.recalculateSharePercentages(nz(pool.getTotalAmount()));
-            return;
-        }
-
-        BigDecimal totalInvestment = nz(partnerRepository.sumTotalInvestment());
-        BigDecimal totalWithdrawals = nz(partnerRepository.sumTotalWithdrawals());
-        partnerShareService.recalculateSharePercentages(totalInvestment.subtract(totalWithdrawals));
-    }
+//    private void recalculateSharesFromCurrentPool() {
+//        CapitalPool pool = capitalPoolRepository.findByIdForUpdate(DEFAULT_POOL_ID).orElse(null);
+//        if (pool != null) {
+//            partnerShareService.recalculateSharePercentages(nz(pool.getTotalAmount()));
+//            return;
+//        }
+//
+//        BigDecimal totalInvestment = nz(partnerRepository.sumTotalInvestment());
+//        BigDecimal totalWithdrawals = nz(partnerRepository.sumTotalWithdrawals());
+//        partnerShareService.recalculateSharePercentages(totalInvestment.subtract(totalWithdrawals));
+//    }
 
     private void recordPartnerInvestment(BigDecimal totalInvestment, Long id, String notes) {
-        PartnerInvestmentRequest investmentRequest =  PartnerInvestmentRequest.builder()
+        PartnerInvestmentRequest investmentRequest = PartnerInvestmentRequest.builder()
                 .partnerId(id)
                 .amount(totalInvestment)
                 .notes(notes)
                 .build();
         partnerInvestmentService.createInvestment(investmentRequest);
     }
+
+    private void handleInitialInvestmentUpdate(Partner partner, BigDecimal requestedAmount) {
+        BigDecimal newAmount = nz(requestedAmount);
+        Long partnerId = partner.getId();
+
+        BigDecimal confirmedTotal = partnerInvestmentRepository
+                .sumByPartnerIdAndStatus(partnerId, InvestmentStatus.CONFIRMED);
+        BigDecimal safeConfirmedTotal = nz(confirmedTotal);
+
+        if (safeConfirmedTotal.compareTo(BigDecimal.ZERO) > 0 || partner.getStatus() == PartnerStatus.ACTIVE) {
+            throw new BusinessException("messages.partner.totalInvestment.update.notAllowed");
+        }
+
+        List<PartnerInvestment> pendingInitialInvestments = partnerInvestmentRepository
+                .findByPartnerIdAndStatus(partnerId, InvestmentStatus.PENDING)
+                .stream()
+                .filter(inv -> inv.getInvestmentType() == InvestmentType.INITIAL)
+                .toList();
+
+        if (pendingInitialInvestments.isEmpty()) {
+            throw new BusinessException("messages.partner.initialInvestment.pending.notFound");
+        }
+
+        PartnerInvestment pendingInitial = pendingInitialInvestments.getFirst();
+        if (pendingInitial.getAmount().compareTo(newAmount) != 0) {
+            log.info("Updating pending initial investment for partner {} from {} to {}",
+                    partnerId, pendingInitial.getAmount(), newAmount);
+            pendingInitial.setAmount(newAmount);
+            partnerInvestmentRepository.save(pendingInitial);
+        }
+
+        partner.setTotalInvestment(newAmount);
+        partner.setEffectiveInvestment(BigDecimal.ZERO);
+        partner.setCurrentBalance(newAmount);
+    }
+
     private BigDecimal nz(BigDecimal value) {
         return value != null ? value : BigDecimal.ZERO;
     }
 }
+
 

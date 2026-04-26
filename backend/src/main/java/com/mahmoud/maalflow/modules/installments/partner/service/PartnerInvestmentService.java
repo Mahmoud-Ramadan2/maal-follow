@@ -4,7 +4,6 @@ import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
 import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactionType;
-import com.mahmoud.maalflow.modules.installments.capital.repo.CapitalPoolRepository;
 import com.mahmoud.maalflow.modules.installments.capital.service.CapitalPoolService;
 import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerInvestmentRequest;
@@ -20,17 +19,18 @@ import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
 import com.mahmoud.maalflow.modules.installments.ledger.service.LedgerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.NEW_INVESTMENT_DELAY_MONTHS;
 
 /**
  * Service for managing partner investments.
@@ -47,7 +47,7 @@ public class PartnerInvestmentService {
     private final LedgerService ledgerService;
     private final CapitalTransactionService capitalTransactionService;
     private final PartnerShareService partnerShareService;
-
+    private final PartnerEffectiveInvestmentService partnerEffectiveInvestmentService;
 
 
     @Transactional
@@ -58,7 +58,6 @@ public class PartnerInvestmentService {
 
         PartnerInvestment investment = investmentMapper.toPartnerInvestment(request);
 
-        // Confirmation must go through confirmInvestment to guarantee side-effects.
         investment.setStatus(InvestmentStatus.PENDING);
 
         if (investment.getAmount() == null || investment.getAmount().compareTo(BigDecimal.valueOf(100)) < 0) {
@@ -124,6 +123,7 @@ public class PartnerInvestmentService {
 
 
         investment.setStatus(InvestmentStatus.CONFIRMED);
+        investment.setInvestedAt(LocalDateTime.now());
         PartnerInvestment updated = investmentRepository.save(investment);
 
         // Update partner's total investment and balance,
@@ -131,6 +131,8 @@ public class PartnerInvestmentService {
         boolean isInitialInvestment = updated.getInvestmentType().equals(InvestmentType.INITIAL);
         updatePartnerInvestmentBalanceAndDates(partnerId, isInitialInvestment);
         recordCapitalInvestment(updated);
+
+        partnerEffectiveInvestmentService.updatePartnerEffectiveInvestment(partnerId);
         partnerShareService.recalculateSharePercentages(capitalPoolService.getPoolOrThrowForUpdate().getTotalAmount());
 
         // Record ledger income entry for confirmed investment
@@ -158,7 +160,7 @@ public class PartnerInvestmentService {
             partner.setStatus(PartnerStatus.ACTIVE);
             LocalDate currentDate = LocalDate.now();
             partner.setInvestmentStartDate(currentDate);
-            partner.setProfitCalculationStartMonth(currentDate.plusMonths(2).format(MONTH_FORMAT));
+            partner.setProfitCalculationStartMonth(currentDate.plusMonths(NEW_INVESTMENT_DELAY_MONTHS).format(MONTH_FORMAT));
         }
 
         BigDecimal totalInvestment = investmentRepository.sumByPartnerIdAndStatus(
@@ -185,7 +187,7 @@ public class PartnerInvestmentService {
                 .transactionType(CapitalTransactionType.INVESTMENT)
                 .amount(investment.getAmount())
                 .partnerId(investment.getPartner().getId())
-                .description("Partner investment confirmation ID " + investment.getId())
+                .description("استثمار جديد برقم  " + investment.getId())
                 .build();
 
         capitalTransactionService.createCapitalTransaction(txRequest);
@@ -200,7 +202,7 @@ public class PartnerInvestmentService {
                     investment.getPartner().getId(),
                     investment.getAmount(),
                     investment.getId(),
-                    "Partner investment - " + investment.getInvestmentType()
+                    "استثمار - " + investment.getInvestmentType()
             );
             log.info("Recorded ledger income for investment ID {}", investment.getId());
         } catch (Exception e) {
@@ -209,5 +211,6 @@ public class PartnerInvestmentService {
             throw new BusinessException("messages.partner.investment.ledgerError");
         }
     }
+
 
 }

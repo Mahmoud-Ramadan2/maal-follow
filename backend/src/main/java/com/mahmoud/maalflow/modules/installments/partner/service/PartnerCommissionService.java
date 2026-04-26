@@ -2,8 +2,15 @@ package com.mahmoud.maalflow.modules.installments.partner.service;
 
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.contract.repo.ContractRepository;
+import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
+import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionResponse;
+import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactionType;
+import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import com.mahmoud.maalflow.modules.installments.customer.repo.CustomerRepository;
+import com.mahmoud.maalflow.modules.installments.ledger.service.LedgerService;
+import com.mahmoud.maalflow.modules.installments.ledger.dto.LedgerResponse;
+import com.mahmoud.maalflow.modules.installments.partner.constants.PartnerPayoutReferenceTypes;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionResponse;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionSummary;
@@ -60,6 +67,8 @@ public class PartnerCommissionService {
     private final PartnerCustomerAcquisitionRepository partnerCustomerAcquisitionRepository;
     private final PartnerProfitCalculationConfigRepository configRepository;
     private final PartnerCommissionMapper partnerCommissionMapper;
+    private final LedgerService ledgerService;
+    private final CapitalTransactionService capitalTransactionService;
 
 
     /**
@@ -135,7 +144,7 @@ public class PartnerCommissionService {
         }
 
         // Get default sales commission percentage from config
-        BigDecimal salesCommissionPercentage = getDefaultSalesCommissionPercentage();
+        BigDecimal salesCommissionPercentage = getCommissionPercentageForType(CommissionType.SALES_COMMISSION);
 
         PartnerCommission commission = PartnerCommission.builder()
                 .partner(partner)
@@ -195,11 +204,8 @@ public class PartnerCommissionService {
             throw new BusinessException("messages.commission.notPending");
         }
 
-        commission.setStatus(CommissionStatus.PAID);
-        commission.setApprovedBy(approvedBy);
-        commission.setPaidAt(LocalDateTime.now());
-
-        PartnerCommission savedCommission = partnerCommissionRepository.save(commission);
+        PartnerCommission savedCommission = markCommissionAsPaid(commission, approvedBy);
+        postCommissionSettlement(savedCommission);
         log.info("Commission {} approved successfully", commissionId);
 
         return partnerCommissionMapper.toPartnerCommissionResponse(savedCommission);
@@ -334,15 +340,10 @@ public class PartnerCommissionService {
 
         List<PartnerCommission> pendingCommissions = partnerCommissionRepository.findByPartnerIdAndStatus(partnerId, CommissionStatus.PENDING);
         User approvedBy = getUserById(approvedByUserId);
-        LocalDateTime now = LocalDateTime.now();
-
         for (PartnerCommission commission : pendingCommissions) {
-            commission.setStatus(CommissionStatus.PAID);
-            commission.setApprovedBy(approvedBy);
-            commission.setPaidAt(now);
+            PartnerCommission saved = markCommissionAsPaid(commission, approvedBy);
+            postCommissionSettlement(saved);
         }
-
-        partnerCommissionRepository.saveAll(pendingCommissions);
         log.info("Bulk approved {} commissions for partner {}", pendingCommissions.size(), partnerId);
     }
 
@@ -358,10 +359,8 @@ public class PartnerCommissionService {
             throw new BusinessException("messages.commission.notPending");
         }
 
-        commission.setStatus(CommissionStatus.PAID);
-        commission.setPaidAt(LocalDateTime.now());
-
-        PartnerCommission savedCommission = partnerCommissionRepository.save(commission);
+        PartnerCommission savedCommission = markCommissionAsPaid(commission, commission.getApprovedBy());
+        postCommissionSettlement(savedCommission);
         log.info("Commission {} paid successfully", commissionId);
 
         return partnerCommissionMapper.toPartnerCommissionResponse(savedCommission);
@@ -424,6 +423,48 @@ public class PartnerCommissionService {
         commission.setCommissionAmount(amount);
     }
 
+    private PartnerCommission markCommissionAsPaid(PartnerCommission commission, User approvedBy) {
+        commission.setStatus(CommissionStatus.PAID);
+        commission.setApprovedBy(approvedBy);
+        commission.setPaidAt(LocalDateTime.now());
+        return partnerCommissionRepository.save(commission);
+    }
+
+    private void postCommissionSettlement(PartnerCommission commission) {
+        Long partnerId = commission.getPartner().getId();
+        BigDecimal amount = commission.getCommissionAmount();
+        Long commissionId = commission.getId();
+
+        LedgerResponse ledgerResponse = ledgerService.recordPartnerCommissionExpense(
+                partnerId,
+                amount,
+                commissionId,
+                "Partner commission payout - " + commission.getCommissionType()
+        );
+
+        CapitalTransactionRequest txRequest = CapitalTransactionRequest.builder()
+                .transactionType(CapitalTransactionType.WITHDRAWAL)
+                .amount(amount)
+                .partnerId(partnerId)
+                .contractId(commission.getContract() != null ? commission.getContract().getId() : null)
+                .referenceType(PartnerPayoutReferenceTypes.PARTNER_COMMISSION_PAYOUT)
+                .referenceId(commissionId)
+                .description("Partner commission payout ID " + commissionId)
+                .build();
+
+        CapitalTransactionResponse capitalResponse = capitalTransactionService.createCapitalTransaction(txRequest);
+
+        log.info("Partner commission payout settlement trace: commissionId={}, partnerId={}, amount={}, ledgerId={}, ledgerKey={}, capitalTransactionId={}, capitalReferenceType={}, capitalReferenceId={}",
+                commissionId,
+                partnerId,
+                amount,
+                ledgerResponse.getId(),
+                ledgerResponse.getIdempotencyKey(),
+                capitalResponse.getId(),
+                capitalResponse.getReferenceType(),
+                capitalResponse.getReferenceId());
+    }
+
     private BigDecimal getCommissionPercentageForType(CommissionType type) {
         return switch (type) {
             case CUSTOMER_ACQUISITION -> BigDecimal.valueOf(3.0); // 3%
@@ -433,12 +474,6 @@ public class PartnerCommissionService {
         };
     }
 
-    private BigDecimal getDefaultSalesCommissionPercentage() {
-        Optional<PartnerProfitCalculationConfig> config = configRepository.findByIsActiveTrue();
-        // Assuming there's a sales commission percentage field in config
-        return config.map(c -> BigDecimal.valueOf(2.0)) // Default 2%
-                .orElse(BigDecimal.valueOf(2.0));
-    }
 
     private boolean commissionExistsForCustomer(Long partnerId, Long customerId) {
         return partnerCommissionRepository.existsByPartnerIdAndCustomerIdAndCommissionType(

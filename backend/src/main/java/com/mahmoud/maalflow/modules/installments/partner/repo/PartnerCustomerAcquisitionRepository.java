@@ -2,7 +2,9 @@ package com.mahmoud.maalflow.modules.installments.partner.repo;
 
 import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerCustomerAcquisition;
 import com.mahmoud.maalflow.modules.installments.partner.enums.CustomerAcquisitionStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +22,15 @@ public interface PartnerCustomerAcquisitionRepository extends JpaRepository<Part
 
     Optional<PartnerCustomerAcquisition> findByCustomerIdAndStatus(Long customerId, CustomerAcquisitionStatus status);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pca FROM PartnerCustomerAcquisition pca WHERE pca.customer.id = :customerId AND pca.status = :status")
+    Optional<PartnerCustomerAcquisition> findByCustomerIdAndStatusForUpdate(Long customerId, CustomerAcquisitionStatus status);
+
     Optional<PartnerCustomerAcquisition> findByPartnerIdAndCustomerIdAndStatus(Long partnerId, Long customerId, CustomerAcquisitionStatus status);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pca FROM PartnerCustomerAcquisition pca WHERE pca.partner.id = :partnerId AND pca.customer.id = :customerId AND pca.status = :status")
+    Optional<PartnerCustomerAcquisition> findByPartnerIdAndCustomerIdAndStatusForUpdate(Long partnerId, Long customerId, CustomerAcquisitionStatus status);
 
     List<PartnerCustomerAcquisition> findByPartnerId(Long partnerId);
 

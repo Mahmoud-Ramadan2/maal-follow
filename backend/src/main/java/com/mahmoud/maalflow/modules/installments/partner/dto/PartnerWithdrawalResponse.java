@@ -27,7 +27,10 @@ public class PartnerWithdrawalResponse {
     private LocalDateTime requestedAt;
     private LocalDateTime approvedAt;
     private LocalDateTime processedAt;
+    private LocalDateTime rejectedAt;
+    private String rejectionReason;
     private String notes;
     private String processedByName;
     private String approvedByName;
+    private String rejectedByName;
 }

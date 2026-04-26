@@ -6,5 +6,6 @@ package com.mahmoud.maalflow.modules.installments.partner.enums;
 public enum ProfitStatus {
     CALCULATED,
     PAID,
+    REINVESTED,
     DEFERRED
 }

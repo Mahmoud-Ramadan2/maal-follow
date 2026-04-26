@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PartnerCommissionRequest {
 
-    @NotNull(message = "{validation.partnerId.required}")
+    @NotNull(message = "{messages.partner.partnerId.required}")
     private Long partnerId;
 
     @NotNull(message = "{validation.amount.required}")
@@ -21,7 +21,7 @@ public class PartnerCommissionRequest {
     @Digits(integer = 12, fraction = 2, message = "{validation.amount.format}")
     private BigDecimal amount;
 
-    @NotNull(message = "{validation.commissionType.required}")
+    @NotNull(message = "{messages.partner.commissionType.required}")
     private CommissionType commissionType;
 
     @Size(max = 500, message = "{validation.notes.size}")

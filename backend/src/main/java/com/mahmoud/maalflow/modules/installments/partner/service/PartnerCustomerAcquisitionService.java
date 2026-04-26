@@ -20,7 +20,7 @@ import java.util.Optional;
 
 /**
  * Service for managing partner customer acquisition and commissions.
- * Implements requirement 8: "إضافة عملاء يعملون بالأقساط لحسابي ولهم نسبة"
+ * Implements requirement 8: "ط¥ط¶ط§ظپط© ط¹ظ…ظ„ط§ط، ظٹط¹ظ…ظ„ظˆظ† ط¨ط§ظ„ط£ظ‚ط³ط§ط· ظ„ط­ط³ط§ط¨ظٹ ظˆظ„ظ‡ظ… ظ†ط³ط¨ط©"
  */
 @Service
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class PartnerCustomerAcquisitionService {
 
     /**
      * Assign a customer to a partner with commission tracking.
-     * Implements requirement: "كيفية إضافة عملاء يعملون بالأقساط لحسابي ولهم نسبة"
+     * Implements requirement: "ظƒظٹظپظٹط© ط¥ط¶ط§ظپط© ط¹ظ…ظ„ط§ط، ظٹط¹ظ…ظ„ظˆظ† ط¨ط§ظ„ط£ظ‚ط³ط§ط· ظ„ط­ط³ط§ط¨ظٹ ظˆظ„ظ‡ظ… ظ†ط³ط¨ط©"
      */
     @Transactional
     public PartnerCustomerAcquisition assignCustomerToPartner(Long partnerId, Long customerId,
@@ -41,24 +41,28 @@ public class PartnerCustomerAcquisitionService {
                                                              String notes) {
         log.info("Assigning customer {} to partner {} with commission {}%", customerId, partnerId, commissionPercentage);
 
+        if (commissionPercentage == null) {
+            throw new BusinessException("messages.partner.commission.percentage.required");
+        }
+
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BusinessException("validation.customer.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.customer.notFound"));
 
         // Check if customer is already assigned to another partner
         Optional<PartnerCustomerAcquisition> existingAcquisition = acquisitionRepository
-                .findByCustomerIdAndStatus(customerId, CustomerAcquisitionStatus.ACTIVE);
+                .findByCustomerIdAndStatusForUpdate(customerId, CustomerAcquisitionStatus.ACTIVE);
 
         if (existingAcquisition.isPresent()) {
-            throw new BusinessException("validation.customer.alreadyAssigned");
+            throw new BusinessException("messages.partner.customer.alreadyAssigned");
         }
 
         // Validate commission percentage
         if (commissionPercentage.compareTo(BigDecimal.ZERO) < 0 ||
             commissionPercentage.compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new BusinessException("validation.commission.percentage.invalid");
+            throw new BusinessException("messages.partner.commission.percentage.invalid");
         }
 
         PartnerCustomerAcquisition acquisition = new PartnerCustomerAcquisition();
@@ -81,10 +85,20 @@ public class PartnerCustomerAcquisitionService {
     public void transferCustomer(Long customerId, Long fromPartnerId, Long toPartnerId, String reason) {
         log.info("Transferring customer {} from partner {} to partner {}", customerId, fromPartnerId, toPartnerId);
 
+        if (fromPartnerId != null && fromPartnerId.equals(toPartnerId)) {
+            throw new BusinessException("messages.partner.acquisition.transfer.samePartner");
+        }
+
+        Optional<PartnerCustomerAcquisition> targetExists = acquisitionRepository
+                .findByPartnerIdAndCustomerId(toPartnerId, customerId);
+        if (targetExists.isPresent()) {
+            throw new BusinessException("messages.partner.acquisition.transfer.targetExists");
+        }
+
         // Deactivate current assignment
         PartnerCustomerAcquisition currentAcquisition = acquisitionRepository
-                .findByPartnerIdAndCustomerIdAndStatus(fromPartnerId, customerId, CustomerAcquisitionStatus.ACTIVE)
-                .orElseThrow(() -> new BusinessException("validation.acquisition.notFound"));
+                .findByPartnerIdAndCustomerIdAndStatusForUpdate(fromPartnerId, customerId, CustomerAcquisitionStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException("messages.partner.acquisition.notFound"));
 
         currentAcquisition.setStatus(CustomerAcquisitionStatus.TRANSFERRED);
         currentAcquisition.setDeactivatedAt(LocalDateTime.now());
@@ -92,10 +106,10 @@ public class PartnerCustomerAcquisitionService {
 
         // Create new assignment
         Partner newPartner = partnerRepository.findById(toPartnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BusinessException("validation.customer.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.customer.notFound"));
 
         PartnerCustomerAcquisition newAcquisition = new PartnerCustomerAcquisition();
         newAcquisition.setPartner(newPartner);
@@ -141,11 +155,20 @@ public class PartnerCustomerAcquisitionService {
      */
     @Transactional
     public void updateCommissionEarned(Long partnerId, Long customerId, BigDecimal commissionAmount) {
-        PartnerCustomerAcquisition acquisition = acquisitionRepository
-                .findByPartnerIdAndCustomerIdAndStatus(partnerId, customerId, CustomerAcquisitionStatus.ACTIVE)
-                .orElseThrow(() -> new BusinessException("validation.acquisition.notFound"));
+        if (commissionAmount == null) {
+            throw new BusinessException("messages.partner.commission.amount.required");
+        }
+        if (commissionAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("messages.partner.commission.amount.invalid");
+        }
 
-        BigDecimal currentTotal = acquisition.getTotalCommissionEarned();
+        PartnerCustomerAcquisition acquisition = acquisitionRepository
+                .findByPartnerIdAndCustomerIdAndStatusForUpdate(partnerId, customerId, CustomerAcquisitionStatus.ACTIVE)
+                .orElseThrow(() -> new BusinessException("messages.partner.acquisition.notFound"));
+
+        BigDecimal currentTotal = acquisition.getTotalCommissionEarned() != null
+                ? acquisition.getTotalCommissionEarned()
+                : BigDecimal.ZERO;
         acquisition.setTotalCommissionEarned(currentTotal.add(commissionAmount));
 
         acquisitionRepository.save(acquisition);
@@ -176,3 +199,4 @@ public class PartnerCustomerAcquisitionService {
         private BigDecimal averageCommissionPercentage;
     }
 }
+

@@ -2,7 +2,12 @@ package com.mahmoud.maalflow.modules.installments.partner.controller;
 
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionResponse;
+import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerCommissionSummary;
+import com.mahmoud.maalflow.modules.installments.partner.dto.PayoutReconciliationResponse;
+import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerAcquisitionCommissionRequest;
+import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerSalesCommissionRequest;
 import com.mahmoud.maalflow.modules.installments.partner.service.PartnerCommissionService;
+import com.mahmoud.maalflow.modules.installments.partner.service.PartnerPayoutReconciliationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +24,14 @@ import java.util.List;
  * @author Mahmoud
  */
 @RestController
-@RequestMapping("/api/v1/partner/commissions")
+@RequestMapping("/api/v1/partner-commissions")
 @RequiredArgsConstructor
 @Slf4j
 //@CrossOrigin(origins = "*", maxAge = 3600)
 public class PartnerCommissionController {
 
     private final PartnerCommissionService commissionService;
+    private final PartnerPayoutReconciliationService payoutReconciliationService;
 
     /**
      * Create a new partner commission.
@@ -79,5 +85,52 @@ public class PartnerCommissionController {
         log.info("REST request to pay commission: {}", id);
         PartnerCommissionResponse response = commissionService.payCommission(id);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelCommission(@PathVariable Long id,
+                                                 @RequestParam(required = false) String reason) {
+        log.info("REST request to cancel commission: {}", id);
+        commissionService.cancelCommission(id, reason != null ? reason : "No reason provided");
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/bulk-approve")
+    public ResponseEntity<Void> bulkApprove(@RequestParam Long partnerId,
+                                            @RequestParam Long approvedByUserId) {
+        log.info("REST request to bulk approve commissions for partner: {}", partnerId);
+        commissionService.bulkApproveCommissions(partnerId, approvedByUserId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{partnerId}/summary")
+    public ResponseEntity<PartnerCommissionSummary> getSummary(@PathVariable Long partnerId) {
+        log.info("REST request to get commission summary for partner: {}", partnerId);
+        return ResponseEntity.ok(commissionService.getCommissionSummary(partnerId));
+    }
+
+    @PostMapping("/sales")
+    public ResponseEntity<PartnerCommissionResponse> createSalesCommission(
+            @Valid @RequestBody PartnerSalesCommissionRequest request) {
+        log.info("REST request to create sales commission for partner: {} contract: {}",
+                request.getPartnerId(), request.getContractId());
+        PartnerCommissionResponse response = commissionService.createSalesCommission(
+                request.getPartnerId(), request.getContractId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/acquisition")
+    public ResponseEntity<PartnerCommissionResponse> createAcquisitionCommission(
+            @Valid @RequestBody PartnerAcquisitionCommissionRequest request) {
+        log.info("REST request to create acquisition commission for partner: {} customer: {}",
+                request.getPartnerId(), request.getCustomerId());
+        PartnerCommissionResponse response = commissionService.createCustomerAcquisitionCommission(
+                request.getPartnerId(), request.getCustomerId(), request.getContractValue());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/reconciliation")
+    public ResponseEntity<PayoutReconciliationResponse> getCommissionReconciliation(@PathVariable Long id) {
+        return ResponseEntity.ok(payoutReconciliationService.reconcileCommissionPayout(id));
     }
 }

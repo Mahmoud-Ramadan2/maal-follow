@@ -25,7 +25,7 @@ public class PartnerInvestmentController {
             @Valid @RequestBody PartnerInvestmentRequest request) {
 
         PartnerInvestmentResponse response = investmentService.createInvestment(request);
-        return ResponseEntity.created(URI.create("/api/v1/partner-investments/investments/" + response.getId()))
+        return ResponseEntity.created(URI.create("/api/v1/partner-investments/" + response.getId()))
                 .body(response);
     }
 

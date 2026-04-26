@@ -94,18 +94,15 @@ public class PartnerWithdrawalController {
 
     /**
      * Reject a withdrawal request.
-     * Note: This endpoint would require a rejectWithdrawal method in the service.
      */
     @PostMapping("/{id}/reject")
-    public ResponseEntity<String> rejectWithdrawal(
+    public ResponseEntity<PartnerWithdrawalResponse> rejectWithdrawal(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
 
         log.info("Rejecting withdrawal request ID: {} with reason: {}", id, reason);
-        // TODO: Implement rejectWithdrawal in the service
-//      String result = withdrawalService.rejectWithdrawal(id, reason);
-
-        return ResponseEntity.ok("Withdrawal rejection functionality to be implemented");
+        PartnerWithdrawalResponse response = withdrawalService.rejectWithdrawal(id, reason);
+        return ResponseEntity.ok(response);
     }
 
     /**

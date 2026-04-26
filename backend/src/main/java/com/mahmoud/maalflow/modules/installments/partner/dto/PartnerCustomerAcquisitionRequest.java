@@ -13,16 +13,17 @@ import java.math.BigDecimal;
 @Data
 public class PartnerCustomerAcquisitionRequest {
 
-    @NotNull(message = "validation.partner.id.required")
+    @NotNull(message = "messages.partner.partnerId.required")
     private Long partnerId;
 
-    @NotNull(message = "validation.customer.id.required")
+    @NotNull(message = "messages.partner.customerId.required")
     private Long customerId;
 
-    @NotNull(message = "validation.commission.percentage.required")
-    @DecimalMin(value = "0.0", message = "validation.commission.percentage.min")
-    @DecimalMax(value = "100.0", message = "validation.commission.percentage.max")
+    @NotNull(message = "messages.partner.commission.percentage.required")
+    @DecimalMin(value = "0.0", message = "messages.partner.commission.percentage.min")
+    @DecimalMax(value = "100.0", message = "messages.partner.commission.percentage.max")
     private BigDecimal commissionPercentage;
 
     private String acquisitionNotes;
 }
+

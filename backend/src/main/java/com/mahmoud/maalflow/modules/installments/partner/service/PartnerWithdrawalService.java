@@ -4,7 +4,6 @@ import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
 import com.mahmoud.maalflow.modules.installments.capital.dto.CapitalTransactionRequest;
-import com.mahmoud.maalflow.modules.installments.capital.entity.CapitalPool;
 import com.mahmoud.maalflow.modules.installments.capital.enums.CapitalTransactionType;
 import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerWithdrawalRequest;
@@ -16,6 +15,8 @@ import com.mahmoud.maalflow.modules.installments.partner.mapper.PartnerWithdrawa
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerWithdrawalRepository;
 import com.mahmoud.maalflow.modules.installments.ledger.service.LedgerService;
+import com.mahmoud.maalflow.modules.shared.user.entity.User;
+import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,8 @@ public class PartnerWithdrawalService {
     private final LedgerService ledgerService;
     private final CapitalTransactionService capitalTransactionService;
     private final PartnerShareService partnerShareService;
+    private final UserRepository userRepository;
+    private final PartnerEffectiveInvestmentService partnerEffectiveInvestmentService;
     @Transactional
     public PartnerWithdrawalResponse createWithdrawalRequest(PartnerWithdrawalRequest request) {
         // Validate partner has sufficient balance
@@ -63,21 +66,14 @@ public class PartnerWithdrawalService {
 
     @Transactional(readOnly = true)
     public List<PartnerWithdrawalResponse> getWithdrawalsByPartnerId(Long partnerId) {
-
-        List<PartnerWithdrawalResponse> withdrawals = withdrawalRepository.findByPartnerId(partnerId)
+        return withdrawalRepository.findByPartnerId(partnerId)
                 .stream().map(withdrawalMapper::toPartnerWithdrawalResponse).toList();
-
-        return withdrawals;
-
     }
 
     @Transactional(readOnly = true)
     public List<PartnerWithdrawalResponse> getPendingWithdrawals() {
-
-        List<PartnerWithdrawalResponse> pendingWithdrawals = withdrawalRepository.findByStatus(WithdrawalStatus.PENDING)
+        return withdrawalRepository.findByStatus(WithdrawalStatus.PENDING)
                 .stream().map(withdrawalMapper::toPartnerWithdrawalResponse).toList();
-
-        return pendingWithdrawals;
     }
 
     @Transactional
@@ -85,6 +81,9 @@ public class PartnerWithdrawalService {
 
         PartnerWithdrawal withdrawal = withdrawalRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("messages.partner.withdrawal.notFound", id));
+
+        Partner partner = partnerRepository.findByIdForUpdate(withdrawal.getPartner().getId())
+                .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", withdrawal.getPartner().getId()));
 
         WithdrawalStatus currentStatus = withdrawal.getStatus();
         if (currentStatus != WithdrawalStatus.PENDING) {
@@ -104,6 +103,13 @@ public class PartnerWithdrawalService {
 
         log.info("Approved withdrawal ID {} for partner ID {}", id, withdrawal.getPartner().getId());
 
+        // Update partner balance
+        updatePartnerBalanceForWithdrawal(partner, withdrawal.getAmount());
+
+        partnerEffectiveInvestmentService.updatePartnerEffectiveInvestment(partner.getId());
+
+        partnerShareService.recalculateSharePercentages(capitalTransactionService.getPoolForUpdate().getTotalAmount());
+
         return   withdrawalMapper.toPartnerWithdrawalResponse(saved);
     }
 
@@ -113,24 +119,24 @@ public class PartnerWithdrawalService {
 
         PartnerWithdrawal withdrawal = getWithdrawalByIdForUpdate(id);
 
+        Partner partner = partnerRepository.findByIdForUpdate(withdrawal.getPartner().getId())
+                .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", withdrawal.getPartner().getId()));
+
         if (withdrawal.getStatus() != WithdrawalStatus.APPROVED) {
             throw new BusinessException("messages.partner.withdrawal.invalidStatusForProcessing");
         }
 
         // Validate balance again at processing time
-        validatePartnerBalance(withdrawal.getPartner().getId(), withdrawal.getAmount());
+        validatePartnerBalance(partner.getId(), withdrawal.getAmount());
 
         withdrawal.setStatus(WithdrawalStatus.COMPLETED);
         withdrawal.setProcessedAt(LocalDateTime.now());
         // TODO: Set processedBy user
         withdrawal.setProcessedBy(null);
 
-        // Update partner balance
-        updatePartnerBalanceForWithdrawal(withdrawal.getPartner(), withdrawal.getAmount());
 
         // Record capital movement for withdrawal
         recordCapitalWithdrawal(withdrawal);
-        partnerShareService.recalculateSharePercentages(capitalTransactionService.getPoolForUpdate().getTotalAmount());
 
         // Record ledger expense entry
         recordWithdrawalExpense(withdrawal);
@@ -157,26 +163,26 @@ public class PartnerWithdrawalService {
     /**
      * Reject a withdrawal request.
      */
-//    @Transactional
-//    public String rejectWithdrawal(Long id, String reason) {
-//        PartnerWithdrawal withdrawal = withdrawalRepository.findById(id)
-//                .orElseThrow(() -> new ObjectNotFoundException("messages.partner.withdrawal.notFound", id));
-//
-//        if (withdrawal.getStatus() != WithdrawalStatus.PENDING) {
-//            throw new BusinessException("messages.partner.withdrawal.invalidStatusForRejection");
-//        }
-//
-//        withdrawal.setStatus(WithdrawalStatus.CANCELLED);
-//        withdrawal.setRejectedAt(LocalDateTime.now());
-//        withdrawal.setRejectionReason(reason);
-//        // TODO: Set rejectedBy user
-//        withdrawal.setRejectedBy(null);
-//
-//        withdrawalRepository.save(withdrawal);
-//
-//        log.info("Rejected withdrawal ID {} with reason: {}", id, reason);
-//        return "messages.partner.withdrawal.rejected";
-//    }
+    @Transactional
+    public PartnerWithdrawalResponse rejectWithdrawal(Long id, String reason) {
+        PartnerWithdrawal withdrawal = withdrawalRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("messages.partner.withdrawal.notFound", id));
+
+        if (withdrawal.getStatus() != WithdrawalStatus.PENDING) {
+            throw new BusinessException("messages.partner.withdrawal.invalidStatusForRejection");
+        }
+
+        User rejectedBy = userRepository.findById(1L).orElse(null);
+        withdrawal.setStatus(WithdrawalStatus.CANCELLED);
+        withdrawal.setRejectedAt(LocalDateTime.now());
+        withdrawal.setRejectionReason(reason != null ? reason : "No reason provided");
+        withdrawal.setRejectedBy(rejectedBy);
+
+        PartnerWithdrawal saved = withdrawalRepository.save(withdrawal);
+
+        log.info("Rejected withdrawal ID {} with reason: {}", id, reason);
+        return withdrawalMapper.toPartnerWithdrawalResponse(saved);
+    }
 
 
     // ============== Helper Methods ==============
@@ -199,7 +205,7 @@ public class PartnerWithdrawalService {
     }
 
     private void validatePartnerBalance(Long partnerId, BigDecimal amount) {
-        Partner partner = partnerRepository.findById(partnerId)
+        Partner partner = partnerRepository.findByIdForUpdate(partnerId)
                 .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", partnerId));
 
         if (partner.getCurrentBalance().compareTo(amount) < 0) {
@@ -238,7 +244,7 @@ public class PartnerWithdrawalService {
 
     private void checkPendingWithdrawalLimit(Long partnerId) {
 
-        Partner partner = partnerRepository.findById(partnerId)
+        Partner partner = partnerRepository.findByIdForUpdate(partnerId)
                 .orElseThrow(() -> new UserNotFoundException("messages.partner.notFound", partnerId));
 
         BigDecimal pendingTotal = withdrawalRepository.sumByPartnerIdAndStatus(partnerId, WithdrawalStatus.PENDING);

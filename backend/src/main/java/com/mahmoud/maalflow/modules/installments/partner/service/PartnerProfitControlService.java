@@ -3,8 +3,11 @@ package com.mahmoud.maalflow.modules.installments.partner.service;
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.modules.installments.partner.entity.Partner;
 import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerProfitCalculationConfig;
+import com.mahmoud.maalflow.modules.installments.partner.enums.PartnerStatus;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerProfitCalculationConfigRepository;
 import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerRepository;
+import com.mahmoud.maalflow.modules.shared.user.entity.User;
+import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ public class PartnerProfitControlService {
 
     private final PartnerRepository partnerRepository;
     private final PartnerProfitCalculationConfigRepository configRepository;
+    private final UserRepository userRepository;
 
     /**
      * Start profit sharing for a partner.
@@ -37,7 +41,7 @@ public class PartnerProfitControlService {
         log.info("Starting profit sharing for partner {} from date {}", partnerId, startDate);
 
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         // Calculate profit start month with 2-month delay
         LocalDate profitStartDate = startDate.plusMonths(2);
@@ -51,27 +55,6 @@ public class PartnerProfitControlService {
         log.info("Profit sharing activated for partner {}. Profits will start from month {}", partnerId, profitStartMonth);
     }
 
-    /**
-     * Stop profit sharing for a partner.
-     * Implements requirement: "إيقاف حساب من أراد سحب فلوسه"
-     */
-    @Transactional
-    public void stopProfitSharing(Long partnerId, String reason) {
-        log.info("Stopping profit sharing for partner {} - Reason: {}", partnerId, reason);
-
-        Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
-
-        partner.setProfitSharingActive(false);
-
-        // Add reason to notes
-
-        String currentNotes = partner.getNotes() != null ? partner.getNotes() : "";
-        partner.setNotes(currentNotes + " | Profit sharing stopped: " + reason + " (Date: " + LocalDate.now() + ")");
-
-        partnerRepository.save(partner);
-        log.info("Profit sharing stopped for partner {}", partnerId);
-    }
 
     /**
      * Temporarily pause profit sharing (can be resumed later).
@@ -81,12 +64,12 @@ public class PartnerProfitControlService {
         log.info("Pausing profit sharing for partner {} - Reason: {}", partnerId, reason);
 
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         partner.setProfitSharingActive(false);
 
         String currentNotes = partner.getNotes() != null ? partner.getNotes() : "";
-        partner.setNotes(currentNotes + " | Profit sharing paused: " + reason + " (Date: " + LocalDate.now() + ")");
+        partner.setNotes(currentNotes + " | طھظ… ط¥ظٹظ‚ط§ظپ ظ…ط´ط§ط±ظƒط© ط§ظ„ط£ط±ط¨ط§ط­ ظ…ط¤ظ‚طھظ‹ط§: " + reason + " (طھط§ط±ظٹط®: " + LocalDate.now() + ")");
 
         partnerRepository.save(partner);
         log.info("Profit sharing paused for partner {}", partnerId);
@@ -100,7 +83,7 @@ public class PartnerProfitControlService {
         log.info("Resuming profit sharing for partner {}", partnerId);
 
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         partner.setProfitSharingActive(true);
 
@@ -124,19 +107,23 @@ public class PartnerProfitControlService {
 
         // Validate percentages
         if (managementFeePercentage.compareTo(BigDecimal.ZERO) < 0 || managementFeePercentage.compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new BusinessException("validation.profitCalculation.managementFee.invalid");
+            throw new BusinessException("messages.partner.profitCalculation.managementFee.invalid");
         }
         if (zakatPercentage.compareTo(BigDecimal.ZERO) < 0 || zakatPercentage.compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new BusinessException("validation.profitCalculation.zakat.invalid");
+            throw new BusinessException("messages.partner.profitCalculation.zakat.invalid");
         }
         if (profitPaymentDay < 1 || profitPaymentDay > 28) {
-            throw new BusinessException("validation.profitCalculation.paymentDay.invalid");
+            throw new BusinessException("messages.partner.profitCalculation.paymentDay.invalid");
         }
+
+        User actingUser = userRepository.findById(1L)
+                .orElseThrow(() -> new BusinessException("messages.user.notFound"));
 
         // Deactivate current config
         configRepository.findFirstByIsActiveTrueOrderByCreatedAtDesc()
                 .ifPresent(config -> {
                     config.setIsActive(false);
+                    config.setUpdatedBy(actingUser);
                     configRepository.save(config);
                 });
 
@@ -147,6 +134,8 @@ public class PartnerProfitControlService {
         newConfig.setProfitPaymentDay(profitPaymentDay);
         newConfig.setIsActive(true);
         newConfig.setNotes("Manual update - Management: " + managementFeePercentage + "%, Zakat: " + zakatPercentage + "%");
+        newConfig.setCreatedBy(actingUser);
+        newConfig.setUpdatedBy(actingUser);
 
         configRepository.save(newConfig);
         log.info("Created new profit calculation configuration");
@@ -154,12 +143,11 @@ public class PartnerProfitControlService {
 
     /**
      * Check if partner is eligible for profit sharing.
-     * Implements 2-month delay rule: "يحسب مكسب المشترك الجديد بعد شهرين من دفعه"
      */
     @Transactional(readOnly = true)
     public boolean isPartnerEligibleForProfit(Long partnerId, String distributionMonth) {
         Partner partner = partnerRepository.findById(partnerId)
-                .orElseThrow(() -> new BusinessException("validation.partner.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.notFound"));
 
         if (!partner.getProfitSharingActive()) {
             return false;
@@ -178,6 +166,7 @@ public class PartnerProfitControlService {
     @Transactional(readOnly = true)
     public PartnerProfitCalculationConfig getCurrentConfig() {
         return configRepository.findFirstByIsActiveTrueOrderByCreatedAtDesc()
-                .orElseThrow(() -> new BusinessException("validation.profitCalculation.config.notFound"));
+                .orElseThrow(() -> new BusinessException("messages.partner.profitCalculation.config.notFound"));
     }
 }
+

@@ -15,11 +15,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PartnerInvestmentRequest {
 
-    @NotNull(message = "{validation.partnerId.required}")
+    @NotNull(message = "{messages.partner.partnerId.required}")
     private Long partnerId;
 
     @NotNull(message = "{validation.amount.required}")
-    @DecimalMin(value = "0.01", message = "{validation.amount.min}")
+    @DecimalMin(value = "100", message = "{validation.amount.min}")
     @Digits(integer = 12, fraction = 2, message = "{validation.amount.format}")
     private BigDecimal amount;
 
@@ -27,4 +27,5 @@ public class PartnerInvestmentRequest {
 
     @Size(max = 500, message = "{validation.notes.size}")
     private String notes;
+
 }
