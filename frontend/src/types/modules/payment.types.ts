@@ -101,6 +101,33 @@ export interface PaymentFilters extends PaginationParams {
     search?: string
 }
 
+export interface PaymentSearchFilters extends PaginationParams {
+    month?: string
+    startDate?: string
+    endDate?: string
+    isEarlyPayment?: boolean
+    status?: PaymentStatus
+    paymentMethod?: PaymentMethod
+    collectorId?: number
+    contractId?: number
+    customerName?: string
+    minNetAmount?: number
+}
+
+export interface PaymentReportSummary {
+    month?: string | null
+    startDate?: string | null
+    endDate?: string | null
+    totalCount: number
+    completedCount: number
+    cancelledCount: number
+    refundedCount: number
+    earlyPaymentCount: number
+    totalAmount: number
+    totalNetAmount: number
+    totalDiscounts: number
+}
+
 // ────────────────────────────────────────────────────────────
 // PaymentStatistics
 // ────────────────────────────────────────────────────────────

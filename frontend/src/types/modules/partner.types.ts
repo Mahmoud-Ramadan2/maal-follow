@@ -1,4 +1,5 @@
 import type { PaginationParams } from '@/types/common.types'
+import type { PaymentMethod } from '@/types/modules/payment.types'
 
 // ============================================================
 // Partner Module — TypeScript Types
@@ -53,6 +54,7 @@ export interface Partner {
     id: number
     name: string
     phone: string
+    nationalId: string
     address: string | null
     partnershipType: PartnershipType
     sharePercentage: number
@@ -60,6 +62,7 @@ export interface Partner {
     investmentStartDate: string
     profitCalculationStartMonth: string | null
     totalInvestment: number
+    effectiveInvestment: number
     totalWithdrawals: number
     currentBalance: number
     profitSharingActive: boolean
@@ -72,15 +75,13 @@ export interface Partner {
 export interface PartnerRequest {
     name: string
     phone: string
+    nationalId: string
     address?: string
     partnershipType: PartnershipType
-    sharePercentage?: number
     status?: PartnerStatus
     investmentStartDate: string
     profitCalculationStartMonth?: string
-    totalInvestment?: number
-    totalWithdrawals?: number
-    currentBalance?: number
+    totalInvestment: number
     profitSharingActive?: boolean
     notes?: string
     createdBy: number
@@ -129,9 +130,12 @@ export interface PartnerWithdrawal {
     requestedAt: string
     approvedAt: string | null
     processedAt: string | null
+    rejectedAt: string | null
+    rejectionReason: string | null
     notes: string | null
     processedByName: string | null
     approvedByName: string | null
+    rejectedByName: string | null
 }
 
 export interface PartnerWithdrawalRequest {
@@ -196,5 +200,92 @@ export interface PartnerCustomerAcquisitionRequest {
 
 export interface PartnerPerformanceMetrics {
     [key: string]: unknown
+}
+
+export interface PartnerCommissionSummary {
+    partnerId: number
+    pendingAmount: number
+    paidAmount: number
+    totalAmount: number
+    pendingCount: number
+    paidCount: number
+    totalCount: number
+}
+
+export interface PartnerSalesCommissionRequest {
+    partnerId: number
+    contractId: number
+}
+
+export interface PartnerAcquisitionCommissionRequest {
+    partnerId: number
+    customerId: number
+    contractValue: number
+}
+
+export interface PayoutReconciliation {
+    payoutId: number
+    payoutType: string
+    payoutStatus: string
+    partnerId: number
+    payoutAmount: number
+    ledgerEntryId: number | null
+    ledgerIdempotencyKey: string | null
+    ledgerAmount: number | null
+    ledgerReferenceType: string | null
+    ledgerReferenceId: number | null
+    ledgerDescription: string | null
+    capitalTransactionId: number | null
+    capitalAmount: number | null
+    capitalReferenceType: string | null
+    capitalReferenceId: number | null
+    capitalDescription: string | null
+    ledgerMatched: boolean
+    capitalMatched: boolean
+    fullyReconciled: boolean
+    issues: string[]
+}
+
+export interface PartnerMonthlyProfit {
+    id: number
+    partnerName: string
+    profitDistributionMonth: string
+    investmentAmount: number
+    sharePercentage: number
+    calculatedProfit: number
+    status: ProfitStatus
+    paymentDate: string | null
+    paymentMethod: PaymentMethod | null
+    notes: string | null
+    createdAt: string
+    paidByName: string | null
+}
+
+export interface PartnerMonthlyProfitPayRequest {
+    paidByUserId: number
+    paymentMethod?: PaymentMethod
+    paymentDate?: string
+    notes?: string
+}
+
+export interface PartnerMonthlyProfitAdjustRequest {
+    newAmount: number
+    reason: string
+}
+
+export interface PartnerProfitConfigRequest {
+    managementFeePercentage: number
+    zakatPercentage: number
+    profitPaymentDay: number
+}
+
+export interface PartnerProfitConfig {
+    id: number
+    managementFeePercentage: number
+    zakatPercentage: number
+    profitPaymentDay: number
+    newPartnerDelayMonths: number
+    active: boolean
+    notes: string | null
 }
 

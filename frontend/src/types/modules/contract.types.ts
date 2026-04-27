@@ -8,9 +8,7 @@ import type { PaginationParams } from '@/types/common.types'
 //   • ContractRequest        →  ContractRequest
 //   • ContractExpenseResponse → ContractExpense
 //   • ContractExpenseRequest  → ContractExpenseRequest
-//   • InstallmentScheduleResponse → InstallmentSchedule
-//   • InstallmentScheduleRequest  → InstallmentScheduleRequest
-//   • Enums: ContractStatus, PaymentStatus, ExpenseType, PaidBy, DeductionType
+//   • Enums: ContractStatus, ExpenseType, PaidBy, DeductionType
 // ============================================================
 
 // ────────────────────────────────────────────────────────────
@@ -26,15 +24,6 @@ export const ContractStatus = {
 } as const
 export type ContractStatus =
     (typeof ContractStatus)[keyof typeof ContractStatus]
-
-export const PaymentStatus = {
-    PENDING: 'PENDING',
-    PAID: 'PAID',
-    LATE: 'LATE',
-    PARTIALLY_PAID: 'PARTIALLY_PAID',
-    CANCELLED: 'CANCELLED',
-} as const
-export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 export const ExpenseType = {
     SHIPPING: 'SHIPPING',
@@ -110,6 +99,10 @@ export interface Contract {
     totalExpenses: number
     netProfit: number
 
+    // Capital tracking (allocated on creation, returned as principal payments clear)
+    capitalAllocated: number
+    capitalReturned: number
+
     // Dates
     startDate: string
     completionDate: string | null
@@ -152,6 +145,8 @@ export interface ContractFilters extends PaginationParams {
     customerId?: number
 }
 
+export type installmentsFilter = PaginationParams
+
 // ────────────────────────────────────────────────────────────
 // ContractExpense (mirrors ContractExpenseResponse DTO)
 // ────────────────────────────────────────────────────────────
@@ -189,70 +184,15 @@ export interface ContractExpenseRequest {
 }
 
 // ────────────────────────────────────────────────────────────
-// InstallmentSchedule (mirrors InstallmentScheduleResponse DTO)
+// ContractMetadataUpdateRequest (safe edits after financial activity)
 // ────────────────────────────────────────────────────────────
 
-export interface InstallmentSchedule {
-    contractNumber: string
-    sequenceNumber: number
-    customerName: string
-    customerPhone: string
-    profitMonth: string
-    isFinalPayment: boolean
-    originalAmount: number
-    principalAmount: number
-    profitAmount: number
-    dueDate: string
-    amount: number
-    status: PaymentStatus
-    paidAmount: number
-    paidDate: string | null
-    collectorName: string | null
-    notes: string | null
-}
-
-// ────────────────────────────────────────────────────────────
-// InstallmentScheduleRequest (mirrors DTO)
-// ────────────────────────────────────────────────────────────
-
-export interface InstallmentScheduleRequest {
-    contractId: number
-    sequenceNumber: number
-    profitMonth: string
-    discountApplied?: number
-    isFinalPayment?: boolean
-    amount: number
-    dueDate: string
-    status?: PaymentStatus
+export interface ContractMetadataUpdateRequest {
     notes?: string
-    collectorId?: number
+    responsibleUserId?: number
+    clearResponsibleUser?: boolean
+    partnerId?: number
+    clearPartner?: boolean
 }
 
-// ────────────────────────────────────────────────────────────
-// GenerateScheduleParams — for custom generation
-// ────────────────────────────────────────────────────────────
-
-export interface GenerateScheduleParams {
-    numberOfMonths?: number
-    monthlyAmount?: number
-    putRemainderFirst?: boolean
-}
-
-// ────────────────────────────────────────────────────────────
-// RescheduleParams
-// ────────────────────────────────────────────────────────────
-
-export interface RescheduleParams {
-    newNumberOfMonths?: number
-    newMonthlyAmount?: number
-    newStartDate?: string
-}
-
-// ────────────────────────────────────────────────────────────
-// MonthlyCollectionSummary (from backend service)
-// ────────────────────────────────────────────────────────────
-
-export interface MonthlyCollectionSummary {
-    [key: string]: unknown
-}
 
