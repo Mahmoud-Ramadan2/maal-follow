@@ -41,3 +41,11 @@ export {
 
 export type { CapitalPoolFormData, CapitalTransactionFormData } from './capital.validator'
 
+export {
+    scheduleCreateSchema,
+    scheduleUpdateSchema,
+    validateSchedule,
+} from './schedule.validator'
+
+export type { ScheduleFormData } from './schedule.validator'
+

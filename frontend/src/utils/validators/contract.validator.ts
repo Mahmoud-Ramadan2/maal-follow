@@ -18,7 +18,7 @@ export const contractCreateSchema = z.object({
 
     finalPrice: z
         .number({ error: () => t('contract.finalPrice.required') })
-        .min(100, { error: t('contract.finalPrice.min') }),
+        .min(0, { error: t('contract.finalPrice.min') }),
 
     downPayment: z
         .number({ error: () => t('contract.downPayment.required') })
