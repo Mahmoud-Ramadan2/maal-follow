@@ -20,7 +20,7 @@ interface UseContractsReturn {
  */
 export function useContracts(
     status: ContractStatus,
-    page = 0,
+    page = 12,
     size = 20,
 ): UseContractsReturn {
     const { t } = useTranslation('contract')

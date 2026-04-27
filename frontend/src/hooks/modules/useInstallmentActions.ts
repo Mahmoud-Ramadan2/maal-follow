@@ -1,16 +1,19 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
-import { installmentScheduleApi } from '@services/api/modules/installmentSchedule.api'
+import { scheduleApi } from '@services/api/modules/schedule.api'
 import type {
-    InstallmentSchedule, GenerateScheduleParams, RescheduleParams,
-} from '@/types/modules/contract.types'
+    InstallmentSchedule, GenerateScheduleParams, RescheduleParams, ScheduleMetadataUpdateRequest,
+} from '@/types/modules/schedule.types'
 
 interface UseInstallmentActionsReturn {
     generate: (contractId: number) => Promise<InstallmentSchedule[] | null>
     generateCustom: (contractId: number, params: GenerateScheduleParams) => Promise<InstallmentSchedule[] | null>
     swapRemainder: (contractId: number) => Promise<InstallmentSchedule[] | null>
     deleteUnpaid: (contractId: number) => Promise<boolean>
+    updateScheduleMetadata: (scheduleId: number, data: ScheduleMetadataUpdateRequest) => Promise<InstallmentSchedule | null>
+    rescheduleUnpaidInstallments: (contractId: number, params: RescheduleParams) => Promise<InstallmentSchedule[] | null>
+    skipMonthPayment: (contractId: number, reason: string) => Promise<boolean>
     reschedule: (contractId: number, params: RescheduleParams) => Promise<InstallmentSchedule[] | null>
     skipMonth: (contractId: number, reason: string) => Promise<boolean>
     loading: boolean
@@ -29,7 +32,7 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
     const generate = useCallback(async (contractId: number) => {
         setLoading(true); setError(null)
         try {
-            const res = await installmentScheduleApi.generate(contractId)
+            const res = await scheduleApi.generate(contractId)
             toast.success(t('schedule.generated'))
             return res
         } catch (err) {
@@ -42,7 +45,7 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
     const generateCustom = useCallback(async (contractId: number, params: GenerateScheduleParams) => {
         setLoading(true); setError(null)
         try {
-            const res = await installmentScheduleApi.generateCustom(contractId, params)
+            const res = await scheduleApi.generateCustom(contractId, params)
             toast.success(t('schedule.generated'))
             return res
         } catch (err) {
@@ -55,7 +58,7 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
     const swapRemainder = useCallback(async (contractId: number) => {
         setLoading(true); setError(null)
         try {
-            const res = await installmentScheduleApi.swapRemainder(contractId)
+            const res = await scheduleApi.swapRemainder(contractId)
             toast.success(t('schedule.swapped'))
             return res
         } catch (err) {
@@ -70,7 +73,7 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
         if (!confirmed) return false
         setLoading(true); setError(null)
         try {
-            await installmentScheduleApi.deleteUnpaid(contractId)
+            await scheduleApi.deleteUnpaid(contractId)
             toast.success(t('schedule.unpaidDeleted'))
             return true
         } catch (err) {
@@ -80,10 +83,23 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
         } finally { setLoading(false) }
     }, [t])
 
-    const reschedule = useCallback(async (contractId: number, params: RescheduleParams) => {
+    const updateScheduleMetadata = useCallback(async (scheduleId: number, data: ScheduleMetadataUpdateRequest) => {
         setLoading(true); setError(null)
         try {
-            const res = await installmentScheduleApi.reschedule(contractId, params)
+            const res = await scheduleApi.updateMetadata(scheduleId, data)
+            toast.success(t('schedule.metadataUpdated'))
+            return res
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : t('schedule.metadataUpdateError')
+            setError(msg); toast.error(msg)
+            return null
+        } finally { setLoading(false) }
+    }, [t])
+
+    const rescheduleUnpaidInstallments = useCallback(async (contractId: number, params: RescheduleParams) => {
+        setLoading(true); setError(null)
+        try {
+            const res = await scheduleApi.reschedule(contractId, params)
             toast.success(t('schedule.rescheduled'))
             return res
         } catch (err) {
@@ -93,10 +109,10 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
         } finally { setLoading(false) }
     }, [t])
 
-    const skipMonth = useCallback(async (contractId: number, reason: string) => {
+    const skipMonthPayment = useCallback(async (contractId: number, reason: string) => {
         setLoading(true); setError(null)
         try {
-            await installmentScheduleApi.skipMonth(contractId, reason)
+            await scheduleApi.skipMonth(contractId, reason)
             toast.success(t('schedule.monthSkipped'))
             return true
         } catch (err) {
@@ -106,6 +122,22 @@ export function useInstallmentActions(): UseInstallmentActionsReturn {
         } finally { setLoading(false) }
     }, [t])
 
-    return { generate, generateCustom, swapRemainder, deleteUnpaid, reschedule, skipMonth, loading, error }
+    // Backward-compatible aliases
+    const reschedule = rescheduleUnpaidInstallments
+    const skipMonth = skipMonthPayment
+
+    return {
+        generate,
+        generateCustom,
+        swapRemainder,
+        deleteUnpaid,
+        updateScheduleMetadata,
+        rescheduleUnpaidInstallments,
+        skipMonthPayment,
+        reschedule,
+        skipMonth,
+        loading,
+        error,
+    }
 }
 

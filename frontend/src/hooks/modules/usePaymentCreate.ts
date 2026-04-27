@@ -6,6 +6,8 @@ import type { Payment, PaymentRequest } from '@/types/modules/payment.types'
 
 export function usePaymentCreate() {
     const { t } = useTranslation('payment')
+    const createdText = t('created')
+    const createErrorText = t('createError')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -13,14 +15,14 @@ export function usePaymentCreate() {
         setLoading(true); setError(null)
         try {
             const created = await paymentApi.create(data)
-            toast.success(t('created'))
+            toast.success(createdText)
             return created
         } catch (err) {
-            const msg = err instanceof Error ? err.message : t('createError')
-            setError(msg); toast.error(t('createError'))
+            const msg = err instanceof Error ? err.message : createErrorText
+            setError(msg); toast.error(createErrorText)
             return null
         } finally { setLoading(false) }
-    }, [t])
+    }, [createdText, createErrorText])
 
     return { createPayment, loading, error }
 }
