@@ -1,6 +1,7 @@
 package com.mahmoud.maalflow.modules.installments.ledger.repo;
 
 import com.mahmoud.maalflow.modules.installments.ledger.entity.DailyLedger;
+import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerReferenceType;
 import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerSource;
 import com.mahmoud.maalflow.modules.installments.ledger.enums.LedgerType;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,13 @@ public interface DailyLedgerRepository extends JpaRepository<DailyLedger, Long> 
      * Find ledger entry by idempotency key to prevent duplicates.
      */
     Optional<DailyLedger> findByIdempotencyKey(String idempotencyKey);
+
+    /**
+     * Find ledger entries by their business reference.
+     */
+    List<DailyLedger> findByReferenceTypeAndReferenceIdOrderByCreatedAtDesc(
+            LedgerReferenceType referenceType,
+            Long referenceId);
 
     /**
      * Check if ledger entry exists by idempotency key.
