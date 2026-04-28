@@ -1,0 +1,106 @@
+{
+  "title": "توزيعات الأرباح",
+  "createNew": "توزيع جديد",
+  "empty": "لا توجد توزيعات",
+  "errorRetry": "إعادة المحاولة",
+  "fetchError": "فشل تحميل التوزيعات",
+  "fetchOneError": "فشل تحميل تفاصيل التوزيع",
+  "created": "تم إنشاء التوزيع بنجاح",
+  "updated": "تم تحديث التوزيع بنجاح",
+  "deleted": "تم حذف التوزيع بنجاح",
+  "createError": "فشل إنشاء التوزيع",
+  "updateError": "فشل تحديث التوزيع",
+  "deleteError": "فشل حذف التوزيع",
+  "deleteConfirm": "حذف هذا التوزيع؟",
+  "status": {
+    "PENDING": "معلق",
+    "CALCULATED": "محسوب",
+    "DISTRIBUTED": "موزع",
+    "LOCKED": "مغلق"
+  },
+  "statusFilter": {
+    "ALL": "الكل",
+    "PENDING": "معلق",
+    "CALCULATED": "محسوب",
+    "DISTRIBUTED": "موزع",
+    "LOCKED": "مغلق"
+  },
+  "columns": {
+    "monthYear": "الشهر",
+    "totalProfit": "إجمالي الربح",
+    "distributableProfit": "الربح القابل للتوزيع",
+    "managementFeeAmount": "رسوم الإدارة",
+    "zakatAmount": "الزكاة",
+    "contractExpensesAmount": "مصاريف العقود",
+    "ownerProfit": "ربح المالك",
+    "partnersTotalProfit": "ربح الشركاء",
+    "status": "الحالة",
+    "updatedAt": "آخر تحديث",
+    "actions": "الإجراءات"
+  },
+  "filters": {
+    "startMonth": "من شهر",
+    "endMonth": "إلى شهر"
+  },
+  "lookup": {
+    "label": "بحث بالشهر",
+    "action": "فتح الشهر",
+    "error": "فشل العثور على توزيع هذا الشهر"
+  },
+  "form": {
+    "createTitle": "إنشاء توزيع أرباح",
+    "editTitle": "تعديل توزيع أرباح",
+    "monthYear": "الشهر",
+    "totalProfit": "إجمالي الربح",
+    "managementFeePercentage": "نسبة رسوم الإدارة",
+    "zakatPercentage": "نسبة الزكاة",
+    "calculationNotes": "ملاحظات الحساب",
+    "monthYearRequired": "الشهر مطلوب",
+    "totalProfitRequired": "إجمالي الربح مطلوب",
+    "managementFeeRequired": "رسوم الإدارة مطلوبة",
+    "zakatRequired": "الزكاة مطلوبة",
+    "submit": "حفظ التوزيع"
+  },
+  "details": {
+    "title": "توزيع: {{month}}",
+    "notFound": "التوزيع غير موجود",
+    "backToList": "العودة إلى القائمة",
+    "lifecycle": "دورة الحالة",
+    "financialBreakdown": "تفاصيل مالية",
+    "notes": "ملاحظات",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "تاريخ التحديث"
+  },
+  "actions": {
+    "transitionNotAllowed": "لا يمكن تنفيذ هذا الإجراء في الحالة الحالية",
+    "modal": {
+      "title": "تأكيد {{action}}",
+      "titleFallback": "تأكيد الإجراء",
+      "confirmMessage": "هل أنت متأكد من تنفيذ {{action}} لهذا التوزيع؟"
+    },
+    "calculate": {
+      "label": "حساب",
+      "success": "تم حساب الربح",
+      "error": "فشل حساب الربح"
+    },
+    "recalculate": {
+      "label": "إعادة الحساب",
+      "success": "تمت إعادة الحساب",
+      "error": "فشل إعادة الحساب"
+    },
+    "distribute": {
+      "label": "توزيع",
+      "success": "تم توزيع الربح",
+      "error": "فشل التوزيع"
+    },
+    "lock": {
+      "label": "إغلاق",
+      "success": "تم إغلاق التوزيع",
+      "error": "فشل إغلاق التوزيع"
+    },
+    "status": {
+      "error": "فشل تحميل حالة الدورة"
+    }
+  }
+}
+

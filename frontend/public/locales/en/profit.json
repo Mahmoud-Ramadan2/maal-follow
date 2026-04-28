@@ -1,0 +1,106 @@
+{
+  "title": "Profit Distributions",
+  "createNew": "New Distribution",
+  "empty": "No distributions found",
+  "errorRetry": "Retry",
+  "fetchError": "Failed to load distributions",
+  "fetchOneError": "Failed to load distribution details",
+  "created": "Distribution created successfully",
+  "updated": "Distribution updated successfully",
+  "deleted": "Distribution deleted successfully",
+  "createError": "Failed to create distribution",
+  "updateError": "Failed to update distribution",
+  "deleteError": "Failed to delete distribution",
+  "deleteConfirm": "Delete this distribution?",
+  "status": {
+    "PENDING": "Pending",
+    "CALCULATED": "Calculated",
+    "DISTRIBUTED": "Distributed",
+    "LOCKED": "Locked"
+  },
+  "statusFilter": {
+    "ALL": "All",
+    "PENDING": "Pending",
+    "CALCULATED": "Calculated",
+    "DISTRIBUTED": "Distributed",
+    "LOCKED": "Locked"
+  },
+  "columns": {
+    "monthYear": "Month",
+    "totalProfit": "Total Profit",
+    "distributableProfit": "Distributable Profit",
+    "managementFeeAmount": "Management Fee",
+    "zakatAmount": "Zakat",
+    "contractExpensesAmount": "Contract Expenses",
+    "ownerProfit": "Owner Profit",
+    "partnersTotalProfit": "Partners Profit",
+    "status": "Status",
+    "updatedAt": "Updated At",
+    "actions": "Actions"
+  },
+  "filters": {
+    "startMonth": "Start Month",
+    "endMonth": "End Month"
+  },
+  "lookup": {
+    "label": "Find by Month",
+    "action": "Open Month",
+    "error": "Failed to find month distribution"
+  },
+  "form": {
+    "createTitle": "Create Profit Distribution",
+    "editTitle": "Edit Profit Distribution",
+    "monthYear": "Month",
+    "totalProfit": "Total Profit",
+    "managementFeePercentage": "Management Fee %",
+    "zakatPercentage": "Zakat %",
+    "calculationNotes": "Calculation Notes",
+    "monthYearRequired": "Month is required",
+    "totalProfitRequired": "Total profit is required",
+    "managementFeeRequired": "Management fee is required",
+    "zakatRequired": "Zakat is required",
+    "submit": "Save Distribution"
+  },
+  "details": {
+    "title": "Distribution: {{month}}",
+    "notFound": "Distribution not found",
+    "backToList": "Back to list",
+    "lifecycle": "Lifecycle",
+    "financialBreakdown": "Financial Breakdown",
+    "notes": "Notes",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At"
+  },
+  "actions": {
+    "transitionNotAllowed": "This action is not allowed in current status",
+    "modal": {
+      "title": "Confirm {{action}}",
+      "titleFallback": "Confirm Action",
+      "confirmMessage": "Are you sure you want to run {{action}} for this distribution?"
+    },
+    "calculate": {
+      "label": "Calculate",
+      "success": "Profit calculated",
+      "error": "Failed to calculate"
+    },
+    "recalculate": {
+      "label": "Recalculate",
+      "success": "Profit recalculated",
+      "error": "Failed to recalculate"
+    },
+    "distribute": {
+      "label": "Distribute",
+      "success": "Profit distributed",
+      "error": "Failed to distribute"
+    },
+    "lock": {
+      "label": "Lock",
+      "success": "Distribution locked",
+      "error": "Failed to lock"
+    },
+    "status": {
+      "error": "Failed to load lifecycle status"
+    }
+  }
+}
+

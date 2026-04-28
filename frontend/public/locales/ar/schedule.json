@@ -60,9 +60,9 @@
     "paidDate": "تاريخ الدفع",
     "discountApplied": "قيمة الخصم",
     "status": "الحالة",
-    "collectorId": " المحصل",
+    "collectorId": " المحاسب",
     "collectorPlaceholder": "اختر المستلم",
-    "collectorName": "المستلم",
+    "collectorName": "المحاسب",
     "isFinalPayment": "دفعة أخيرة",
     "notes": "ملاحظات",
     "submitCreate": "إضافة",
@@ -99,7 +99,7 @@
   "monthlySummary": {
     "title": "ملخص التحصيل الشهري",
     "expectedAmount": "المتوقع",
-    "actualAmount": "المحصل",
+    "actualAmount": "المحاسب",
     "shortfall": "العجز",
     "fetchError": "فشل في جلب ملخص الشهر"
   },
