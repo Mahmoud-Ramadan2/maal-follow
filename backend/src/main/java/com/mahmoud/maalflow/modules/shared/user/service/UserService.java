@@ -11,20 +11,30 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse create(UserRequest request) {
-        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
+        String email = normalizeEmail(request.getEmail());
+        if (email == null) {
+            throw new BusinessException("validation.email.required");
+        }
+
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new BusinessException("validation.email.exists");
         }
 
@@ -34,11 +44,10 @@ public class UserService {
 
         User entity = new User();
         entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
+        entity.setEmail(email);
         entity.setPhone(request.getPhone());
         entity.setRole(request.getRole());
-        // TODO: replace with PasswordEncoder when auth module is finalized.
-        entity.setPassword(request.getPassword());
+        entity.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return toResponse(userRepository.save(entity));
     }
@@ -48,19 +57,21 @@ public class UserService {
         User entity = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("messages.user.notFound"));
 
-        if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(entity.getEmail())
-                && userRepository.existsByEmail(request.getEmail())) {
+        String email = normalizeEmail(request.getEmail());
+        if (email != null && !email.equalsIgnoreCase(entity.getEmail())
+                && userRepository.existsByEmailIgnoreCase(email)) {
             throw new BusinessException("validation.email.exists");
         }
 
         entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
+        if (email != null) {
+            entity.setEmail(email);
+        }
         entity.setPhone(request.getPhone());
         entity.setRole(request.getRole());
 
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            // TODO: replace with PasswordEncoder when auth module is finalized.
-            entity.setPassword(request.getPassword());
+            entity.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         return toResponse(userRepository.save(entity));
@@ -116,6 +127,13 @@ public class UserService {
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    private String normalizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }
 

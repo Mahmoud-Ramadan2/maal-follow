@@ -18,6 +18,7 @@ public class UserRequest {
     @Size(min = 2, max = 200, message = "{validation.name.size}")
     private String name;
 
+    @NotBlank(message = "{validation.email.required}")
     @Email(message = "{validation.email.invalid}")
     @Size(max = 200, message = "{validation.email.size}")
     private String email;

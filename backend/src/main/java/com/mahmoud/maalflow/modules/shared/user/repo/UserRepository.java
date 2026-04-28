@@ -15,9 +15,10 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByEmail(String email);
 
-    boolean existsByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
 
     @Query("""
             select u from User u
@@ -33,5 +34,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> search(@Param("search") String search, @Param("role") UserRole role, Pageable pageable);
 
     List<User> findByRoleIn(List<UserRole> roles);
+
+
 }
 

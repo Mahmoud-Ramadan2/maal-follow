@@ -23,7 +23,9 @@ public class User {
     @Column(name = "name", nullable = false, length = 200)
     private String name;
 
-    @Column(name = "email", length = 200)
+    //TODO change mail to notnull
+    @Column(name = "email", unique = true, length = 200)
+//    @Column(name = "email", nullable = false, unique = true, length = 200)
     private String email;
 
     @Column(name = "password", nullable = false)
