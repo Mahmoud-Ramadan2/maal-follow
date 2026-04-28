@@ -13,10 +13,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface InstallmentScheduleMapper {
 
-    @Mapping(target = "contractNumber", source = "contract.contractNumber")
+    @Mapping(target = "contractId", source = "contract.id")
     @Mapping(target = "customerName", source = "contract.customer.name")
     @Mapping(target = "customerPhone", source = "contract.customer.phone")
+    @Mapping(target = "collectorId", source = "collector.id")
     @Mapping(target = "collectorName", source = "collector.name")
+    @Mapping(target = "collectorRole", source = "collector.role")
     InstallmentScheduleResponse toResponse(InstallmentSchedule schedule);
 
 

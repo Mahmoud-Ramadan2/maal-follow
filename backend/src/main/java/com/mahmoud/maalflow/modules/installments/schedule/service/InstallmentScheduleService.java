@@ -10,6 +10,7 @@ import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentSchedul
 import com.mahmoud.maalflow.modules.installments.contract.entity.Contract;
 import com.mahmoud.maalflow.modules.installments.schedule.dto.MonthlyCollectionSummary;
 import com.mahmoud.maalflow.modules.installments.schedule.dto.ScheduleParameters;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.ScheduleMetadataUpdateRequest;
 import com.mahmoud.maalflow.modules.installments.schedule.entity.InstallmentSchedule;
 import com.mahmoud.maalflow.modules.installments.contract.enums.ExpenseType;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
@@ -29,9 +30,8 @@ import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
 
 /**
  * Service for managing installment schedules with proper rounding to multiples of 50.
@@ -65,10 +67,9 @@ public class InstallmentScheduleService {
     private final ContractCompletionPolicy contractCompletionPolicy;
     private final ScheduleFactory scheduleFactory;
     private final ScheduleGenerationPolicy scheduleGenerationPolicy;
+    private final ScheduleStatusStateMachine scheduleStatusStateMachine;
 
 
-    private static final BigDecimal MINIMUM_INSTALLMENT = BigDecimal.valueOf(50);
-    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
 
 
     // ============== SCHEDULE GENERATION METHODS ==============
@@ -205,20 +206,20 @@ public class InstallmentScheduleService {
     /**
      * Delete all unpaid schedules for a contract (for regeneration)
      */
-    @Transactional
-    public void deleteUnpaidSchedules(Long contractId) {
-        List<InstallmentSchedule> schedules = scheduleRepository
-                .findByContractIdOrderBySequenceNumberAsc(contractId);
-
-        List<InstallmentSchedule> unpaidSchedules = schedules.stream()
-                .filter(s -> s.getStatus() == PaymentStatus.PENDING || s.getStatus() == PaymentStatus.LATE)
-                .collect(Collectors.toList());
-
-        if (!unpaidSchedules.isEmpty()) {
-            scheduleRepository.deleteAll(unpaidSchedules);
-            log.info("Deleted {} unpaid schedules for contract {}", unpaidSchedules.size(), contractId);
-        }
-    }
+//    @Transactional
+//    public void deleteUnpaidSchedules(Long contractId) {
+//        List<InstallmentSchedule> schedules = scheduleRepository
+//                .findByContractIdOrderBySequenceNumberAsc(contractId);
+//
+//        List<InstallmentSchedule> unpaidSchedules = schedules.stream()
+//                .filter(s -> s.getStatus() == PaymentStatus.PENDING || s.getStatus() == PaymentStatus.LATE)
+//                .collect(Collectors.toList());
+//
+//        if (!unpaidSchedules.isEmpty()) {
+//            scheduleRepository.deleteAll(unpaidSchedules);
+//            log.info("Deleted {} unpaid schedules for contract {}", unpaidSchedules.size(), contractId);
+//        }
+//    }
 
     // ============== RESCHEDULE METHODS ==============
 
@@ -282,7 +283,7 @@ public class InstallmentScheduleService {
 
         // Cancel old unpaid schedules
         unpaidSchedules.forEach(s -> {
-            s.setStatus(PaymentStatus.CANCELLED);
+            scheduleStatusStateMachine.transition(s, PaymentStatus.CANCELLED);
             scheduleRepository.save(s);
         });
 
@@ -332,24 +333,35 @@ public class InstallmentScheduleService {
     public InstallmentScheduleResponse createSchedule(InstallmentScheduleRequest request) {
         Contract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new ObjectNotFoundException("messages.contract.notFound", request.getContractId()));
-
         InstallmentSchedule schedule = scheduleMapper.toEntity(request);
         schedule.setContract(contract);
         schedule.setOriginalAmount(request.getAmount());
-
+        // Manual schedule creation defaults to principal-only unless generated/rescheduled by business policies.
+        schedule.setPrincipalAmount(request.getAmount());
+        schedule.setProfitAmount(BigDecimal.ZERO);
+        schedule.setPrincipalPaid(BigDecimal.ZERO);
+        schedule.setProfitPaid(BigDecimal.ZERO);
         if (schedule.getPaidAmount() == null) {
             schedule.setPaidAmount(BigDecimal.ZERO);
         }
-
+        if (schedule.getDiscountApplied() == null) {
+            schedule.setDiscountApplied(BigDecimal.ZERO);
+        }
+        if (schedule.getStatus() == null) {
+            schedule.setStatus(PaymentStatus.PENDING);
+        } else {
+            scheduleStatusStateMachine.validateTransition(PaymentStatus.PENDING, schedule.getStatus());
+        }
+        if (schedule.getProfitMonth() == null || schedule.getProfitMonth().isBlank()) {
+            schedule.setProfitMonth(schedule.getDueDate().format(MONTH_FORMAT));
+        }
         if (request.getCollectorId() != null) {
             User collector = userRepository.findById(request.getCollectorId())
                     .orElseThrow(() -> new ObjectNotFoundException("messages.user.notFound", request.getCollectorId()));
             schedule.setCollector(collector);
         }
-
         InstallmentSchedule saved = scheduleRepository.save(schedule);
         log.info("Created installment collection {} for contract {}", saved.getId(), contract.getId());
-
         return scheduleMapper.toResponse(saved);
     }
 
@@ -360,165 +372,80 @@ public class InstallmentScheduleService {
     public InstallmentScheduleResponse updateSchedule(Long id, InstallmentScheduleRequest request) {
         InstallmentSchedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("messages.schedule.notFound", id));
-
-        if (request.getAmount() != null) {
-            schedule.setAmount(request.getAmount());
+        if (request.getContractId() != null && !request.getContractId().equals(schedule.getContract().getId())) {
+            throw new BusinessException("messages.schedule.contractCannotChange");
         }
-        if (request.getDueDate() != null) {
+        BigDecimal requestedAmount = request.getAmount();
+        BigDecimal currentAmount = schedule.getAmount();
+        boolean amountChanged = requestedAmount != null && currentAmount != null && requestedAmount.compareTo(currentAmount) != 0;
+        BigDecimal requestedDiscount = request.getDiscountApplied();
+        BigDecimal currentDiscount = safeDecimal(schedule.getDiscountApplied());
+        boolean discountChanged = requestedDiscount != null && requestedDiscount.compareTo(currentDiscount) != 0;
+        boolean statusChanged = request.getStatus() != null && request.getStatus() != schedule.getStatus();
+        if (amountChanged || discountChanged || statusChanged) {
+            throw new BusinessException("Direct financial/status updates are blocked. Use payment or reschedule endpoints.");
+        }
+        boolean dueDateChanged = request.getDueDate() != null && !request.getDueDate().equals(schedule.getDueDate());
+        if (dueDateChanged && isFinanciallyLocked(schedule)) {
+            throw new BusinessException("Cannot change due date after payment/discount activity on this schedule.");
+        }
+        if (dueDateChanged) {
             schedule.setDueDate(request.getDueDate());
             schedule.setProfitMonth(request.getDueDate().format(MONTH_FORMAT));
         }
-        if (request.getStatus() != null) {
-            schedule.setStatus(request.getStatus());
-        }
         if (request.getNotes() != null) {
             schedule.setNotes(request.getNotes());
-        }
-        if (request.getDiscountApplied() != null) {
-            schedule.setDiscountApplied(request.getDiscountApplied());
         }
         if (request.getCollectorId() != null) {
             User collector = userRepository.findById(request.getCollectorId())
                     .orElseThrow(() -> new ObjectNotFoundException("messages.user.notFound", request.getCollectorId()));
             schedule.setCollector(collector);
         }
-
         InstallmentSchedule saved = scheduleRepository.save(schedule);
-        log.info("Updated installment collection {}", id);
-
+        log.info("Updated installment collection {} with safe non-financial fields only", id);
         return scheduleMapper.toResponse(saved);
     }
-
-    // ============== PAYMENT METHODS ==============
 
     /**
-     * @deprecated Use PaymentService.processPayment() instead.
-     * This method is kept for backward compatibility but should not be called directly.
-     * PaymentService.processPayment() is the SINGLE ENTRY POINT that handles:
-     * - Payment record creation
-     * - Daily ledger (cash tracking)
-     * - Capital return (principal portion)
-     * - Expense recording (ContractExpense, NOT Deduction)
-     * - Profit calculation
-     * - Schedule/Contract updates
+     *  Get schedule by ID
+     * @param id
+     * @return
      */
-    @Deprecated
+    /**
+     * Update non-financial metadata only.
+     */
     @Transactional
-    public InstallmentScheduleResponse markAsPaid(
-            Long scheduleId,
-            BigDecimal paidAmount,
-            LocalDate paidDate,
-            BigDecimal discount,
-            BigDecimal expense) {
-
-        InstallmentSchedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new ObjectNotFoundException("messages.schedule.notFound", scheduleId));
-
-        // Validations
-        if (schedule.getStatus() == PaymentStatus.CANCELLED) {
-            throw new BusinessException("messages.schedule.canceledCannotPay");
+    public InstallmentScheduleResponse updateScheduleMetadata(Long id, ScheduleMetadataUpdateRequest request) {
+        InstallmentSchedule schedule = scheduleRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("messages.schedule.notFound", id));
+        boolean dueDateChanged = request.getDueDate() != null && !request.getDueDate().equals(schedule.getDueDate());
+        if (dueDateChanged && isFinanciallyLocked(schedule)) {
+            throw new BusinessException("Cannot change due date after payment/discount activity on this schedule.");
         }
-        if (schedule.getStatus() == PaymentStatus.PAID) {
-            throw new BusinessException("messages.schedule.alreadyPaid");
+        if (dueDateChanged) {
+            schedule.setDueDate(request.getDueDate());
+            schedule.setProfitMonth(request.getDueDate().format(MONTH_FORMAT));
         }
-        if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("messages.payment.invalidAmount");
+        if (request.getNotes() != null) {
+            schedule.setNotes(request.getNotes());
         }
-
-        Contract contract = schedule.getContract();
-
-        // Apply discount if provided
-        if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal currentDiscount = schedule.getDiscountApplied() != null
-                    ? schedule.getDiscountApplied() : BigDecimal.ZERO;
-            schedule.setDiscountApplied(currentDiscount.add(discount));
+        if (Boolean.TRUE.equals(request.getClearCollector())) {
+            schedule.setCollector(null);
+        } else if (request.getCollectorId() != null) {
+            User collector = userRepository.findById(request.getCollectorId())
+                    .orElseThrow(() -> new ObjectNotFoundException("messages.user.notFound", request.getCollectorId()));
+            schedule.setCollector(collector);
         }
-
-        // Calculate amounts
-        BigDecimal totalDiscount = schedule.getDiscountApplied() != null
-                ? schedule.getDiscountApplied() : BigDecimal.ZERO;
-        BigDecimal currentPaid = schedule.getPaidAmount() != null
-                ? schedule.getPaidAmount() : BigDecimal.ZERO;
-        BigDecimal amountDue = schedule.getAmount().subtract(totalDiscount).subtract(currentPaid);
-
-        // Calculate actual payment (don't over-pay this collection)
-        BigDecimal actualPayment = paidAmount.min(amountDue);
-
-        // Update collection payment information
-        // Update collection payment information
-        if (paidDate == null) {
-            paidDate = LocalDate.now();
-        }
-        schedule.setPaidAmount(currentPaid.add(actualPayment));
-        schedule.setPaidDate(paidDate);
-
-        // Determine payment status
-        boolean isFullyPaid = schedule.getPaidAmount().compareTo(
-                schedule.getAmount().subtract(totalDiscount)) >= 0;
-
-        if (isFullyPaid) {
-            schedule.setStatus(PaymentStatus.PAID);
-        } else {
-            schedule.setStatus(PaymentStatus.PARTIALLY_PAID);
-        }
-
         InstallmentSchedule saved = scheduleRepository.save(schedule);
-
-        // Get current user (TODO: get from security context)
-        User currentUser = userRepository.findById(1L)
-                .orElseThrow(() -> new ObjectNotFoundException("messages.user.notFound", 1L));
-
-        // 1.add collection expense
-
-        if (expense.compareTo(BigDecimal.ZERO)> 0){
-            addExpenseToSchedule(contract.getId(), schedule.getId(), expense,
-                    "مصاريف اضافيه للقسط رقم " + schedule.getId() + "الخاص بالعقد رقم " + schedule.getContract().getId());
-        }
-        // 1. Create a Payment record
-        Payment payment = createPaymentRecord(saved, actualPayment, paidDate, discount, currentUser);
-
-        // 2. Record income in daily ledger (cash account)
-        LedgerRequest ledgerRequest = LedgerRequest.builder()
-                        .idempotencyKey("LEDGER-INSTALLMENT" + payment.getId())
-                        .type(LedgerType.INCOME)
-                        .amount(actualPayment)
-                        .source(LedgerSource.COLLECTION)
-                        .referenceType(LedgerReferenceType.INSTALLMENT_SCHEDULE)
-                        .referenceId(saved.getId())
-                .description("قسط داخل رقم: " + saved.getSequenceNumber() +
-                        " - خاص بعقد رقم: " + contract.getId())
-                        .date(paidDate)
-                        .build();
-
-
-        ledgerService.createLedgerEntry(ledgerRequest);
-
-
-        // 3. Process proportional profit for ANY payment (full or partial)
-        profitProcessingService.processProportionalInstallmentProfit(saved, actualPayment, paidDate, currentUser);
-
-        // 4. Update paid principal and profit amounts on the collection
-        updatePaidPrincipalAndProfit(saved, actualPayment);
-
-        // 5. Update contract remaining amount
-        // this Handled by installments Listeners
-//        updateContractRemainingAmount(contract);
-
-        // 6. Check if contract is completed
-
-        contractCompletionPolicy.checkAndCompleteContract(contract);
-
-        // 7. Handle overpayment - apply to next collection
-        BigDecimal overpayment = paidAmount.subtract(actualPayment);
-        if (overpayment.compareTo(BigDecimal.ZERO) > 0) {
-            //applyOverpaymentToNextSchedule(contract.getId(), overpayment, payment, currentUser);
-        }
-
-        log.info("Marked installment collection {} as {} with amount {} (discount: {})",
-                scheduleId, saved.getStatus(), actualPayment, discount);
-
+        log.info("Updated schedule metadata for {}", id);
         return scheduleMapper.toResponse(saved);
+    }    public  InstallmentScheduleResponse getScheduleById(Long id) {
+        return scheduleRepository.findById(id)
+                .map(scheduleMapper::toResponse)
+                .orElseThrow(() -> new ObjectNotFoundException("messages.schedule.notFound", id));
     }
+    // ============== PAYMENT METHODS ==============
+
 
     /**
      * Create Payment record for audit trail
@@ -537,7 +464,7 @@ public class InstallmentScheduleService {
                 .installmentSchedule(schedule)
                 .amount(amount)
                 .paymentMethod(PaymentMethod.CASH)
-                .status(com.mahmoud.maalflow.modules.installments.payment.enums.PaymentStatus.COMPLETED)
+                .status(com.mahmoud.maalflow.modules.installments.payment.enums.PaymentProcessingStatus.COMPLETED)
                 .paymentDate(LocalDateTime.now())
                 .actualPaymentDate(paidDate)
                 .isEarlyPayment(paidDate.isBefore(schedule.getDueDate()))
@@ -582,13 +509,14 @@ public class InstallmentScheduleService {
     /**
      * Get all schedules for a contract
      */
-    public List<InstallmentScheduleResponse> getSchedulesByContractId(Long contractId) {
-        List<InstallmentSchedule> schedules = scheduleRepository
-                .findByContractIdOrderBySequenceNumberAsc(contractId);
+    public Page<InstallmentScheduleResponse> getSchedulesByContractId(Pageable pageable, Long contractId) {
 
-        return schedules.stream()
-                .map(scheduleMapper::toResponse)
-                .collect(Collectors.toList());
+//        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
+        Page<InstallmentSchedule> schedules = scheduleRepository
+                .findByContractIdOrderBySequenceNumberAsc(pageable, contractId);
+
+        return schedules.map(scheduleMapper::toResponse);
     }
 
     /**
@@ -596,7 +524,6 @@ public class InstallmentScheduleService {
      */
     public List<InstallmentScheduleResponse> getOverdueSchedules() {
         List<InstallmentSchedule> schedules = scheduleRepository.findOverdueSchedules(LocalDate.now());
-
         return schedules.stream()
                 .map(scheduleMapper::toResponse)
                 .collect(Collectors.toList());
@@ -644,6 +571,7 @@ public class InstallmentScheduleService {
      * Get schedules by status
      */
     public Page<InstallmentScheduleResponse> getSchedulesByStatus(PaymentStatus status, Pageable pageable) {
+
         Page<InstallmentSchedule> schedules = scheduleRepository.findByStatus(status, pageable);
 
         List<InstallmentScheduleResponse> responses = schedules.stream()
@@ -651,6 +579,48 @@ public class InstallmentScheduleService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(responses, pageable, schedules.getTotalElements());
+    }
+
+    /**
+     * Unified multi-filter paginated search for schedules.
+     */
+    public Page<InstallmentScheduleResponse> searchSchedules(
+            Pageable pageable,
+            Long contractId,
+            PaymentStatus status,
+            String name,
+            Integer paymentDay,
+            LocalDate startDate,
+            LocalDate endDate,
+            boolean overdueOnly,
+            Integer dueSoonDays
+    ) {
+        LocalDate today = LocalDate.now();
+        LocalDate dueSoonDate = (!overdueOnly && dueSoonDays != null && dueSoonDays > 0)
+                ? today.plusDays(dueSoonDays)
+                : null;
+
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(
+                            Sort.Order.asc("dueDate")
+                    ));
+        }
+
+        Page<InstallmentSchedule> schedules = scheduleRepository.searchSchedules(
+                contractId,
+                status,
+                name,
+                paymentDay,
+                startDate,
+                endDate,
+                overdueOnly,
+                today,
+                dueSoonDate,
+                pageable
+        );
+
+        return schedules.map(scheduleMapper::toResponse);
     }
 
     /**
@@ -676,7 +646,7 @@ public class InstallmentScheduleService {
                 .findByContractIdOrderBySequenceNumberAsc(contractId);
 
         List<InstallmentSchedule> unpaidSchedules = schedules.stream()
-                .filter(s -> s.getStatus() == PaymentStatus.PENDING || s.getStatus() == PaymentStatus.LATE)
+                .filter(s -> s.getStatus() == PaymentStatus.PENDING || s.getStatus() == PaymentStatus.LATE || s.getStatus() == PaymentStatus.PARTIALLY_PAID)
                 .collect(Collectors.toList());
 
         if (unpaidSchedules.isEmpty()) {
@@ -692,11 +662,16 @@ public class InstallmentScheduleService {
                     Math.min(contract.getAgreedPaymentDay(), newDueDate.lengthOfMonth())
             );
 
+            LocalDate oldDate = schedule.getDueDate();
             schedule.setDueDate(newDueDate);
             schedule.setProfitMonth(newDueDate.format(MONTH_FORMAT));
 
             // Add note about the skip
-            String skipNote = "تم تأجيل هذا القسط بسبب: " + reason + " (بتاريخ: " + LocalDate.now() + ")";
+//            String skipNote = "تم تأجيل هذا القسط بسبب: " + reason + " (بتاريخ: " + LocalDate.now() + ")";
+            String skipNote = String.format(
+                    " ترحيل القسط من تاريخ %s إلى %s بسبب: %s وذلك بتاريخ %s",
+                    oldDate, schedule.getDueDate(), reason, LocalDate.now()
+            );
             String currentNotes = schedule.getNotes();
             if (currentNotes != null && !currentNotes.isEmpty()) {
                 schedule.setNotes(currentNotes + " | " + skipNote);
@@ -737,7 +712,18 @@ public class InstallmentScheduleService {
         return exists;
     }
 
-    // ============== HELPER CLASSES ==============
+    private BigDecimal safeDecimal(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+    private boolean isFinanciallyLocked(InstallmentSchedule schedule) {
+        return safeDecimal(schedule.getPaidAmount()).compareTo(BigDecimal.ZERO) > 0
+                || safeDecimal(schedule.getPrincipalPaid()).compareTo(BigDecimal.ZERO) > 0
+                || safeDecimal(schedule.getProfitPaid()).compareTo(BigDecimal.ZERO) > 0
+                || safeDecimal(schedule.getDiscountApplied()).compareTo(BigDecimal.ZERO) > 0
+                || schedule.getStatus() == PaymentStatus.PAID
+                || schedule.getStatus() == PaymentStatus.PARTIALLY_PAID
+                || schedule.getStatus() == PaymentStatus.CANCELLED;
+    }    // ============== HELPER CLASSES ==============
 
 
     /**
@@ -766,4 +752,5 @@ public class InstallmentScheduleService {
         // لإTODO: These values could be stored in separate fields if needed for detailed tracking
         // For now, we're tracking the proportional amounts in the profit processing service
     }
+
 }

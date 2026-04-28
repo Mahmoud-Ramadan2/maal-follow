@@ -3,6 +3,7 @@ package com.mahmoud.maalflow.modules.installments.schedule.controller;
 import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleRequest;
 import com.mahmoud.maalflow.modules.installments.schedule.dto.InstallmentScheduleResponse;
 import com.mahmoud.maalflow.modules.installments.schedule.dto.MonthlyCollectionSummary;
+import com.mahmoud.maalflow.modules.installments.schedule.dto.ScheduleMetadataUpdateRequest;
 import com.mahmoud.maalflow.modules.installments.schedule.service.InstallmentScheduleService;
 import com.mahmoud.maalflow.modules.installments.contract.enums.PaymentStatus;
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,19 +60,6 @@ public class InstallmentScheduleController {
     /**
      * Generate installment schedules with custom parameters
      *
-     * You can provide:
-     * - numberOfMonths only: System calculates monthly amount
-     * - monthlyAmount only: System calculates number of months
-     * - Both: System validates they match
-     * - putRemainderFirst: true to put remainder in first installment, false for last
-     *
-     * POST /api/v1/installment-schedules/generate/{contractId}/custom
-     *
-     * Examples:
-     * 1. ?numberOfMonths=12 - Generate 12 installments, calculate amount
-     * 2. ?monthlyAmount=500 - Use 500 per month, calculate number of months
-     * 3. ?numberOfMonths=12&monthlyAmount=500 - Use both (must match)
-     * 4. ?numberOfMonths=12&putRemainderFirst=true - Put remainder in first installment
      */
     @PostMapping("/generate/{contractId}/custom")
     public ResponseEntity<List<InstallmentScheduleResponse>> generateSchedulesCustom(
@@ -85,11 +74,7 @@ public class InstallmentScheduleController {
 
     /**
      * Swap remainder amount between first and last installment
-     * Use this after generation to move the remainder to the other end
-     *
      * Example: If you have [100, 50, 50, 50], swap to get [50, 50, 50, 100]
-     *
-     * PUT /api/v1/installment-schedules/swap-remainder/{contractId}
      */
     @PutMapping("/swap-remainder/{contractId}")
     public ResponseEntity<List<InstallmentScheduleResponse>> swapRemainderPosition(
@@ -99,15 +84,15 @@ public class InstallmentScheduleController {
     }
 
     /**
-     * Delete all unpaid schedules for a contract (for regeneration)
+     * Delete all unpaidby-name schedules for a contract (for regeneration)
      *
      * DELETE /api/v1/installment-schedules/unpaid/{contractId}
      */
-    @DeleteMapping("/unpaid/{contractId}")
-    public ResponseEntity<Void> deleteUnpaidSchedules(@PathVariable Long contractId) {
-        scheduleService.deleteUnpaidSchedules(contractId);
-        return ResponseEntity.noContent().build();
-    }
+//    @DeleteMapping("/unpaid/{contractId}")
+//    public ResponseEntity<Void> deleteUnpaidSchedules(@PathVariable Long contractId) {
+//        scheduleService.deleteUnpaidSchedules(contractId);
+//        return ResponseEntity.noContent().build();
+//    }
 
     // ============== RESCHEDULE ENDPOINTS ==============
 
@@ -117,9 +102,6 @@ public class InstallmentScheduleController {
      * PUT /api/v1/installment-schedules/reschedule/{contractId}
      *
      * Parameters:
-     * - newNumberOfMonths: Number of months for new collection (optional if monthlyAmount provided)
-     * - newMonthlyAmount: Monthly amount for new collection (optional if numberOfMonths provided)
-     * - newStartDate: Start date for new collection
      */
     @PutMapping("/reschedule/{contractId}")
     public ResponseEntity<List<InstallmentScheduleResponse>> rescheduleUnpaidInstallments(
@@ -154,27 +136,24 @@ public class InstallmentScheduleController {
      *
      * POST /api/v1/installment-schedules
      */
-    @PostMapping
-    public ResponseEntity<InstallmentScheduleResponse> createSchedule(
-            @Valid @RequestBody InstallmentScheduleRequest request) {
+//    @PostMapping
+//    public ResponseEntity<InstallmentScheduleResponse> createSchedule(
+//            @Valid @RequestBody InstallmentScheduleRequest request) {
+//
+//        return ResponseEntity.status(HttpStatus.CREATED)
+//                .body(scheduleService.createSchedule(request));
+//    }
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(scheduleService.createSchedule(request));
-    }
 
-    /**
-     * Update an existing installment collection
-     *
-     * PUT /api/v1/installment-schedules/{id}
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<InstallmentScheduleResponse> updateSchedule(
+    @PatchMapping("/{id}/metadata")
+    public ResponseEntity<InstallmentScheduleResponse> updateScheduleMetadata(
             @PathVariable Long id,
-            @Valid @RequestBody InstallmentScheduleRequest request) {
-
-        return ResponseEntity.ok(scheduleService.updateSchedule(id, request));
+            @Valid @RequestBody ScheduleMetadataUpdateRequest request) {
+        return ResponseEntity.ok(scheduleService.updateScheduleMetadata(id, request));
+    }    @GetMapping("/{id}")
+    public ResponseEntity<InstallmentScheduleResponse> getScheduleById(@PathVariable Long id) {
+        return ResponseEntity.ok(scheduleService.getScheduleById(id));
     }
-
 
     // ============== QUERY ENDPOINTS ==============
 
@@ -184,10 +163,11 @@ public class InstallmentScheduleController {
      * GET /api/v1/installment-schedules/contract/{contractId}
      */
     @GetMapping("/contract/{contractId}")
-    public ResponseEntity<List<InstallmentScheduleResponse>> getByContract(
+    public ResponseEntity<Page<InstallmentScheduleResponse>> getByContract(
+            Pageable pageable,
             @PathVariable Long contractId) {
 
-        return ResponseEntity.ok(scheduleService.getSchedulesByContractId(contractId));
+        return ResponseEntity.ok(scheduleService.getSchedulesByContractId(pageable, contractId));
     }
 
     /**
@@ -248,6 +228,45 @@ public class InstallmentScheduleController {
             @RequestParam(defaultValue = "20") int size) {
 
         return ResponseEntity.ok(scheduleService.getSchedulesByStatus(status, PageRequest.of(page, size)));
+    }
+
+    /**
+     * Unified multi-filter search endpoint.
+     *
+     * GET /api/v1/installment-schedules/search
+     *
+     * Supported optional filters:
+     * - contractId
+     * - status
+     * - name (customer name)
+     * - paymentDay
+     * - startDate / endDate (dueDate range)
+     * - overdueOnly
+     * - dueSoonDays
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<InstallmentScheduleResponse>> search(
+            Pageable pageable,
+            @RequestParam(required = false) Long contractId,
+            @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer paymentDay,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(defaultValue = "false") boolean overdueOnly,
+            @RequestParam(required = false) Integer dueSoonDays
+    ) {
+        return ResponseEntity.ok(scheduleService.searchSchedules(
+                pageable,
+                contractId,
+                status,
+                name,
+                paymentDay,
+                startDate,
+                endDate,
+                overdueOnly,
+                dueSoonDays
+        ));
     }
 
     /**

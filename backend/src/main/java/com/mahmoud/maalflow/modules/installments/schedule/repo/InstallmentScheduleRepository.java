@@ -20,14 +20,45 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
     // Find all schedules for a specific contract
     List<InstallmentSchedule> findByContractIdOrderBySequenceNumberAsc(Long contractId);
 
+    Page<InstallmentSchedule> findByContractIdOrderBySequenceNumberAsc(Pageable pageable, Long contractId);
+
     // Find schedules by status
     Page<InstallmentSchedule> findByStatus(PaymentStatus status, Pageable pageable);
 
-    // Find overdue payments (due date passed and status is PENDING or LATE)
+    @Query(value = """
+        SELECT s FROM InstallmentSchedule s
+        JOIN s.contract c
+        JOIN c.customer cu
+        WHERE (:contractId IS NULL OR c.id = :contractId)
+          AND (:status IS NULL OR s.status = :status)
+          AND (:paymentDay IS NULL OR c.agreedPaymentDay = :paymentDay)
+          AND (:name IS NULL OR TRIM(:name) = '' OR LOWER(cu.name) LIKE LOWER(CONCAT('%', :name, '%')))
+          AND (:startDate IS NULL OR s.dueDate >= :startDate)
+          AND (:endDate IS NULL OR s.dueDate <= :endDate)
+          AND (
+                (:overdueOnly = FALSE AND :dueSoonDate IS NULL)
+                OR (:overdueOnly = TRUE AND s.dueDate < :today AND s.status IN ('PARTIALLY_PAID', 'PENDING', 'LATE'))
+                OR (:dueSoonDate IS NOT NULL AND s.dueDate BETWEEN :today AND :dueSoonDate AND s.status  IN ('PARTIALLY_PAID', 'PENDING', 'LATE'))
+                )
+        """)
+    Page<InstallmentSchedule> searchSchedules(
+            @Param("contractId") Long contractId,
+            @Param("status") PaymentStatus status,
+            @Param("name") String name,
+            @Param("paymentDay") Integer paymentDay,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("overdueOnly") boolean overdueOnly,
+            @Param("today") LocalDate today,
+            @Param("dueSoonDate") LocalDate dueSoonDate,
+            Pageable pageable
+    );
+
+    // Find overdue payments (due date passed and status is PARTIALLY_PAID,  PENDING or LATE)
     @Query("""
         SELECT s FROM InstallmentSchedule s 
         WHERE s.dueDate < :currentDate 
-        AND s.status IN ('PENDING', 'LATE')
+        AND s.status IN ('PARTIALLY_PAID', 'PENDING', 'LATE')
         ORDER BY s.dueDate ASC
     """)
     List<InstallmentSchedule> findOverdueSchedules(@Param("currentDate") LocalDate currentDate);
@@ -77,7 +108,6 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
         SELECT s FROM InstallmentSchedule s 
         JOIN s.contract c
         WHERE c.customer.name LIKE %:name% 
-        AND s.status IN ('PENDING', 'LATE')
         ORDER BY s.dueDate ASC
     """)
     List<InstallmentSchedule> findPendingByCustomerName(@Param("name") String name);

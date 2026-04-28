@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MINIMUM_INSTALLMENT;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.ROUNDING_UNIT;
+
 
 /**
  *  This component encapsulates the business rules and logic for determining the installment schedule parameters, such as the number of months and monthly installment amount, based on the total contract amount and user inputs. It ensures that the calculated schedule adheres to the defined policies,
@@ -17,8 +20,6 @@ import java.math.RoundingMode;
 public class ScheduleGenerationPolicy {
 
 
-    private static final BigDecimal MINIMUM_INSTALLMENT = BigDecimal.valueOf(50);
-    private static final BigDecimal ROUNDING_UNIT = BigDecimal.valueOf(50);
     /**
      * Calculate collection parameters (number of months and monthly amount)
      */

@@ -13,6 +13,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MINIMUM_INSTALLMENT;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MONTH_FORMAT;
+
 /**
  *  This component is responsible for generating installment schedules based on the contract details and financials.
  *  It calculates the installment amounts, due dates, and distributes the principal and profit amounts proportion
@@ -22,8 +25,6 @@ import java.util.List;
 public class ScheduleFactory {
     private final ScheduleGenerationPolicy scheduleGenerationPolicy;
 
-    private static final DateTimeFormatter MONTH_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM");
-    private static final BigDecimal MINIMUM_INSTALLMENT = BigDecimal.valueOf(50);
 
 
     /**
