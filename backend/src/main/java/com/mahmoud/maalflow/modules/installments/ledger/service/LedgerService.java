@@ -419,5 +419,70 @@ public class LedgerService {
 
         return createLedgerEntry(request);
     }
+
+    /**
+     * Creates an expense entry for partner commission payout.
+     */
+    @Transactional
+    public LedgerResponse recordPartnerCommissionExpense(Long partnerId, BigDecimal amount,
+                                                         Long commissionId, String description) {
+        String idempotencyKey = "COMMISSION_" + commissionId;
+
+        Optional<DailyLedger> existing = ledgerRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            log.info("Idempotent commission expense request detected for commission ID: {}", commissionId);
+            return ledgerMapper.toResponse(existing.get());
+        }
+
+        LedgerRequest request = LedgerRequest.builder()
+                .idempotencyKey(idempotencyKey)
+                .type(LedgerType.EXPENSE)
+                .amount(amount)
+                .source(LedgerSource.PROFIT_DISTRIBUTION)
+                .referenceType(LedgerReferenceType.PROFIT_DISTRIBUTION)
+                .referenceId(commissionId)
+                .partnerId(partnerId)
+                .description(description != null ? description : "Partner commission payout")
+                .date(LocalDate.now())
+                .build();
+
+        log.info("Recording partner commission expense - Partner ID: {}, Amount: {}, Commission ID: {}",
+                partnerId, amount, commissionId);
+
+        return createLedgerEntry(request);
+    }
+
+    /**
+     * Creates an expense entry for partner monthly profit payout.
+     */
+    @Transactional
+    public LedgerResponse recordPartnerProfitDistributionExpense(Long partnerId, BigDecimal amount,
+                                                                 Long partnerMonthlyProfitId, String description) {
+        String idempotencyKey = "PROFIT_DISTRIBUTION_" + partnerMonthlyProfitId ;
+
+        Optional<DailyLedger> existing = ledgerRepository.findByIdempotencyKey(idempotencyKey);
+        if (existing.isPresent()) {
+            log.info("Idempotent profit distribution expense request detected for partner monthly profit ID: {}",
+                    partnerMonthlyProfitId);
+            return ledgerMapper.toResponse(existing.get());
+        }
+
+        LedgerRequest request = LedgerRequest.builder()
+                .idempotencyKey(idempotencyKey)
+                .type(LedgerType.EXPENSE)
+                .amount(amount)
+                .source(LedgerSource.PROFIT_DISTRIBUTION)
+                .referenceType(LedgerReferenceType.PROFIT_DISTRIBUTION)
+                .referenceId(partnerMonthlyProfitId)
+                .partnerId(partnerId)
+                .description(description != null ? description : "Partner monthly profit payout")
+                .date(LocalDate.now())
+                .build();
+
+        log.info("Recording partner monthly profit expense - Partner ID: {}, Amount: {}, Record ID: {}",
+                partnerId, amount, partnerMonthlyProfitId);
+
+        return createLedgerEntry(request);
+    }
 }
 
