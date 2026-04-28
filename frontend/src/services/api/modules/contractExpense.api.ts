@@ -3,7 +3,7 @@ import type {
     ContractExpense, ContractExpenseRequest, ExpenseType,
 } from '@/types/modules/contract.types'
 
-const BASE = '/v1/contract-expenses'
+const BASE = '/contract-expenses'
 
 export const contractExpenseApi = {
     /** POST /api/v1/contract-expenses */

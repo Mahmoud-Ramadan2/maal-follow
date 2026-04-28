@@ -1,7 +1,7 @@
 import { api } from '@services/api'
 import type { PartnerWithdrawal, PartnerWithdrawalRequest } from '@/types/modules/partner.types'
 
-const BASE = '/v1/partner-withdrawals'
+const BASE = '/partner-withdrawals'
 
 export const partnerWithdrawalApi = {
     async create(data: PartnerWithdrawalRequest): Promise<PartnerWithdrawal> {
@@ -18,6 +18,9 @@ export const partnerWithdrawalApi = {
     },
     async process(id: number): Promise<PartnerWithdrawal> {
         return api.post<PartnerWithdrawal>(`${BASE}/${id}/process`)
+    },
+    async reject(id: number, reason?: string): Promise<PartnerWithdrawal> {
+        return api.post<PartnerWithdrawal>(`${BASE}/${id}/reject`, null, reason ? { params: { reason } } : undefined)
     },
     async getById(id: number): Promise<PartnerWithdrawal> {
         return api.get<PartnerWithdrawal>(`${BASE}/${id}`)

@@ -1,7 +1,7 @@
 import { api } from '@services/api'
 import type { PaginatedResponse } from '@/types/common.types'
 import type {
-    Contract, ContractRequest, ContractStatus,
+    Contract, ContractRequest, ContractStatus, ContractMetadataUpdateRequest,
 } from '@/types/modules/contract.types'
 
 const BASE = '/contracts'
@@ -15,6 +15,11 @@ export const contractApi = {
     /** PUT /api/v1/contracts/{id} */
     async update(id: number, data: ContractRequest): Promise<Contract> {
         return api.put<Contract>(`${BASE}/${id}`, data)
+    },
+
+    /** PATCH /api/v1/contracts/{id}/metadata */
+    async updateMetadata(id: number, data: ContractMetadataUpdateRequest): Promise<Contract> {
+        return api.patch<Contract>(`${BASE}/${id}/metadata`, data)
     },
 
     /** GET /api/v1/contracts/{id} */

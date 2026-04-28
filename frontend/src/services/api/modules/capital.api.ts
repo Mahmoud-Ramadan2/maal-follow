@@ -6,8 +6,8 @@ import type {
     CapitalTransactionType, CapitalMonthlySummary,
 } from '@/types/modules/capital.types'
 
-const POOL_BASE = '/v1/partner/capital-pool'
-const TX_BASE = '/v1/partner/capital-transactions'
+const POOL_BASE = '/capital-pool'
+const TX_BASE = '/capital-transactions'
 
 export const capitalPoolApi = {
     async getCurrent(): Promise<CapitalPool> {

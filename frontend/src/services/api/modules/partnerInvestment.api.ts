@@ -1,7 +1,7 @@
 import { api } from '@services/api'
 import type { PartnerInvestment, PartnerInvestmentRequest } from '@/types/modules/partner.types'
 
-const BASE = '/v1/partner-investments'
+const BASE = '/partner-investments'
 
 export const partnerInvestmentApi = {
     async create(data: PartnerInvestmentRequest): Promise<PartnerInvestment> {
