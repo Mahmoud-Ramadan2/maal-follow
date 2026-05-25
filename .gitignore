@@ -15,6 +15,7 @@ dist-ssr
 # Environment files
 # .env.development and .env.production are tracked in version control
 # Local overrides should NEVER be committed
+.env
 .env.local
 .env.*.local
 

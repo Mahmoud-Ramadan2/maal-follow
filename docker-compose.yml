@@ -1,0 +1,82 @@
+services:
+  # Backend service
+  backend:
+      image: mahmoudramadan2/maal-follow-backend:test
+      container_name: maal-follow-backend
+      restart: unless-stopped
+        # Environment variables are loaded from .env file automatically
+      env_file:
+        - .env
+      ports:
+        - "8080:8080"
+      depends_on:
+        maal-follow-mysql:
+          condition: service_healthy
+      healthcheck:
+        test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+        start_period: 60s
+      networks:
+        - server-side
+
+  # Frontend service
+  frontend:
+    image: mahmoudramadan2/maal-follow-frontend:test
+    container_name: maal-follow-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - client-side
+  #MSYQL service
+  maal-follow-mysql:
+    image: mysql:9.0
+    container_name: maal-follow-mysql
+    healthcheck:
+      test: [ "CMD", "mysql", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}", "-e", "SELECT 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/monitoring/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    ports:
+      - "3005:3000"
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/monitoring/grafana/provisioning/datasources
+
+networks:
+  server-side:
+    driver: bridge
+  client-side:
+    driver: bridge
+
+volumes:
+  db_data:
