@@ -2,7 +2,6 @@
   "appName": "El-Hamd",
   "welcome": "Welcome",
   "login": "Login",
-  "logout": "Logout",
   "username": "Username",
   "password": "Password",
   "email": "Email",
@@ -39,6 +38,7 @@
     "profile": "Profile",
     "settings": "Settings",
     "logout": "Logout",
+    "logoutAll": "Logout from all devices",
     "language": "Language"
   },
 

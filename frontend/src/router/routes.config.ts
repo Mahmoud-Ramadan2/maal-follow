@@ -6,6 +6,9 @@
 // navigation helpers, breadcrumbs, etc.
 // ============================================================
 
+import type { AuthRole } from '@/types/auth.types'
+import { AUTH_ROLES } from '@/types/auth.types'
+
 // ────────────────────────────────────────────────────────────
 // Static paths
 // ────────────────────────────────────────────────────────────
@@ -14,8 +17,9 @@ export const APP_ROUTES = {
     // ── Auth ────────────────────────────────────────────────
     AUTH: {
         LOGIN: '/login',
-        REGISTER: '/register',
     },
+
+    FORBIDDEN: '/forbidden',
 
     // ── Dashboard ───────────────────────────────────────────
     DASHBOARD: '/',
@@ -116,6 +120,10 @@ export const APP_ROUTES = {
 
     // ── Catch-all ───────────────────────────────────────────
     NOT_FOUND: '*',
+} as const
+
+export const ROUTE_ACCESS = {
+    USERS: [AUTH_ROLES.ADMIN] as readonly AuthRole[],
 } as const
 
 // ────────────────────────────────────────────────────────────

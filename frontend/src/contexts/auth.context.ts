@@ -5,12 +5,14 @@ export interface AuthContextValue {
     user: AuthUser | null
     isAuthenticated: boolean
     isLoading: boolean
-    login: (username: string, password: string) => Promise<void>
-    logout: () => void
+    login: (email: string, password: string) => Promise<void>
+    logout: () => Promise<void>
+    logoutAll: () => Promise<void>
     checkAuth: () => Promise<void>
 }
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+export const AuthContext =
+    createContext<AuthContextValue | undefined>(undefined)
 
 export const useAuth = () => {
     const context = useContext(AuthContext)
@@ -19,5 +21,3 @@ export const useAuth = () => {
     }
     return context
 }
-
-

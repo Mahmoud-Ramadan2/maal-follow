@@ -4,6 +4,8 @@
    ============================================================ */
 
 :root {
+    color-scheme: light;
+
     /* ----- Colors — Primary ----- */
     --color-primary-50: #eff6ff;
     --color-primary-100: #dbeafe;
@@ -153,6 +155,57 @@
     --direction: ltr;
     --start: left;
     --end: right;
+}
+
+[data-theme='dark'] {
+    color-scheme: dark;
+
+    /* ----- Colors — Primary ----- */
+    --color-primary-50: #172554;
+    --color-primary-100: #1e3a8a;
+    --color-primary-200: #1d4ed8;
+    --color-primary-300: #2563eb;
+    --color-primary-400: #3b82f6;
+    --color-primary: #60a5fa;
+    --color-primary-600: #3b82f6;
+    --color-primary-700: #2563eb;
+    --color-primary-800: #1d4ed8;
+    --color-primary-900: #1e40af;
+
+    /* ----- Colors — Secondary ----- */
+    --color-secondary-50: #0f172a;
+    --color-secondary-100: #111827;
+    --color-secondary-200: #1f2937;
+    --color-secondary-300: #374151;
+    --color-secondary-400: #4b5563;
+    --color-secondary: #9ca3af;
+    --color-secondary-600: #d1d5db;
+    --color-secondary-700: #e5e7eb;
+    --color-secondary-800: #f3f4f6;
+    --color-secondary-900: #f9fafb;
+
+    /* ----- Backgrounds ----- */
+    --bg-primary: #0b1220;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1f2937;
+    --bg-overlay: rgba(2, 6, 23, 0.72);
+
+    /* ----- Text ----- */
+    --text-primary: #f9fafb;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #0f172a;
+
+    /* ----- Borders / Shadows ----- */
+    --border-color: #334155;
+    --border-color-hover: #475569;
+    --border-color-focus: var(--color-primary-300);
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.38), 0 1px 2px -1px rgba(0, 0, 0, 0.38);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.42), 0 2px 4px -2px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.48), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.52), 0 8px 10px -6px rgba(0, 0, 0, 0.44);
+    --shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.4);
 }
 
 /* ============================================================

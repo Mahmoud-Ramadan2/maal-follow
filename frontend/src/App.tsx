@@ -9,17 +9,41 @@ import './config/i18n.config'
 import './styles/index.css'
 
 // ── Providers ───────────────────────────────────────────────
-import { AuthProvider, LanguageProvider, useLanguage } from '@contexts/index'
+import { AuthProvider, LanguageProvider, ThemeProvider, useAuth, useLanguage, useTheme } from './contexts'
+import PageLoader from '@components/common/PageLoader'
 
 // ── Router ──────────────────────────────────────────────────
 import { router } from './router'
 
 // ────────────────────────────────────────────────────────────
-// Inner app shell — lives INSIDE LanguageProvider so
-// useLanguage() can read the current direction for the toast.
+// Inner app shell — lives inside the providers so
+// useLanguage() and useTheme() can read global UI state.
 // ────────────────────────────────────────────────────────────
 function AppShell() {
     const { direction } = useLanguage()
+    const { resolvedTheme } = useTheme()
+    const { isLoading } = useAuth()
+
+    if (isLoading) {
+        return (
+            <>
+                <PageLoader />
+
+                <ToastContainer
+                    position={direction === 'rtl' ? 'top-left' : 'top-right'}
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={direction === 'rtl'}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme={resolvedTheme}
+                />
+            </>
+        )
+    }
 
     return (
         <>
@@ -35,7 +59,7 @@ function AppShell() {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
-                theme="colored"
+                theme={resolvedTheme}
             />
         </>
     )
@@ -45,21 +69,23 @@ function AppShell() {
 // Root component — provider wrapper order:
 //
 //   1. AuthProvider     → user state, login/logout
-//   2. LanguageProvider → language + dir on <html>
-//   3. AppShell         → router + RTL-aware toast
+//   2. ThemeProvider    → light/dark/system mode
+//   3. LanguageProvider → language + dir on <html>
+//   4. AppShell         → router + theme-aware toast
 //
-// AuthProvider is outermost so the interceptor (which clears
-// the token on 401) doesn't depend on i18n being ready.
-// LanguageProvider wraps AppShell so useLanguage() works
-// inside the toast configuration.
+// AuthProvider stays outermost so auth/session bootstrap runs
+// before the rest of the app tries to render protected content.
+// ThemeProvider is kept above LanguageProvider so the shell can
+// read both UI systems without coupling them together.
 // ────────────────────────────────────────────────────────────
 export default function App() {
     return (
         <AuthProvider>
-            <LanguageProvider>
-                <AppShell />
-            </LanguageProvider>
+            <ThemeProvider>
+                <LanguageProvider>
+                    <AppShell />
+                </LanguageProvider>
+            </ThemeProvider>
         </AuthProvider>
     )
 }
-

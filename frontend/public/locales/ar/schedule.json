@@ -99,7 +99,7 @@
   "monthlySummary": {
     "title": "ملخص التحصيل الشهري",
     "expectedAmount": "المتوقع",
-    "actualAmount": "المحاسب",
+    "actualAmount": "المُحَصَّل",
     "shortfall": "العجز",
     "fetchError": "فشل في جلب ملخص الشهر"
   },

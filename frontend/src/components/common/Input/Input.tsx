@@ -1,5 +1,6 @@
 import { forwardRef } from 'react'
 import type { InputHTMLAttributes } from 'react'
+import { classNames } from '@utils/helpers/classNames'
 import './Input.css'
 
 // ────────────────────────────────────────────────────────────
@@ -42,11 +43,11 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>
  */
 const Input = forwardRef<HTMLInputElement, InputProps>(
     ({ label, name, error, className, required, ...rest }, ref) => {
-        const inputCls = [
+        const inputCls = classNames(
             'form-field__input',
             error && 'form-field__input--error',
             className,
-        ].filter(Boolean).join(' ')
+        )
 
         return (
             <div className="form-field">
@@ -80,4 +81,3 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input'
 export default Input
-

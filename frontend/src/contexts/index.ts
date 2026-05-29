@@ -1,7 +1,11 @@
-export { AuthProvider, useAuth } from './AuthContext'
+export { useAuth } from './useAuth'
+export { AuthProvider } from './AuthContext'
 export { LanguageProvider } from './LanguageContext'
 export { LanguageContext } from './language.context'
 export { useLanguage } from './useLanguage'
 export type { Language, Direction, LanguageContextType } from './language.context'
-
-
+export { ThemeProvider } from './ThemeContext'
+export { ThemeContext } from './theme.context'
+export { useTheme } from './useTheme'
+export type { ThemeMode, ResolvedThemeMode } from '@config/theme.config'
+export type { ThemeContextType } from './theme.context'

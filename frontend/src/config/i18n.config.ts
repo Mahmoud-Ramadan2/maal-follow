@@ -19,6 +19,7 @@ export type SupportedLanguage =
 // ────────────────────────────────────────────
 export const NAMESPACES = [
     'common',
+    'dashboard',
     'purchase',
     'payment',
     'partner',

@@ -21,3 +21,16 @@ export function formatCurrency(
         maximumFractionDigits: 2,
     }).format(amount)
 }
+
+/**
+ * Format a number using compact notation for dashboard KPIs.
+ */
+export function formatNumberCompact(value: number | null | undefined): string {
+    if (value == null) return '—'
+
+    return new Intl.NumberFormat(undefined, {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+    }).format(value)
+}
+

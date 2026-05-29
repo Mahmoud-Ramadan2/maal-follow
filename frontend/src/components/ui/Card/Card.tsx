@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
+import { classNames } from '@utils/helpers/classNames'
 import './Card.css'
 
 // ────────────────────────────────────────────────────────────
@@ -41,11 +42,19 @@ interface CardProps {
  * ```
  */
 export default function Card({ title, children, footer, onClick, className }: CardProps): ReactNode {
-    const cls = [
+    const cls = classNames(
         'card',
         onClick && 'card--clickable',
         className,
-    ].filter(Boolean).join(' ')
+    )
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (!onClick) return
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            onClick()
+        }
+    }
 
     return (
         <div
@@ -53,7 +62,7 @@ export default function Card({ title, children, footer, onClick, className }: Ca
             onClick={onClick}
             role={onClick ? 'button' : undefined}
             tabIndex={onClick ? 0 : undefined}
-            onKeyDown={onClick ? (e) => { if (e.key === 'Enter') onClick() } : undefined}
+            onKeyDown={handleKeyDown}
         >
             {title && (
                 <div className="card__header">
@@ -73,4 +82,3 @@ export default function Card({ title, children, footer, onClick, className }: Ca
         </div>
     )
 }
-

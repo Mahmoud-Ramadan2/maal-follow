@@ -13,8 +13,9 @@
 import { lazy, Suspense } from 'react'
 import type { ReactNode } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
-import { APP_ROUTES } from './routes.config'
+import { APP_ROUTES, ROUTE_ACCESS } from './routes.config'
 import PageLoader from '@components/common/PageLoader'
+import ProtectedRoute from './ProtectedRoute'
 
 /**
  * Wraps a lazily-imported component in `<Suspense>`.
@@ -40,7 +41,6 @@ const MainLayout = lazy(() => import('@components/layout/MainLayout'))
 
 // Auth
 const loginPage    = () => import('@pages/auth/LoginPage')
-const registerPage = () => import('@pages/auth/RegisterPage')
 
 // Dashboard
 const dashboardPage = () => import('@pages/Dashboard/DashboardPage')
@@ -117,6 +117,7 @@ const collectionRouteView = () => import('@pages/modules/installments/collection
 
 // 404
 const notFoundPage = () => import('@pages/NotFoundPage')
+const forbiddenPage = () => import('@pages/ForbiddenPage')
 
 // ────────────────────────────────────────────────────────────
 // Router definition
@@ -128,17 +129,18 @@ export const router = createBrowserRouter([
         element: lazyLoad(loginPage),
     },
     {
-        path: APP_ROUTES.AUTH.REGISTER,
-        element: lazyLoad(registerPage),
+        path: APP_ROUTES.FORBIDDEN,
+        element: lazyLoad(forbiddenPage),
     },
 
     // ── App routes (wrapped in MainLayout) ──────────────────
-    // TODO: wrap element with <ProtectedRoute> when auth is ready
     {
         element: (
-            <Suspense fallback={<PageLoader />}>
-                <MainLayout />
-            </Suspense>
+            <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                    <MainLayout />
+                </Suspense>
+            </ProtectedRoute>
         ),
         children: [
             // Dashboard
@@ -319,19 +321,35 @@ export const router = createBrowserRouter([
             // ── Users ─────────────────────────────────
             {
                 path: APP_ROUTES.USERS.LIST,
-                element: lazyLoad(userList),
+                element: (
+                    <ProtectedRoute requiredRoles={ROUTE_ACCESS.USERS}>
+                        {lazyLoad(userList)}
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: APP_ROUTES.USERS.CREATE,
-                element: lazyLoad(userCreate),
+                element: (
+                    <ProtectedRoute requiredRoles={ROUTE_ACCESS.USERS}>
+                        {lazyLoad(userCreate)}
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: APP_ROUTES.USERS.EDIT_PATTERN,
-                element: lazyLoad(userEdit),
+                element: (
+                    <ProtectedRoute requiredRoles={ROUTE_ACCESS.USERS}>
+                        {lazyLoad(userEdit)}
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: APP_ROUTES.USERS.VIEW_PATTERN,
-                element: lazyLoad(userView),
+                element: (
+                    <ProtectedRoute requiredRoles={ROUTE_ACCESS.USERS}>
+                        {lazyLoad(userView)}
+                    </ProtectedRoute>
+                ),
             },
 
             // ── Collection Routes ───────────────────────

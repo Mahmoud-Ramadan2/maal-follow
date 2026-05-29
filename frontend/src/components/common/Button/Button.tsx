@@ -1,5 +1,6 @@
 import type { ReactNode, ButtonHTMLAttributes } from 'react'
 import LoadingSpinner from '@components/ui/LoadingSpinner'
+import { classNames } from '@utils/helpers/classNames'
 import './Button.css'
 
 // ────────────────────────────────────────────────────────────
@@ -46,20 +47,21 @@ export default function Button({
     className,
     ...rest
 }: ButtonProps): ReactNode {
-    const cls = [
+    const cls = classNames(
         'btn',
         `btn--${variant}`,
         `btn--${size}`,
         loading && 'btn--loading',
         fullWidth && 'btn--full',
         className,
-    ].filter(Boolean).join(' ')
+    )
 
     return (
         <button
             type={type}
             className={cls}
             disabled={disabled || loading}
+            aria-busy={loading || undefined}
             {...rest}
         >
             {loading && <LoadingSpinner size="sm" inheritColor />}
@@ -67,4 +69,3 @@ export default function Button({
         </button>
     )
 }
-

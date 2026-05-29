@@ -67,6 +67,38 @@
   "createError": "Failed to create user",
   "updateError": "Failed to update user",
   "deleteError": "Failed to delete user",
-  "deleteConfirm": "Delete this user?"
+  "deleteConfirm": "Delete this user?",
+
+  "auth": {
+    "loginTitle": "Login",
+    "loginSubtitle": "Enter your credentials to access your account",
+    "actions": {
+      "login": "Login"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 6 characters"
+    },
+    "placeholders": {
+      "email": "Enter your email address",
+      "password": "Enter your password"
+    },
+    "messages": {
+      "loginSuccess": "Login successful, redirecting...",
+      "auth": {
+        "invalidRefreshToken": "Your session has expired. Please login again.",
+        "invalidCredentials": "Invalid email or password"
+      },
+      "user": {
+        "notFound": "We could not find an account with those credentials."
+      }
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "network": "Network error, please try again later."
+    }
+  }
 }
 

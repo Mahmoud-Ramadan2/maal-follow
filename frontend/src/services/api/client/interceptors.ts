@@ -3,12 +3,103 @@ import { toast } from 'react-toastify'
 import apiClient from './axios.config'
 import { ENV, IS_DEV } from '@config/env.config'
 import i18n from "i18next";
+import { AUTH_ENDPOINTS } from '@utils/constants'
+import type { AuthRefreshResponse, AuthTokenResponse } from '@/types/auth.types'
+import type { AuthRequestConfig } from './auth-request.config'
+import {
+    clearSessionStorage,
+    getStoredAccessToken,
+    getStoredRefreshToken,
+    saveRedirectAfterLogin,
+    setStoredSessionTokens,
+} from '@services/auth/session'
 
 // ────────────────────────────────────────────────────────────
 // Constants — localStorage keys (single source of truth)
 // ────────────────────────────────────────────────────────────
-const TOKEN_KEY = 'token'
 const LANGUAGE_KEY = 'language'
+
+const AUTHLESS_ENDPOINTS = [
+    AUTH_ENDPOINTS.LOGIN,
+    AUTH_ENDPOINTS.LOGOUT,
+    AUTH_ENDPOINTS.REFRESH,
+] as const
+
+const isAuthlessEndpoint = (url?: string): boolean => {
+    return typeof url === 'string' && AUTHLESS_ENDPOINTS.some((endpoint) => url.startsWith(endpoint))
+}
+
+type RefreshableRequestConfig = AuthRequestConfig & { headers: InternalAxiosRequestConfig['headers'] }
+
+const getAccessToken = (): string | null => {
+    return getStoredAccessToken()
+}
+
+const getSessionRefreshToken = (): string | null => {
+    return getStoredRefreshToken()
+}
+
+const extractAccessToken = (payload: AuthTokenResponse): string | null => {
+    return payload.accessToken ?? payload.token ?? null
+}
+
+let refreshPromise: Promise<{ accessToken: string; refreshToken?: string; user?: unknown } | null> | null = null
+let hasRedirectedToLogin = false
+
+const startRefresh = async (): Promise<{ accessToken: string; refreshToken?: string; user?: unknown } | null> => {
+    const refreshToken = getSessionRefreshToken()
+
+    if (!refreshToken) {
+        return null
+    }
+
+    const response = await apiClient.post<AuthRefreshResponse>(
+        AUTH_ENDPOINTS.REFRESH,
+        { refreshToken },
+        { skipAuthRefresh: true } as AuthRequestConfig,
+    )
+
+    const accessToken = extractAccessToken(response.data)
+
+    if (!accessToken) {
+        throw new Error('Refresh response did not include an access token')
+    }
+
+    const nextRefreshToken = response.data.refreshToken ?? refreshToken
+    setStoredSessionTokens({ accessToken, refreshToken: nextRefreshToken })
+
+    return {
+        accessToken,
+        refreshToken: nextRefreshToken,
+        user: response.data.user,
+    }
+}
+
+const getRefreshSession = async (): Promise<{ accessToken: string; refreshToken?: string; user?: unknown } | null> => {
+    if (!refreshPromise) {
+        refreshPromise = startRefresh().finally(() => {
+            refreshPromise = null
+        })
+    }
+
+    return refreshPromise
+}
+
+const handleAuthFailure = (): void => {
+    if (hasRedirectedToLogin) {
+        return
+    }
+
+    hasRedirectedToLogin = true
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+
+    clearSessionStorage()
+
+    if (currentPath !== AUTH_ENDPOINTS.LOGIN) {
+        saveRedirectAfterLogin(currentPath)
+        window.location.href = AUTH_ENDPOINTS.LOGIN
+    }
+}
 
 
 // ────────────────────────────────────────────────────────────
@@ -35,8 +126,8 @@ apiClient.interceptors.request.use(
 
 (config: InternalAxiosRequestConfig) => {
         // 1. Attach JWT Bearer token (if user is logged in)
-        const token = localStorage.getItem(TOKEN_KEY)
-        if (token) {
+        const token = getAccessToken()
+        if (token && !isAuthlessEndpoint(config.url)) {
             config.headers.Authorization = `Bearer ${token}`
         }
 
@@ -88,9 +179,10 @@ apiClient.interceptors.response.use(
     },
 
     // ── Error (non-2xx) ────────────────────────────────────
-    (error: AxiosError<ApiErrorResponse>) => {
+    async (error: AxiosError<ApiErrorResponse>) => {
         // Network error or request cancelled — no response object
         if (!error.response) {
+            // toast.info('ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd');
 
             toast.error(translate('errors.network', 'common'))
             return Promise.reject(error)
@@ -99,28 +191,51 @@ apiClient.interceptors.response.use(
 
         const { status, data } = error.response
         const message = data?.message
+        const originalRequest = error.config as RefreshableRequestConfig | undefined
+
+        if (!originalRequest) {
+            return Promise.reject(error)
+        }
 
         switch (status) {
             // ── 401 Unauthorized ───────────────────────────
             // Token is missing, expired, or invalid.
-            // Save the page the user was on so we can redirect
-            // back after login, then clear the session.
+            // If this is a login request, pass error through for caller to handle.
+            // Otherwise, save redirect and clear session for re-login.
             case 401: {
-                localStorage.removeItem(TOKEN_KEY)
+                if (isAuthlessEndpoint(originalRequest.url)) {
+                    // For login/refresh endpoint, return error to caller
+                    if (originalRequest.url?.startsWith(AUTH_ENDPOINTS.LOGIN) ||
+                        originalRequest.url?.startsWith(AUTH_ENDPOINTS.REFRESH)) {
+                        return Promise.reject(error)
+                    }
 
-                // Avoid redirect loop: only save + redirect if we
-                // are not already on the login page.
-                const currentPath = window.location.pathname
-                if (currentPath !== '/login') {
-                    localStorage.setItem('redirectAfterLogin', currentPath)
-                    window.location.href = '/login'
+                    // For logout endpoint, allow it to fail silently
+                    handleAuthFailure()
+                    return Promise.reject(error)
                 }
-                if (IS_DEV) {
-                    toast.error(message || 'Session expired — please log in again.')
-                } else {
-                    toast.error(translate('errors.unauthorized'))
+
+                if (originalRequest._retry) {
+                    handleAuthFailure()
+                    return Promise.reject(error)
                 }
-                break
+
+                originalRequest._retry = true
+
+                try {
+                    const refreshedSession = await getRefreshSession()
+
+                    if (!refreshedSession?.accessToken) {
+                        handleAuthFailure()
+                        return Promise.reject(error)
+                    }
+
+                    originalRequest.headers.Authorization = `Bearer ${refreshedSession.accessToken}`
+                    return await apiClient.request(originalRequest)
+                } catch (refreshError) {
+                    handleAuthFailure()
+                    return Promise.reject(refreshError)
+                }
             }
 
             // ── 403 Forbidden ──────────────────────────────
@@ -148,8 +263,10 @@ apiClient.interceptors.response.use(
             // Spring @Valid failures come back as 422 (or 400).
             case 400:
             case 422: {
+
+                // Handle validation errors: prefer backend message, then fallback to i18n
                 const validationMsg =
-                    data?.errorsFields?.join(', ') || message || translate('errors.validation', 'common')
+                    message || translate('errors.validation', 'common')
                 toast.error(validationMsg)
                 break
             }
@@ -184,7 +301,6 @@ apiClient.interceptors.response.use(
                 data,
             )
         }
-
         return Promise.reject(error)
     },
 )

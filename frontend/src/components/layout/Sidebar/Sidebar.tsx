@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '@contexts/useAuth'
 import { APP_ROUTES } from '@/router/routes.config'
+import { ROUTE_ACCESS } from '@/router/routes.config'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import PaymentIcon from '@mui/icons-material/Payment'
@@ -12,6 +14,7 @@ import EventNoteIcon from '@mui/icons-material/EventNote'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import RouteIcon from '@mui/icons-material/Route'
 import PieChartIcon from '@mui/icons-material/PieChart'
+import { hasRequiredRoles } from '@utils/helpers/auth.helper'
 import './Sidebar.css'
 
 // ────────────────────────────────────────────────────────────
@@ -25,6 +28,8 @@ interface NavItem {
     path: string
     /** MUI icon element */
     icon: React.ReactNode
+    /** Required roles to display the item */
+    requiredRoles?: readonly import('@/types/auth.types').AuthRole[]
 }
 
 interface SidebarProps {
@@ -49,7 +54,7 @@ const NAV_ITEMS: NavItem[] = [
     { labelKey: 'nav.contracts',  path: APP_ROUTES.CONTRACTS.LIST,   icon: <DescriptionIcon fontSize="small" /> },
     { labelKey: 'nav.schedules',  path: APP_ROUTES.SCHEDULES.LIST,   icon: <EventNoteIcon fontSize="small" /> },
     { labelKey: 'nav.collectionRoutes', path: APP_ROUTES.COLLECTION_ROUTES.LIST, icon: <RouteIcon fontSize="small" /> },
-    { labelKey: 'nav.users',      path: APP_ROUTES.USERS.LIST,       icon: <ManageAccountsIcon fontSize="small" /> },
+    { labelKey: 'nav.users',      path: APP_ROUTES.USERS.LIST,       icon: <ManageAccountsIcon fontSize="small" />, requiredRoles: ROUTE_ACCESS.USERS },
 ]
 
 // ────────────────────────────────────────────────────────────
@@ -67,6 +72,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { t } = useTranslation()
     const location = useLocation()
+    const { user } = useAuth()
 
     /**
      * Check if a nav item should be marked active.
@@ -85,6 +91,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         return location.pathname.startsWith(path)
     }
 
+    const visibleNavItems = NAV_ITEMS.filter((item) => hasRequiredRoles(user, item.requiredRoles))
+
     return (
         <>
             {/* Mobile overlay — closes sidebar on tap */}
@@ -97,7 +105,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
                 <nav className="sidebar__nav">
                     <ul className="sidebar__list">
-                        {NAV_ITEMS.map((item) => (
+                        {visibleNavItems.map((item) => (
                             <li key={item.path}>
                                 <NavLink
                                     to={item.path}

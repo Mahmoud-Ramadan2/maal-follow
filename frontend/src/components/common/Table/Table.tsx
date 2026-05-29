@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import LoadingSpinner from '@components/ui/LoadingSpinner'
+import { classNames } from '@utils/helpers/classNames'
 import './Table.css'
 
 // ────────────────────────────────────────────────────────────
@@ -35,6 +36,8 @@ interface TableProps<T> {
     emptyMessage?: string
     /** Number of skeleton rows to display while loading. @default 5 */
     skeletonRows?: number
+    /** Optional stable row key accessor for richer datasets. */
+    rowKey?: keyof T | ((row: T, index: number) => string | number)
 }
 
 // ────────────────────────────────────────────────────────────
@@ -69,8 +72,22 @@ export default function Table<T extends object>({
     loading = false,
     emptyMessage,
     skeletonRows = 5,
+    rowKey,
 }: TableProps<T>): ReactNode {
     const { t } = useTranslation()
+
+    const resolveRowKey = (row: T, rowIdx: number): string | number => {
+        if (typeof rowKey === 'function') {
+            return rowKey(row, rowIdx)
+        }
+
+        if (rowKey) {
+            return String((row as Record<string, unknown>)[rowKey as string] ?? rowIdx)
+        }
+
+        const fallback = (row as Record<string, unknown>)['id']
+        return typeof fallback === 'string' || typeof fallback === 'number' ? fallback : rowIdx
+    }
 
     // ── Loading state ──────────────────────────────────────
     if (loading) {
@@ -87,11 +104,11 @@ export default function Table<T extends object>({
                     <tbody>
                         {Array.from({ length: skeletonRows }).map((_, rowIdx) => (
                             <tr key={rowIdx}>
-                                {columns.map((col) => (
-                                    <td key={col.key}>
+                                {columns.map((col, colIdx) => (
+                                    <td key={`${col.key}-${colIdx}`}>
                                         <div
                                             className="table__skeleton"
-                                            style={{ width: `${60 + Math.random() * 40}%` }}
+                                            style={{ width: `${60 + ((rowIdx + colIdx) % 5) * 8}%` }}
                                         />
                                     </td>
                                 ))}
@@ -119,7 +136,7 @@ export default function Table<T extends object>({
 
     // ── Data table ─────────────────────────────────────────
     return (
-        <div className="table-wrapper">
+        <div className={classNames('table-wrapper')}>
             <table className="table">
                 <thead>
                     <tr>
@@ -130,7 +147,7 @@ export default function Table<T extends object>({
                 </thead>
                 <tbody>
                     {data.map((row, rowIdx) => (
-                        <tr key={(row as Record<string, unknown>)['id'] as string ?? rowIdx}>
+                        <tr key={resolveRowKey(row, rowIdx)}>
                             {columns.map((col) => (
                                 <td key={col.key}>
                                     {col.render
@@ -145,4 +162,3 @@ export default function Table<T extends object>({
         </div>
     )
 }
-

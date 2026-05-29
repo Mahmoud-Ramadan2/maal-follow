@@ -38,6 +38,20 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
     const debouncedCustomerSearch = useDebounce(customerSearch, 350)
     const debouncedPurchaseSearch = useDebounce(purchaseSearch, 350)
 
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const computeStartDate = (day: number): string => {
+        const now = new Date()
+        let nextMonth = now.getMonth() + 1
+        let nextYear = now.getFullYear()
+        if (nextMonth > 11) {
+            nextMonth = 0
+            nextYear += 1
+        }
+        const lastDay = new Date(nextYear, nextMonth + 1, 0).getDate()
+        const clampedDay = Math.min(day, lastDay)
+        return `${nextYear}-${pad(nextMonth + 1)}-${pad(clampedDay)}`
+    }
+
     // Fetch existing contract in edit mode
     const {
         contract: existing,
@@ -80,7 +94,7 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
             downPayment: 0,
             months: 12,
             monthlyAmount: undefined,
-            startDate: new Date().toISOString().split('T')[0] ?? '',
+            startDate: computeStartDate(1),
             status: 'ACTIVE',
             additionalCosts: 0,
             earlyPaymentDiscountRate: 0,
@@ -156,6 +170,14 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
             setPurchaseSearch(`${selectedPurchase.productName} - ${selectedPurchase.buyPrice}`)
         }
     }, [isEditMode, selectedPurchase])
+
+    const agreedPaymentDay = watch('agreedPaymentDay')
+
+    useEffect(() => {
+        if (!isEditMode && agreedPaymentDay && agreedPaymentDay > 0) {
+            setValue('startDate', computeStartDate(agreedPaymentDay), {shouldValidate: true})
+        }
+    }, [agreedPaymentDay, isEditMode, setValue])
 
     const onSubmit = async (data: ContractFormData) => {
         const payload = {
@@ -293,7 +315,15 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
                         {/*    error={errors.contractNumber?.message}*/}
                         {/*    {...register('contractNumber')}*/}
                         {/*/>*/}
-
+                        <Input
+                            label={t('form.agreedPaymentDay')}
+                            type="number"
+                            placeholder={t('form.agreedPaymentDayPlaceholder')}
+                            error={errors.agreedPaymentDay?.message}
+                            {...register('agreedPaymentDay', {
+                                setValueAs: (value) => value === '' ? undefined : Number(value),
+                            })}
+                        />
                         {/* Start Date */}
                         <Input
                             label={t('form.startDate') + ' *'}
@@ -350,15 +380,7 @@ export default function ContractFormPage({contractId}: ContractFormPageProps): R
                                 setValueAs: (value) => value === '' ? undefined : Number(value),
                             })}
                         />
-                        <Input
-                            label={t('form.agreedPaymentDay')}
-                            type="number"
-                            placeholder={t('form.agreedPaymentDayPlaceholder')}
-                            error={errors.agreedPaymentDay?.message}
-                            {...register('agreedPaymentDay', {
-                                setValueAs: (value) => value === '' ? undefined : Number(value),
-                            })}
-                        />
+
                         <Input
                             label={t('form.earlyPaymentDiscountRate')}
                             type="number"

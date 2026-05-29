@@ -1,10 +1,13 @@
-import { api } from '@services/api'
+import apiClient from '../client/interceptors'
+import type { AuthRequestConfig } from '../client/auth-request.config'
 import { AUTH_ENDPOINTS } from '@utils/constants/auth.constants'
 import { AUTH_ROLES } from '@/types/auth.types'
 import type {
     AuthCredentials,
     AuthLoginResponse,
     AuthSession,
+    AuthRefreshResponse,
+    AuthTokenResponse,
     AuthUser,
 } from '@/types/auth.types'
 
@@ -30,7 +33,7 @@ const normalizeUser = (payload: unknown): AuthUser => {
         throw new Error('Invalid auth user payload')
     }
 
-    const id = payload.id
+    const id = payload.id ?? payload.userId
     const email = typeof payload.email === 'string' ? payload.email : ''
     const username = typeof payload.username === 'string'
         ? payload.username
@@ -59,38 +62,69 @@ const normalizeUser = (payload: unknown): AuthUser => {
     throw new Error('Invalid auth user payload')
 }
 
-const normalizeSession = (payload: AuthLoginResponse): AuthSession => {
-    const accessToken = payload.accessToken ?? payload.token
-    if (!accessToken) {
-        throw new Error('Auth login response did not include an access token')
+const resolveUserPayload = (payload: AuthTokenResponse): unknown => {
+    if (payload.user && isRecord(payload.user)) {
+        return payload.user
     }
 
-    if (!payload.user) {
-        throw new Error('Auth login response did not include a user')
+    // Backend returns a flat AuthResponse (userId/name/email/role)
+    if (payload.userId !== undefined || payload.id !== undefined || payload.email || payload.role) {
+        return payload
     }
+
+    return undefined
+}
+
+const normalizeTokenResponse = (payload: AuthTokenResponse, fallbackRefreshToken?: string) => {
+    const accessToken = payload.accessToken ?? payload.token
+    if (!accessToken) {
+        throw new Error('Auth response did not include an access token')
+    }
+
+    const userPayload = resolveUserPayload(payload)
 
     return {
         accessToken,
-        refreshToken: payload.refreshToken,
-        user: normalizeUser(payload.user),
+        refreshToken: payload.refreshToken ?? fallbackRefreshToken,
+        user: userPayload ? normalizeUser(userPayload) : undefined,
     }
 }
 
 export const authApi = {
     async login(credentials: AuthCredentials): Promise<AuthSession> {
-        const response = await api.post<AuthLoginResponse>(AUTH_ENDPOINTS.LOGIN, credentials)
-        return normalizeSession(response)
-    },
+        const response = await apiClient.post<AuthLoginResponse>(AUTH_ENDPOINTS.LOGIN, credentials)
+        const normalized = normalizeTokenResponse(response.data)
 
-    async me(): Promise<AuthUser> {
-        const response = await api.get<AuthUser | { user?: AuthUser }>(AUTH_ENDPOINTS.ME)
-
-        if (isRecord(response) && 'user' in response && response.user) {
-            return normalizeUser(response.user)
+        if (!normalized.user) {
+            throw new Error('Auth login response did not include a user')
         }
 
-        return normalizeUser(response)
+        return {
+            accessToken: normalized.accessToken,
+            refreshToken: normalized.refreshToken,
+            user: normalized.user,
+        }
+    },
+
+
+    async refresh(refreshToken: string): Promise<Omit<AuthSession, 'user'> & { user?: AuthUser }> {
+        const config = { skipAuthRefresh: true } as AuthRequestConfig
+        const response = await apiClient.post<AuthRefreshResponse>(AUTH_ENDPOINTS.REFRESH, { refreshToken }, config)
+        return normalizeTokenResponse(response.data, refreshToken)
+    },
+
+    async logout(refreshToken?: string): Promise<void> {
+        const config = { skipAuthRefresh: true } as AuthRequestConfig
+        await apiClient.post(
+            AUTH_ENDPOINTS.LOGOUT,
+            refreshToken ? { refreshToken } : undefined,
+            config,
+        )
+    },
+
+    async logoutAll(refreshToken: string): Promise<void> {
+        const config = { skipAuthRefresh: true } as AuthRequestConfig
+        await apiClient.post(AUTH_ENDPOINTS.LOGOUT_ALL, { refreshToken }, config)
     },
 } as const
-
 

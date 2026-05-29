@@ -1,28 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { toast } from 'react-toastify'
+import { authApi } from '@services/api/modules/auth.api'
+import type { AuthUser } from '@/types/auth.types'
+import { AuthContext, type AuthContextValue } from './auth.context'
+import {
+    clearRedirectAfterLogin,
+    clearSessionStorage,
+    clearRedirectSuppression,
+    getStoredAuthUser,
+    getStoredSessionTokens,
+    setStoredSessionTokens,
+    suppressRedirectAfterLogin,
+} from '@services/auth/session'
 
 // ===== TYPES =====
-interface User {
-    id: number
-    username: string
-    email: string
-    fullName: string
-    roles: string[]
-}
-
-interface AuthContextType {
-    user: User | null
-    isAuthenticated: boolean
-    isLoading: boolean
-    login: (username: string, password: string) => Promise<void>
-    logout: () => void
-    checkAuth: () => Promise<void>
-}
-
-// ===== CREATE CONTEXT =====
-const AuthContext
-    = createContext<AuthContextType | undefined>(undefined)
+type User = AuthUser
 
 // ===== PROVIDER COMPONENT =====
 export const AuthProvider:
@@ -36,35 +29,41 @@ export const AuthProvider:
     }, [])
 
     // Check authentication status
-    const checkAuth
-        = async () => {
-        const token = localStorage.getItem('token')
+    const checkAuth = async () => {
+        const { accessToken, refreshToken } = getStoredSessionTokens()
+        const storedUser = getStoredAuthUser<AuthUser>()
 
-        if (!token) {
+        if (!accessToken && !refreshToken) {
+            setUser(null)
             setIsLoading(false)
             return
         }
 
         try {
-            // Verify token with backend
-            const response =
-                await fetch('/api/auth/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            })
+            if (refreshToken) {
+                const refreshedSession = await authApi.refresh(refreshToken)
+                setStoredSessionTokens(refreshedSession)
 
-            if (response.ok) {
-                const userData = await response.json()
-                setUser(userData)
-            } else {
-                // Token invalid, clear it
-                localStorage.removeItem('token')
-                setUser(null)
+                if (refreshedSession.user) {
+                    setUser(refreshedSession.user)
+                    return
+                }
             }
+
+            if (storedUser) {
+                setUser(storedUser)
+                return
+            }
+
+            if (!accessToken) {
+                setUser(null)
+                return
+            }
+
+            setUser(null)
         } catch (error) {
             console.error('Auth check failed:', error)
-            localStorage.removeItem('token')
+            clearSessionStorage()
             setUser(null)
         } finally {
             setIsLoading(false)
@@ -72,50 +71,58 @@ export const AuthProvider:
     }
 
     // Login function
-    const login = async (username: string, password: string) => {
-        try {
-            const response =
-                await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            })
+    const login = async (email: string, password: string) => {
+        const session = await authApi.login({ email, password })
 
-            if (!response.ok) {
-                throw new Error('Login failed')
-            }
-
-            const data = await response.json()
-
-            // Store token
-            localStorage.setItem('token', data.token)
-
-            // Store user info
-            setUser(data.user)
-
-            toast.success('Login successful!')
-        } catch (error) {
-            toast.error('Invalid username or password')
-            throw error
-        }
+        setStoredSessionTokens(session)
+        clearRedirectAfterLogin()
+        clearRedirectSuppression()
+        setUser(session.user)
     }
 
     // Logout function
-    const logout = () => {
-        localStorage.removeItem('token')
+    const logout = async () => {
+        const { refreshToken } = getStoredSessionTokens()
+
+        try {
+            suppressRedirectAfterLogin()
+            if (refreshToken) {
+                await authApi.logout(refreshToken)
+            }
+        } catch (error) {
+            console.error('Logout request failed:', error)
+        } finally {
+        clearSessionStorage()
         setUser(null)
         toast.info('Logged out successfully')
+        }
+    }
+
+    const logoutAll = async () => {
+        const { refreshToken } = getStoredSessionTokens()
+
+        try {
+            suppressRedirectAfterLogin()
+            if (refreshToken) {
+                await authApi.logoutAll(refreshToken)
+            }
+        } catch (error) {
+            console.error('Logout-all request failed:', error)
+        } finally {
+            clearSessionStorage()
+            setUser(null)
+            toast.info('Signed out from all sessions')
+        }
     }
 
     // Context value
-    const value: AuthContextType = {
+    const value: AuthContextValue = {
         user,
         isAuthenticated: !!user,
         isLoading,
         login,
         logout,
+        logoutAll,
         checkAuth,
     }
 
@@ -124,13 +131,4 @@ export const AuthProvider:
             {children}
         </AuthContext.Provider>
     )
-}
-
-// ===== CUSTOM HOOK =====
-export const useAuth = () => {
-    const context = useContext(AuthContext)
-    if (context === undefined) {
-        throw new Error('useAuth must be used within AuthProvider')
-    }
-    return context
 }

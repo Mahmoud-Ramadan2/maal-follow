@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { classNames } from '@utils/helpers/classNames'
 import './LoadingSpinner.css'
 
 // ────────────────────────────────────────────────────────────
@@ -39,16 +40,16 @@ export default function LoadingSpinner({
     inheritColor = false,
     fullPage = false,
 }: LoadingSpinnerProps): ReactNode {
-    const containerCls = [
+    const containerCls = classNames(
         'spinner-container',
         fullPage && 'spinner-container--fullpage',
-    ].filter(Boolean).join(' ')
+    )
 
-    const spinnerCls = [
+    const spinnerCls = classNames(
         'spinner',
         `spinner--${size}`,
         inheritColor && 'spinner--inherit',
-    ].filter(Boolean).join(' ')
+    )
 
     return (
         <div className={containerCls} role="status" aria-label="Loading">
@@ -56,4 +57,3 @@ export default function LoadingSpinner({
         </div>
     )
 }
-
