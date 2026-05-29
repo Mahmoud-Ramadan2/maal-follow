@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mahmoud</groupId>
-    <artifactId>maal-flow</artifactId>
+    <artifactId>maal-follow-be</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Maal Flow </name>
+    <name>Maal Flow</name>
     <description>
         Maal Flow is a financial management system designed to track installment sales, capital investments, partner profits, savings committees, debts, and cash flow with accurate accounting, profit distribution, and payment reminders.
     </description>
@@ -31,6 +31,7 @@
     <properties>
         <java.version>21</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <jjwt.version>0.12.6</jjwt.version>
         <jjwt.version>0.12.6</jjwt.version>
     </properties>
     <dependencies>
@@ -137,6 +138,8 @@
     </dependencies>
 
     <build>
+        <finalName>maal-follow-be</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

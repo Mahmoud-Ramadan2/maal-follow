@@ -22,7 +22,9 @@ public class CorsConfig {
         corsConfig.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:3002",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://165.227.85.218"
+
         ));
         corsConfig.setAllowedHeaders(Arrays.asList(
                 "Origin",

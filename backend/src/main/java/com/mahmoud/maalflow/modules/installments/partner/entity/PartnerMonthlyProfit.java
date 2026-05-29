@@ -44,6 +44,16 @@ public class PartnerMonthlyProfit {
     @Column(name = "calculated_profit", nullable = false, precision = 12, scale = 2)
     private BigDecimal calculatedProfit;
 
+
+    @NotNull
+    @Column(name = "paid_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal paidAmount = BigDecimal.ZERO;
+
+
+    @NotNull
+    @Column(name = "reinvested_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal reinvestedAmount = BigDecimal.ZERO;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

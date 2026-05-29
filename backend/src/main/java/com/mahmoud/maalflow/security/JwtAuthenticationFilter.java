@@ -56,8 +56,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // Phase 1: keep request flow unchanged and avoid blocking existing endpoints.
-            log.debug("JWT processing skipped: {}", ex.getMessage());
+            log.warn("Failed to authenticate JWT: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            response.getWriter().write("""
+        {
+            "message": "Access token expired or invalid"
+        }
+    """);
+
+            return;
+
         }
 
         filterChain.doFilter(request, response);

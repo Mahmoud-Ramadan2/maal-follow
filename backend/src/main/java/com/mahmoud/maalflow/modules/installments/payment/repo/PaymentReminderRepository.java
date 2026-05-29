@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -17,12 +18,24 @@ import java.util.List;
 @Repository
 public interface PaymentReminderRepository extends JpaRepository<PaymentReminder, Long> {
 
-    boolean existsByInstallmentScheduleAndReminderDate(InstallmentSchedule schedule, LocalDate reminderDate);
 
     List<PaymentReminder> findByStatusAndReminderDateLessThanEqual(ReminderStatus status, LocalDate date);
 
-    List<PaymentReminder> findByInstallmentScheduleIdAndStatusIn(Long scheduleId, List<ReminderStatus> statuses);
+    List<PaymentReminder> findByInstallmentScheduleIdAndStatusInAndIsRecurringTrue(Long scheduleId, List<ReminderStatus> statuses);
 
-    @Query("SELECT pr FROM PaymentReminder pr WHERE pr.dueDate < :today AND pr.status IN ('SENT', 'PENDING') AND pr.isRecurring = true")
-    List<PaymentReminder> findOverdueReminders(@Param("today") LocalDate today);
+    List<PaymentReminder> findByInstallmentScheduleId(Long scheduleId);
+
+    @Query("""
+            SELECT pr FROM PaymentReminder pr
+            WHERE pr.dueDate < :today
+                         AND pr.status
+            IN ('SENT') AND pr.isRecurring = true
+                        AND (
+                            pr.lastAttemptAt IS NULL
+                            OR pr.lastAttemptAt <= :retryBefore
+                        )
+            """)
+    List<PaymentReminder> findOverdueRemindersAndRecurringTrue(@Param("today") LocalDate today, @Param("retryBefore") LocalDateTime retryBefore);
+
+    boolean existsByInstallmentSchedule(InstallmentSchedule schedule);
 }

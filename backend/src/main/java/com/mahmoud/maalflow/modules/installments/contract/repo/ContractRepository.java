@@ -115,13 +115,22 @@ SELECT new com.mahmoud.maalflow.modules.installments.contract.dto.ContractRespon
 
     // Get total profit for active contracts
     @Query("""
-        SELECT COALESCE(SUM(c.netProfit), 0) 
+        SELECT COALESCE(SUM(c.netProfit), 0)
         FROM Contract c 
         WHERE c.status IN ('ACTIVE', 'COMPLETED')
     """)
     BigDecimal getTotalNetProfit();
 
-    // Find contracts by responsible user
+//// Get total profit for contracts created in a month
+//    @Query("""
+//        SELECT COALESCE(SUM(c.netProfit), 0)
+//        FROM Contract c
+//        WHERE c.createdAt.between( :startDate AND :endDate)
+//         AND c.status IN ('ACTIVE', 'COMPLETED')
+//
+//    """)
+//    BigDecimal getTotalNetProfitForMonth(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+//    // Find contracts by responsible user
     List<Contract> findByResponsibleUserId(Long userId);
 
     // Find contracts by customer address (for collection routes - requirement #6)

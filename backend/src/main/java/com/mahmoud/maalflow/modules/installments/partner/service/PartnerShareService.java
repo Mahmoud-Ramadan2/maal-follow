@@ -37,11 +37,11 @@ public class PartnerShareService {
         }
 
         for (Partner partner : partners) {
-            BigDecimal effectiveInvestment = nz(partner.getEffectiveInvestment());
+            BigDecimal currentBalance = nz(partner.getCurrentBalance());
             BigDecimal share = BigDecimal.ZERO;
 
-            if (effectiveInvestment.compareTo(BigDecimal.ZERO) > 0) {
-                share = effectiveInvestment
+            if (currentBalance.compareTo(BigDecimal.ZERO) > 0) {
+                share = currentBalance
                         .multiply(BigDecimal.valueOf(100))
                         .divide(safeTotalCapital, 2, RoundingMode.HALF_UP);
             }

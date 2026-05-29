@@ -68,8 +68,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
     /**
      * Sum overdue payments paid in a specific month.
      */
-    @Query("SELECT SUM(p.netAmount) FROM Payment p WHERE p.agreedPaymentMonth = :month AND FUNCTION('YEAR_MONTH', p.actualPaymentDate) > FUNCTION('YEAR_MONTH', STR_TO_DATE(CONCAT(:month, '-01'), '%Y-%m-%d'))")
-    BigDecimal sumOverduePaymentsForMonth(@Param("month") String month);
+    @Query("""
+            SELECT SUM(p.netAmount) FROM Payment p WHERE p.agreedPaymentMonth = :month
+                        AND p.actualPaymentDate > :endDate
+            """)
+    BigDecimal sumOverduePaymentsForMonth(@Param("month") String month, @Param("endDate") LocalDate endDate);
 
     /**
      * Sum early payments for a month.
@@ -99,8 +102,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
      * Get daily payment summaries for a date range.
      */
     @Query("SELECT p.actualPaymentDate as paymentDate, COUNT(p) as paymentCount, SUM(p.netAmount) as totalAmount " +
-           "FROM Payment p WHERE p.actualPaymentDate BETWEEN :startDate AND :endDate " +
-           "GROUP BY p.actualPaymentDate ORDER BY p.actualPaymentDate")
+            "FROM Payment p WHERE p.actualPaymentDate BETWEEN :startDate AND :endDate " +
+            "GROUP BY p.actualPaymentDate ORDER BY p.actualPaymentDate")
     List<Object[]> getDailyPaymentSummaries(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     /**
@@ -125,22 +128,22 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
      * Get customer payment performance.
      */
     @Query("SELECT c.id as customerId, c.name as customerName, COUNT(p) as paymentCount, SUM(p.netAmount) as totalPaid " +
-           "FROM Payment p JOIN p.installmentSchedule.contract.customer c " +
-           "WHERE p.agreedPaymentMonth = :month " +
-           "GROUP BY c.id, c.name ORDER BY totalPaid DESC")
+            "FROM Payment p JOIN p.installmentSchedule.contract.customer c " +
+            "WHERE p.agreedPaymentMonth = :month " +
+            "GROUP BY c.id, c.name ORDER BY totalPaid DESC")
     List<Object[]> getCustomerPaymentPerformance(@Param("month") String month);
 
     /**
      * Find payments with specific criteria for advanced filtering.
      */
     @Query("SELECT p FROM Payment p WHERE " +
-           "(:startDate IS NULL OR p.actualPaymentDate >= :startDate) AND " +
-           "(:endDate IS NULL OR p.actualPaymentDate <= :endDate) AND " +
-           "(:isEarlyPayment IS NULL OR p.isEarlyPayment = :isEarlyPayment)")
+            "(:startDate IS NULL OR p.actualPaymentDate >= :startDate) AND " +
+            "(:endDate IS NULL OR p.actualPaymentDate <= :endDate) AND " +
+            "(:isEarlyPayment IS NULL OR p.isEarlyPayment = :isEarlyPayment)")
     Page<Payment> findWithFilters(@Param("startDate") LocalDate startDate,
-                                 @Param("endDate") LocalDate endDate,
-                                 @Param("isEarlyPayment") Boolean isEarlyPayment,
-                                 Pageable pageable);
+                                  @Param("endDate") LocalDate endDate,
+                                  @Param("isEarlyPayment") Boolean isEarlyPayment,
+                                  Pageable pageable);
 
     @Query("""
             SELECT COALESCE(SUM(p.netAmount), 0) FROM Payment p

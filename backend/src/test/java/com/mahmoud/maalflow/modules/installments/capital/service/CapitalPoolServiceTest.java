@@ -38,7 +38,7 @@ class CapitalPoolServiceTest {
     private CapitalPoolMapper capitalPoolMapper;
 
     @Mock
-    private PartnerService partnerService;
+    private com.mahmoud.maalflow.modules.installments.partner.service.PartnerShareService partnerShareService;
 
     @InjectMocks
     private CapitalPoolService capitalPoolService;
@@ -61,7 +61,7 @@ class CapitalPoolServiceTest {
                 .partnerContributions(new BigDecimal("60.00"))
                 .build();
 
-        when(capitalPoolRepository.findById(1L)).thenReturn(Optional.of(currentPool));
+        when(capitalPoolRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(currentPool));
         when(capitalTransactionRepository.count()).thenReturn(0L);
         when(capitalPoolRepository.save(any(CapitalPool.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(capitalPoolMapper.toResponse(any(CapitalPool.class))).thenReturn(new CapitalPoolResponse());
@@ -96,7 +96,7 @@ class CapitalPoolServiceTest {
                 .partnerContributions(new BigDecimal("60.00"))
                 .build();
 
-        when(capitalPoolRepository.findById(1L)).thenReturn(Optional.of(currentPool));
+        when(capitalPoolRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(currentPool));
         when(capitalTransactionRepository.count()).thenReturn(3L);
 
         assertThrows(BusinessException.class, () -> capitalPoolService.updateCapitalPool(request));
@@ -114,7 +114,7 @@ class CapitalPoolServiceTest {
                 .partnerContributions(new BigDecimal("160.00"))
                 .build();
 
-        when(capitalPoolRepository.findById(1L)).thenReturn(Optional.of(currentPool));
+        when(capitalPoolRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(currentPool));
         when(capitalTransactionRepository.sumAmountByTransactionType(CapitalTransactionType.INVESTMENT))
                 .thenReturn(new BigDecimal("100.00"));
         when(capitalTransactionRepository.sumAmountByTransactionType(CapitalTransactionType.WITHDRAWAL))

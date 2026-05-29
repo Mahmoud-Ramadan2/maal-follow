@@ -4,7 +4,7 @@ package com.mahmoud.maalflow.modules.shared.notification.entity;
 import com.mahmoud.maalflow.modules.shared.notification.enums.NotificationPriority;
 import com.mahmoud.maalflow.modules.shared.notification.enums.NotificationStatus;
 import com.mahmoud.maalflow.modules.shared.notification.enums.NotificationType;
-import com.mahmoud.maalflow.modules.shared.user.entity.User;
+import com.mahmoud.maalflow.modules.installments.customer.entity.Customer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "notification", indexes = {
-        @Index(name = "idx_notification_user", columnList = "user_id"),
+        @Index(name = "idx_notification_customer", columnList = "customer_id"),
         @Index(name = "idx_notification_status", columnList = "status"),
         @Index(name = "idx_notification_type", columnList = "type")
 })
@@ -36,8 +36,8 @@ public class Notification {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
     @NotNull
     @Column(name = "title", nullable = false)

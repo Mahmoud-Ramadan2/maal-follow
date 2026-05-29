@@ -39,11 +39,11 @@ public class PaymentStatisticsService {
         LocalDate endDate = month.atEndOfMonth();
 
         // Calculate expected payments for the month
-        BigDecimal expectedPayments = scheduleRepository.calculateExpectedPaymentsForMonth(
-                startDate, endDate);
+        BigDecimal expectedPayments = nz(scheduleRepository.calculateExpectedPaymentsForMonth(
+                startDate, endDate));
 
         // Calculate actual payments received
-        BigDecimal actualPayments = paymentRepository.sumPaymentsByAgreedMonth(month.toString());
+        BigDecimal actualPayments = nz( paymentRepository.sumPaymentsByAgreedMonth(month.toString()));
 
         // Calculate collection efficiency
         BigDecimal collectionRate = BigDecimal.ZERO;
@@ -54,9 +54,9 @@ public class PaymentStatisticsService {
         }
 
         // Calculate other statistics
-        BigDecimal overduePaid = paymentRepository.sumOverduePaymentsForMonth(month.toString());
-        BigDecimal earlyPayments = paymentRepository.sumEarlyPaymentsForMonth(month.toString());
-        BigDecimal totalDiscounts = paymentRepository.sumDiscountsForMonth(month.toString());
+        BigDecimal overduePaid = nz(paymentRepository.sumOverduePaymentsForMonth(month.toString(), endDate));
+        BigDecimal earlyPayments = nz(paymentRepository.sumEarlyPaymentsForMonth(month.toString()));
+        BigDecimal totalDiscounts = nz(paymentRepository.sumDiscountsForMonth(month.toString()));
 
         int totalPaymentCount = paymentRepository.countPaymentsByAgreedMonth(month.toString());
         int earlyPaymentCount = paymentRepository.countEarlyPaymentsByMonth(month.toString());
@@ -117,9 +117,9 @@ public class PaymentStatisticsService {
         LocalDate endDate = LocalDate.of(year, 12, 31);
 
         // Calculate totals for the year
-        BigDecimal expectedPayments = scheduleRepository.calculateExpectedPaymentsForPeriod(
-                startDate, endDate);
-        BigDecimal actualPayments = paymentRepository.sumPaymentsForYear(year);
+        BigDecimal expectedPayments = nz(scheduleRepository.calculateExpectedPaymentsForPeriod(
+                startDate, endDate));
+        BigDecimal actualPayments = nz(paymentRepository.sumPaymentsForYear(year));
 
         // Calculate collection rate
         BigDecimal collectionRate = BigDecimal.ZERO;
@@ -130,7 +130,7 @@ public class PaymentStatisticsService {
         }
 
         // Other year statistics
-        BigDecimal totalDiscounts = paymentRepository.sumDiscountsForYear(year);
+        BigDecimal totalDiscounts = nz(paymentRepository.sumDiscountsForYear(year));
         int totalPaymentCount = paymentRepository.countPaymentsForYear(year);
 
         return PaymentStatistics.builder()
@@ -162,7 +162,7 @@ public class PaymentStatisticsService {
 
         LocalDate today = LocalDate.now();
 
-        BigDecimal totalOverdue = scheduleRepository.calculateOverdueAmount(today);
+        BigDecimal totalOverdue = nz(scheduleRepository.calculateOverdueAmount(today));
         int overdueCount = scheduleRepository.countOverdueInstallments(today);
 
         return PaymentStatistics.builder()
@@ -173,5 +173,8 @@ public class PaymentStatisticsService {
                 .totalPaymentCount(overdueCount)
                 .shortfall(totalOverdue != null ? totalOverdue : BigDecimal.ZERO)
                 .build();
+    }
+    private BigDecimal nz(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 }

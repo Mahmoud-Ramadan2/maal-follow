@@ -280,15 +280,15 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Send pending payment reminders.
-    @PostMapping("/reminders/send")
-    public ResponseEntity<Void> sendPendingReminders() {
-        log.info("REST request to send pending payment reminders");
-        reminderService.sendPendingReminders();
-        return ResponseEntity.ok().build();
-    }
-
+   @PutMapping("/reminders/recurring")
+   public ResponseEntity<Void> changeRecurringState(
+           @RequestParam boolean isRecurring,
+           @RequestParam Long installmentScheduleId) {
+       log.info("REST request to change recurring state to {} for installment schedule ID: {}",
+               isRecurring, installmentScheduleId);
+       reminderService.changeRecurringState(isRecurring, installmentScheduleId);
+       return ResponseEntity.ok().build();
+   }
     /**
      * Cancel a payment.
      */

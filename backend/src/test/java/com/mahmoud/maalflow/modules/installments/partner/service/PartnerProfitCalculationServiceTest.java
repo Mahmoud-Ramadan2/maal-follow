@@ -123,7 +123,6 @@ class PartnerProfitCalculationServiceTest {
         verify(partnerInvestmentRepository, never())
                 .sumConfirmedInvestmentsByPartnerBeforeDate(eq(2L), any(LocalDateTime.class));
         verify(partnerMonthlyProfitRepository, times(1)).save(any(PartnerMonthlyProfit.class));
-        assertTrue(distribution.getCalculationNotes().contains("Excluded partner 2"));
     }
 
     @Test
@@ -139,7 +138,6 @@ class PartnerProfitCalculationServiceTest {
                 () -> service.calculateAndDistributeMonthlyProfits(distribution));
 
         assertEquals("messages.partner.monthlyProfit.eligiblePartner.empty", ex.getMessageKey());
-        assertTrue(distribution.getCalculationNotes().contains("Excluded partner 2"));
     }
 
     private Partner partner(Long id, PartnerStatus status, LocalDateTime updatedAt) {

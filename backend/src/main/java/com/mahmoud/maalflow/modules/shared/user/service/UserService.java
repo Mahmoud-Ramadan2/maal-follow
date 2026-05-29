@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -134,6 +135,11 @@ public class UserService {
             return null;
         }
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    public User findByEmailIgnoreCase(String email) {
+        return userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new BusinessException("messages.user.notFound"));
     }
 }
 

@@ -1,8 +1,10 @@
 package com.mahmoud.maalflow.security;
 
+import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.UserNotFoundException;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
+import com.mahmoud.maalflow.modules.shared.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
-        User user = userRepository.findByEmailIgnoreCase(username)
-                .orElseThrow(() -> new UsernameNotFoundException("messages.user.notFound" + username));
 
-//        User user = userRepository.findByEmailIgnoreCase(username)
-//                .orElseThrow(() -> new UserNotFoundException("messages.user.notFound" + username));
+        User user = userRepository.findByEmailIgnoreCase(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
 
         return org.springframework.security.core.userdetails.User

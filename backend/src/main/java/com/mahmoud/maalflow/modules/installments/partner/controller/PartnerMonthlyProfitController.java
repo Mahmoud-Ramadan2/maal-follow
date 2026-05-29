@@ -1,6 +1,5 @@
 package com.mahmoud.maalflow.modules.installments.partner.controller;
 
-import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerMonthlyProfitAdjustRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerMonthlyProfitPayRequest;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerMonthlyProfitResponse;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PayoutReconciliationResponse;
@@ -8,7 +7,6 @@ import com.mahmoud.maalflow.modules.installments.partner.entity.PartnerMonthlyPr
 import com.mahmoud.maalflow.modules.installments.partner.mapper.PartnerMonthlyProfitMapper;
 import com.mahmoud.maalflow.modules.installments.partner.service.PartnerMonthlyProfitService;
 import com.mahmoud.maalflow.modules.installments.partner.service.PartnerPayoutReconciliationService;
-import com.mahmoud.maalflow.modules.installments.partner.service.PartnerProfitCalculationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +22,6 @@ import java.util.List;
 public class PartnerMonthlyProfitController {
 
     private final PartnerMonthlyProfitService partnerMonthlyProfitService;
-    private final PartnerProfitCalculationService partnerProfitCalculationService;
     private final PartnerPayoutReconciliationService partnerPayoutReconciliationService;
     private final PartnerMonthlyProfitMapper partnerMonthlyProfitMapper;
 
@@ -52,6 +49,7 @@ public class PartnerMonthlyProfitController {
         PartnerMonthlyProfit paid = partnerMonthlyProfitService.payMonthlyProfit(
                 id,
                 request.getPaidByUserId(),
+                request.getPayoutAmount(),
                 request.getPaymentMethod(),
                 request.getPaymentDate(),
                 request.getNotes()

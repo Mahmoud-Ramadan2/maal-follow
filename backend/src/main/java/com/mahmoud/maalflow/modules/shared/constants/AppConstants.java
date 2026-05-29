@@ -27,7 +27,7 @@ public final class AppConstants {
     // Business rules
     public static final BigDecimal ROUNDING_UNIT = BigDecimal.valueOf(50);
     public static final BigDecimal MINIMUM_INSTALLMENT = BigDecimal.valueOf(50);
-    public static final BigDecimal DEFAULT_MANAGEMENT_FEE_PERCENTAGE = BigDecimal.valueOf(30); // 30%
+    public static final BigDecimal DEFAULT_MANAGEMENT_FEE_PERCENTAGE = BigDecimal.valueOf(33.33); // 33.33%
     public static final BigDecimal DEFAULT_ZAKAT_FEE_PERCENTAGE = BigDecimal.valueOf(0); // 0%
     public static final int DEFAULT_REMINDER_DAYS = 5;
     public static final int NEW_INVESTMENT_DELAY_MONTHS = 2; // to allow new partners to earn profit

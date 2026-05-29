@@ -19,17 +19,17 @@ public class NotificationController {
 
     private final NotificationService service;
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<Notification>> getUserNotifications(
-            @PathVariable Long userId,
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<Page<Notification>> getCustomerNotifications(
+            @PathVariable Long customerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(service.getUserNotifications(userId, page, size));
+        return ResponseEntity.ok(service.getCustomerNotifications(customerId, page, size));
     }
 
-    @GetMapping("/user/{userId}/unread-count")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(@PathVariable Long userId) {
-        return ResponseEntity.ok(Map.of("unreadCount", service.getUnreadCount(userId)));
+    @GetMapping("/customer/{customerId}/unread-count")
+    public ResponseEntity<Map<String, Long>> getUnreadCount(@PathVariable Long customerId) {
+        return ResponseEntity.ok(Map.of("unreadCount", service.getUnreadCount(customerId)));
     }
 
     @PutMapping("/{id}/read")
@@ -38,9 +38,9 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/user/{userId}/read-all")
-    public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
-        service.markAllAsRead(userId);
+    @PutMapping("/customer/{customerId}/read-all")
+    public ResponseEntity<Void> markAllAsRead(@PathVariable Long customerId) {
+        service.markAllAsRead(customerId);
         return ResponseEntity.ok().build();
     }
 }

@@ -14,10 +14,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -33,28 +37,39 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final RefreshTokenRevocationService refreshTokenRevocationService;
 
     @Transactional
-    public AuthResponse login(AuthRequest request) {
-        String email = normalizeEmail(request.getEmail());
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, request.getPassword())
-        );
+    public AuthResponse     login(AuthRequest request) {
+        String email = request.getEmail();
 
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new BusinessException("messages.user.notFound"));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
+            );
+            User user = userRepository.findByEmailIgnoreCase(email)
+                    .orElseThrow(() -> new BusinessException("messages.user.notFound"));
 
-        var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String accessToken = jwtService.generateAccessToken(userDetails, user.getId(), user.getRole().name());
+            // Load user details for JWT generation (no additional DB query needed if we pass user directly)
+            var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+            String accessToken = jwtService.generateAccessToken(userDetails, user.getId(), user.getRole().name());
 
-        String familyId = UUID.randomUUID().toString();
-        String refreshJti = jwtService.generateRefreshJti();
-        String refreshToken = jwtService.generateRefreshToken(userDetails, user.getId(), familyId, null, refreshJti);
+            String familyId = UUID.randomUUID().toString();
+            String refreshJti = UUID.randomUUID().toString();
+            String refreshToken = jwtService.generateRefreshToken(userDetails, user.getId(), familyId, null, refreshJti);
+//            String minToken = Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(refreshToken.getBytes()));
 
-        persistRefreshToken(user, refreshToken, refreshJti, familyId, null, null, null);
+            persistRefreshToken(user, refreshToken, refreshJti, familyId, null, null, null);
 
-        log.info("User logged in: {}", user.getEmail());
-        return buildResponse(user, accessToken, refreshToken);
+            log.info("User logged in: {}", user.getEmail());
+            return buildResponse(user, accessToken, refreshToken);
+
+        } catch (Exception ex) {
+            log.warn("Authentication failed for email: {} - {}", email, ex.getMessage());
+            log.info("Failed login attempt for email: {}", email);
+            throw new BusinessException("messages.auth.invalidCredentials");
+        }
+
     }
 
     @Transactional
@@ -74,18 +89,19 @@ public class AuthenticationService {
             RefreshToken existing = refreshTokenRepository.findByJti(jti)
                     .orElseThrow(() -> new BusinessException("messages.auth.invalidRefreshToken"));
 
-            if (!passwordEncoder.matches(refreshToken, existing.getTokenHash())
+            if (!passwordEncoder.matches(hashToken(refreshToken), existing.getTokenHash())
+//            if (!refreshToken.equals( existing.getTokenHash())
                     || existing.getRevokedAt() != null
                     || existing.getReplacedByJti() != null
                     || existing.isReuseDetected()) {
-                revokeFamily(existing.getFamilyId());
+                refreshTokenRevocationService.revokeFamily(existing.getFamilyId());
                 throw new BusinessException("messages.auth.invalidRefreshToken");
             }
 
             User user = existing.getUser();
             String accessToken = jwtService.generateAccessToken(userDetails, user.getId(), user.getRole().name());
 
-            String newJti = jwtService.generateRefreshJti();
+            String newJti =UUID.randomUUID().toString();
             String newRefreshToken = jwtService.generateRefreshToken(userDetails, user.getId(), familyId, jti, newJti);
             persistRefreshToken(user, newRefreshToken, newJti, familyId, jti, null, null);
 
@@ -97,6 +113,7 @@ public class AuthenticationService {
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
+            log.error(  "Unexpected error: {}", ex.getMessage());
             throw new BusinessException("messages.auth.invalidRefreshToken");
         }
     }
@@ -130,17 +147,9 @@ public class AuthenticationService {
                 throw new BusinessException("messages.auth.invalidRefreshToken");
             }
 
-            User user = userRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new BusinessException("messages.user.notFound"));
-            List<RefreshToken> tokens = refreshTokenRepository.findAllByUser_Id(user.getId());
-            LocalDateTime now = LocalDateTime.now();
-            for (RefreshToken token : tokens) {
-                if (token.getRevokedAt() == null) {
-                    token.setRevokedAt(now);
-                    token.setReuseDetected(true);
-                }
-            }
-            refreshTokenRepository.saveAll(tokens);
+            String familyId = jwtService.extractFamilyId(refreshToken);
+            refreshTokenRevocationService.revokeFamily(familyId);
+
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -149,10 +158,12 @@ public class AuthenticationService {
     }
 
     private void persistRefreshToken(User user, String rawToken, String jti, String familyId, String parentJti,
-                                     String deviceId, String userAgent) {
+                                     String deviceId, String userAgent) throws NoSuchAlgorithmException {
+        String hashedToken = hashToken(rawToken);
         RefreshToken token = RefreshToken.builder()
                 .user(user)
-                .tokenHash(passwordEncoder.encode(rawToken))
+                    .tokenHash(passwordEncoder.encode(hashedToken))
+//                    .tokenHash(rawToken)
                 .jti(jti)
                 .familyId(familyId)
                 .parentJti(parentJti)
@@ -166,17 +177,7 @@ public class AuthenticationService {
         refreshTokenRepository.save(token);
     }
 
-    private void revokeFamily(String familyId) {
-        List<RefreshToken> tokens = refreshTokenRepository.findAllByFamilyId(familyId);
-        LocalDateTime now = LocalDateTime.now();
-        for (RefreshToken token : tokens) {
-            token.setReuseDetected(true);
-            if (token.getRevokedAt() == null) {
-                token.setRevokedAt(now);
-            }
-        }
-        refreshTokenRepository.saveAll(tokens);
-    }
+
 
     private AuthResponse buildResponse(User user, String accessToken, String refreshToken) {
         return AuthResponse.builder()
@@ -190,12 +191,14 @@ public class AuthenticationService {
                 .build();
     }
 
-    private String normalizeEmail(String email) {
-        if (!StringUtils.hasText(email)) {
-            throw new BusinessException("validation.email.required");
-        }
-        return email.trim().toLowerCase(Locale.ROOT);
+    private String hashToken(String token) throws NoSuchAlgorithmException {
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes());
+            return Base64.getEncoder().encodeToString(hash);
+
     }
+
 }
 
 

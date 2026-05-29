@@ -127,7 +127,8 @@ public class PartnerWithdrawalService {
         }
 
         // Validate balance again at processing time
-        validatePartnerBalance(partner.getId(), withdrawal.getAmount());
+        // comment this method as already done and subtract in approval step
+//        validatePartnerBalance(partner.getId(), withdrawal.getAmount());
 
         withdrawal.setStatus(WithdrawalStatus.COMPLETED);
         withdrawal.setProcessedAt(LocalDateTime.now());

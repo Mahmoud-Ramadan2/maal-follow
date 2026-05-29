@@ -61,11 +61,11 @@ public class CapitalPoolService {
         // Create new capital pool from request
         CapitalPool newPool = capitalPoolMapper.toEntity(request);
 //        newPool.setId(DEFAULT_POOL_ID);
-        if (newPool.getId() == null) {
-            newPool.setId(DEFAULT_POOL_ID);
-        } else if (!newPool.getId().equals(DEFAULT_POOL_ID)) {
-            throw new BusinessException("messages.capitalPool.invalidId");
-        }
+//        if (newPool.getId() == null) {
+//            newPool.setId(DEFAULT_POOL_ID);
+//        } else if (!newPool.getId().equals(DEFAULT_POOL_ID)) {
+//            throw new BusinessException("messages.capitalPool.invalidId");
+//        }
         // Set initial amounts based on the request
         newPool.setTotalAmount(request.getTotalAmount());
         newPool.setOwnerContribution(request.getOwnerContribution());

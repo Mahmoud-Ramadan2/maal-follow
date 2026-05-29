@@ -39,8 +39,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/**").authenticated()
-                        .anyRequest().denyAll())
+                        .requestMatchers("/api/v1/**").permitAll()
+                        .anyRequest().permitAll())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -56,6 +56,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 

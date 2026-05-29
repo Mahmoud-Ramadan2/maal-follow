@@ -94,9 +94,6 @@ public class JwtService {
         return isTokenValid(token, userDetails) && "refresh".equals(extractTokenType(token));
     }
 
-    public String generateRefreshJti() {
-        return UUID.randomUUID().toString();
-    }
 
     public long getRefreshExpirationMillis() {
         return refreshExpiration;

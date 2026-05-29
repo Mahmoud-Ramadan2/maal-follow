@@ -35,6 +35,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.MAX_FILE_SIZE;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.ALLOWED_IMAGE_EXTENSIONS;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.ALLOWED_PDF_EXTENSIONS;
+import static com.mahmoud.maalflow.modules.shared.constants.AppConstants.ALLOWED_DOC_EXTENSIONS;
+
 /**
  * Service for managing documents
  *
@@ -54,14 +59,8 @@ public class DocumentService {
     private final ContractRepository contractRepository;
     private final PaymentRepository paymentRepository;
 
-    // Maximum file size: 10MB
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-    // Allowed file extensions
-    private static final List<String> ALLOWED_IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png", "gif", "bmp", "webp");
-    private static final List<String> ALLOWED_PDF_EXTENSIONS = List.of("pdf");
-    private static final List<String> ALLOWED_DOC_EXTENSIONS = List.of("doc", "docx", "xls", "xlsx", "txt");
-
+    // Allowed file extension
     /**
      * Creates a new document with metadata only (file URL reference).
      */

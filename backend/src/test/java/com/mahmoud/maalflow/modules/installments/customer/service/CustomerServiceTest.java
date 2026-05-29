@@ -31,6 +31,18 @@ class CustomerServiceTest {
     @Mock
     private MessageSource messageSource;
 
+    @Mock
+    private com.mahmoud.maalflow.modules.installments.customer.repo.CustomerAccountLinkRepository customerAccountLinkRepository;
+
+    @Mock
+    private com.mahmoud.maalflow.modules.shared.user.repo.UserRepository userRepository;
+
+    @Mock
+    private com.mahmoud.maalflow.modules.installments.contract.mapper.ContractMapper contractMapper;
+
+    @Mock
+    private com.mahmoud.maalflow.modules.installments.customer.mapper.CustomerAccountLinkMapper customerAccountLinkMapper;
+
     @InjectMocks
     private CustomerService customerService;
 
@@ -53,6 +65,7 @@ class CustomerServiceTest {
         Customer customer = new Customer();
         when(mapper.toCustomer(request)).thenReturn(customer);
         when(customerRepository.save(customer)).thenReturn(customer);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(new com.mahmoud.maalflow.modules.shared.user.entity.User()));
         CustomerResponse response = new CustomerResponse();
         when(mapper.toCustomerResponse(customer)).thenReturn(response);
 

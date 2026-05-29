@@ -1,3 +1,16 @@
+-- 1. Insert default admin user
+INSERT INTO user
+(id, name, email, password, role, phone, created_at)
+VALUES (1, 'admin', 'ad@test.eg', '$2a$12$P0RsRJ.QAOT1RqA4BjVzbekPbvwXRY9iuVPkjwQUqZF3u24kiU3PK', 'ADMIN', '1234567891',
+        CURRENT_TIMESTAMP);
+
+-- 2. Insert default capital pool
+
+INSERT INTO capital_pool
+(id, total_amount, owner_contribution, partner_contributions, description, created_at, updated_at)
+VALUES(1, 0.00, 0.00, 0.00, 'القيم المبدأية رأس المال',  CURRENT_TIMESTAMP, NULL);
+
+
 
 -- 15. Insert default export templates
 INSERT INTO export_template (name, template_type, template_config, is_default, created_by) VALUES
@@ -7,7 +20,7 @@ INSERT INTO export_template (name, template_type, template_config, is_default, c
 
 -- 16. Insert default application settings
 INSERT INTO application_setting(setting_key, setting_value, description, category) VALUES
-                                                                                       ('default_management_fee_percentage', '0.0', 'Default management fee percentage', 'PROFIT_CALCULATION'),
+                                                                                       ('default_management_fee_percentage', '33.33', 'Default management fee percentage', 'PROFIT_CALCULATION'),
                                                                                        ('default_zakat_percentage', '2.5', 'Default Zakat percentage', 'PROFIT_CALCULATION'),
                                                                                        ('reminder_days_before_due', '5', 'Days before due date to send reminder', 'NOTIFICATIONS'),
                                                                                        ('profit_calculation_delay_months', '1', 'Months to wait before calculating partner profit', 'PROFIT_CALCULATION'),

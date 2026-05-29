@@ -190,7 +190,11 @@ public interface InstallmentScheduleRepository extends JpaRepository<Installment
     /**
      * Find unpaid installments due on specific date (for reminders).
      */
-    @Query("SELECT s FROM InstallmentSchedule s WHERE s.dueDate = :dueDate AND s.status IN ('PENDING', 'LATE')")
+    @Query("""
+SELECT s FROM InstallmentSchedule s
+WHERE s.dueDate <= :dueDate
+AND s.status IN ('PENDING','PARTIALLY_PAID', 'LATE')
+""")
     List<InstallmentSchedule> findUnpaidInstallmentsDueOnDate(@Param("dueDate") LocalDate dueDate);
 
 }

@@ -2,7 +2,6 @@ package com.mahmoud.maalflow.modules.installments.partner.service;
 
 import com.mahmoud.maalflow.exception.BusinessException;
 import com.mahmoud.maalflow.exception.ObjectNotFoundException;
-import com.mahmoud.maalflow.modules.installments.capital.service.CapitalTransactionService;
 import com.mahmoud.maalflow.modules.installments.ledger.dto.LedgerResponse;
 import com.mahmoud.maalflow.modules.installments.ledger.service.LedgerService;
 import com.mahmoud.maalflow.modules.installments.partner.dto.PartnerInvestmentRequest;
@@ -12,13 +11,13 @@ import com.mahmoud.maalflow.modules.installments.partner.repo.PartnerMonthlyProf
 import com.mahmoud.maalflow.modules.installments.payment.enums.PaymentMethod;
 import com.mahmoud.maalflow.modules.shared.user.entity.User;
 import com.mahmoud.maalflow.modules.shared.user.repo.UserRepository;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,6 +50,7 @@ public class PartnerMonthlyProfitService {
     @Transactional
     public PartnerMonthlyProfit payMonthlyProfit(Long monthlyProfitId,
                                                  Long paidByUserId,
+                                                 BigDecimal payoutAmount,
                                                  PaymentMethod paymentMethod,
                                                  LocalDate paymentDate,
                                                  String notes) {
@@ -62,44 +62,79 @@ public class PartnerMonthlyProfitService {
             throw new BusinessException("messages.partner.monthlyProfit.invalidStatusForPayment");
         }
 
+        BigDecimal calculated = monthlyProfit.getCalculatedProfit();
+        if (calculated == null || calculated.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("messages.partner.monthlyProfit.invalidCalculatedProfit");
+        }
+
+        // Backward compatible: if payoutAmount is not provided, pay full amount.
+        BigDecimal payout = payoutAmount == null ? calculated : payoutAmount;
+        payout = payout.setScale(2, RoundingMode.HALF_UP);
+
+        if (payout.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("messages.amount.mustBePositive");
+        }
+        if (payout.compareTo(calculated) > 0) {
+            throw new BusinessException("messages.partner.monthlyProfit.payoutAmountExceedsCalculated");
+        }
+
+        BigDecimal reinvest = calculated.subtract(payout).setScale(2, RoundingMode.HALF_UP);
+
         User paidBy = userRepository.findById(paidByUserId)
                 .orElseThrow(() -> new BusinessException("messages.user.notFound"));
 
-        monthlyProfit.setStatus(ProfitStatus.PAID);
+        if (payout.compareTo(BigDecimal.ZERO) == 0) {
+            monthlyProfit.setStatus(ProfitStatus.REINVESTED);
+        } else if (reinvest.compareTo(BigDecimal.ZERO) == 0) {
+            monthlyProfit.setStatus(ProfitStatus.PAID);
+        } else {
+            monthlyProfit.setStatus(ProfitStatus.PARTIALLY_SETTLED);
+        }
+
         monthlyProfit.setPaidBy(paidBy);
         monthlyProfit.setPaymentMethod(paymentMethod != null ? paymentMethod : PaymentMethod.CASH);
         monthlyProfit.setPaymentDate(paymentDate != null ? paymentDate : LocalDate.now());
+        monthlyProfit.setPaidAmount(payout);
+        monthlyProfit.setReinvestedAmount(reinvest);
         if (notes != null && !notes.isBlank()) {
             monthlyProfit.setNotes(notes);
         }
 
         PartnerMonthlyProfit saved = partnerMonthlyProfitRepository.save(monthlyProfit);
 
-        LedgerResponse ledgerResponse = ledgerService.recordPartnerProfitDistributionExpense(
-                saved.getPartner().getId(),
-                saved.getCalculatedProfit(),
-                saved.getId(),
-                "Partner monthly profit payout for " + saved.getProfitDistribution().getMonthYear()
-        );
+        if (payout.compareTo(BigDecimal.ZERO) > 0) {
+            LedgerResponse ledgerResponse = ledgerService.recordPartnerProfitDistributionExpense(
+                    saved.getPartner().getId(),
+                    payout,
+                    saved.getId(),
+                    "Partner monthly profit payout for " + saved.getProfitDistribution().getMonthYear()
+            );
 
-        // TODO
-//        CapitalTransactionRequest txRequest = CapitalTransactionRequest.builder()
-//                .transactionType(CapitalTransactionType.WITHDRAWAL)
-//                .amount(saved.getCalculatedProfit())
-//                .partnerId(saved.getPartner().getId())
-//                .referenceType(PartnerPayoutReferenceTypes.PARTNER_MONTHLY_PROFIT_PAYOUT)
-//                .referenceId(saved.getId())
-//                .description("Partner monthly profit payout ID " + saved.getId())
-//                .build();
-//        CapitalTransactionResponse capitalResponse = capitalTransactionService.createCapitalTransaction(txRequest);
+            log.info("Partner monthly profit payout settlement trace: monthlyProfitId={}, partnerId={}, amount={}, ledgerId={}, ledgerKey={}",
+                    saved.getId(),
+                    saved.getPartner().getId(),
+                    payout,
+                    ledgerResponse.getId(),
+                    ledgerResponse.getIdempotencyKey()
+            );
+        }
 
-        log.info("Partner monthly profit payout settlement trace: monthlyProfitId={}, partnerId={}, amount={}, ledgerId={}, ledgerKey={}",
-                saved.getId(),
-                saved.getPartner().getId(),
-                saved.getCalculatedProfit(),
-                ledgerResponse.getId(),
-                ledgerResponse.getIdempotencyKey()
-               );
+        if (reinvest.compareTo(BigDecimal.ZERO) > 0) {
+            String investmentNote = String.format(
+                    "إعادة استثمار جزء من ربح شهر %s الخاص بشريك رقم%d (reinvested=%s)",
+                    saved.getProfitDistribution().getMonthYear(),
+                    saved.getPartner().getId(),
+                    reinvest
+            );
+            recordProfitInvestment(reinvest, saved.getPartner().getId(), investmentNote);
+
+            log.info("Partner monthly profit reinvest settlement trace: monthlyProfitId={}, partnerId={}, amount={}, userId={}",
+                    saved.getId(),
+                    saved.getPartner().getId(),
+                    reinvest,
+                    paidBy.getId()
+            );
+        }
 
         return saved;
     }
@@ -130,6 +165,9 @@ public class PartnerMonthlyProfitService {
         if (notes != null && !notes.isBlank()) {
             monthlyProfit.setNotes(notes);
         }
+
+        monthlyProfit.setPaidAmount(BigDecimal.ZERO);
+        monthlyProfit.setReinvestedAmount(monthlyProfit.getCalculatedProfit());
 
         // record as invetstment in the partner's capital pool instead of payment
         // record investment in partner investment service with pending status

@@ -23,6 +23,8 @@ public class PartnerMonthlyProfitResponse {
     private BigDecimal investmentAmount;
     private BigDecimal sharePercentage;
     private BigDecimal calculatedProfit;
+    private BigDecimal paidAmount;
+    private BigDecimal reinvestedAmount;
     private ProfitStatus status;
     private LocalDate paymentDate;
     private PaymentMethod paymentMethod;
